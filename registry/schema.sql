@@ -9,3 +9,13 @@ CREATE TABLE IF NOT EXISTS sessions (
 );
 CREATE INDEX IF NOT EXISTS sessions_project_day ON sessions (project, day);
 CREATE INDEX IF NOT EXISTS sessions_day ON sessions (day);
+
+-- The llm variable: agent tokens per agent name and provider/model, one row per pair of a report.
+CREATE TABLE IF NOT EXISTS llm (
+  project TEXT NOT NULL,
+  day     TEXT NOT NULL,
+  agent   TEXT NOT NULL,      -- the OpenCode agent's name: coordinator, delegate, build, plan…
+  model   TEXT NOT NULL,      -- "provider/model" as OpenCode names it
+  tokens  INTEGER NOT NULL    -- agent tokens
+);
+CREATE INDEX IF NOT EXISTS llm_project ON llm (project);

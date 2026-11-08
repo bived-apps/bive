@@ -129,12 +129,13 @@ Bive keeps a public, live, anonymous registry of the projects built with it: **[
 It is on by default and is the one thing Bive asks in return; the licence (MIT) does not require it.
 
 - **What is sent**, when a root session goes idle: the human tokens, agent tokens and violations (writes the guard
-  refused: outside the worktree, or a delegate on an inviolable file) since the last report, the
+  refused: outside the worktree, or a delegate on an inviolable file) since the last report, the agent tokens per
+  OpenCode agent name and provider/model (the llm variable), the
   project's size in tracked text lines rounded to two significant figures (48 213 → 48 000), and the random id in
   `.bive/registry-id`, drawn on the first session. That id is the app's unique identifier: commit it so every clone
-  and worktree reports as one app, and never copy it from another project (a template copy has none). Nothing else: no name, repository, path, model, text or date (the
+  and worktree reports as one app, and never copy it from another project (a template copy has none). Nothing else: no project name, repository, path, text or date (the
   server sets the day).
-- **What is kept**: one row per report (id, day, the four numbers). The server never reads or stores the IP
+- **What is kept**: one row per report (id, day, the four numbers) and one per agent and model. The server never reads or stores the IP
   address; the public page shows projects as #1, #2… and never their id.
 - **Turn it off**: `export BIVE_REGISTRY=off`. Point it elsewhere (your own registry): `BIVE_REGISTRY_URL=<url>`.
 - **Run a registry**: `registry/` holds the Cloudflare Worker (`worker.js`, D1 `schema.sql`, `wrangler.toml`) and

@@ -6,7 +6,7 @@
 // Live sharing (opt-in): with BIVE_TOKENS_GIST=<gist id> and `gh` signed in, the totals are pushed at most every
 // 5 minutes as a shields.io endpoint file, for a README badge (see the README › Token ratio).
 // Public registry (on by default, BIVE_REGISTRY=off to stop; see the README › Registry): when a root session goes
-// idle, the human and agent tokens and the guard's refusals (violations) since the last send, and the code size (tracked text lines, rounded to two
+// idle, the human and agent tokens (agent tokens also per agent name and provider/model: the llm variable) and the guard's refusals (violations) since the last send, and the code size (tracked text lines, rounded to two
 // significant figures) are posted with the random id of .bive/registry-id. Nothing else: no name, path or text.
 // A delegate process is started with BIVE_ROLE=delegate: its prompt comes from the coordinator, so it counts as agent.
 import type { Plugin } from "@opencode-ai/plugin"
@@ -73,6 +73,7 @@ export const TokenRatio: Plugin = async ({ client, directory, worktree }) => {
   const registryOn = process.env.BIVE_REGISTRY !== "off"
   const registryUrl = process.env.BIVE_REGISTRY_URL || REGISTRY_URL
   const pending = { human: 0, agent: 0, violations: 0 }
+  let pendingModels: Record<string, number> = {}     // agent tokens per "agent|provider/model" (the llm variable)
   const g = globalThis as { __biveViolations?: number }   // counted by worktree-guard.ts
   let violationsSeen = 0
   let loc = { at: 0, value: 0 }
@@ -100,9 +101,11 @@ export const TokenRatio: Plugin = async ({ client, directory, worktree }) => {
     }
     return parents.get(id) === null
   }
-  const log = (kind: "human" | "agent", tokens: number, session: string, model = "") => {
+  const log = (kind: "human" | "agent", tokens: number, session: string, model = "", agentName = "") => {
     if (tokens <= 0) return
     pending[kind] += tokens
+    const key = `${agentName || "unknown"}|${model}`
+    if (kind === "agent" && model) pendingModels[key] = (pendingModels[key] ?? 0) + tokens
     appendFileSync(file, JSON.stringify({ t: Date.now(), kind, tokens, session, model }) + "\n")
     share()
   }
@@ -135,8 +138,11 @@ export const TokenRatio: Plugin = async ({ client, directory, worktree }) => {
       try { loc = { at: Date.now(), value: twoDigits(codeLines(main)) } } catch { loc.at = Date.now() }
     }
     const body = { v: 1, project, human: pending.human, agent: pending.agent, violations: pending.violations,
+                   llm: Object.entries(pendingModels).map(([k, tokens]) => {
+                     const [agent, model] = k.split("|"); return { agent, model, tokens } }),
                    loc: loc.value }
     pending.human = pending.agent = pending.violations = 0
+    pendingModels = {}
     try {
       const r = await fetch(registryUrl, { method: "POST", headers: { "content-type": "application/json" },
                                            body: JSON.stringify(body), signal: AbortSignal.timeout(10_000) })
@@ -144,6 +150,7 @@ export const TokenRatio: Plugin = async ({ client, directory, worktree }) => {
     } catch (err) {
       pending.human += body.human; pending.agent += body.agent   // kept for the next session end
       pending.violations += body.violations
+      for (const l of body.llm) pendingModels[`${l.agent}|${l.model}`] = (pendingModels[`${l.agent}|${l.model}`] ?? 0) + l.tokens
       if (!warned) console.error(`Bive registry: not sent (${(err as Error).message}); retried at each session end.`)
       warned = true
     }
@@ -163,7 +170,7 @@ export const TokenRatio: Plugin = async ({ client, directory, worktree }) => {
       const m = event.properties.info
       if (m.role !== "assistant" || !m.time.completed || counted.has(m.id)) return
       counted.add(m.id)
-      log("agent", m.tokens.output + m.tokens.reasoning, m.sessionID, `${m.providerID}/${m.modelID}`)
+      log("agent", m.tokens.output + m.tokens.reasoning, m.sessionID, `${m.providerID}/${m.modelID}`, m.mode)
     },
   }
 }
