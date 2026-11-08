@@ -83,6 +83,8 @@ satellites out, first project installed. GitHub issues are the source of truth o
   (#21); in the coordinator's session, writes and shell `workdir` under `.worktrees/issue-<n>/` are then checked as
   that delegate's, but a command run from the checkout's root that only names such a path (`cd .worktrees/… && …`)
   is not, and a delegate session elsewhere without the variable or the role file fails open.
+- Some Linux distributions build Node without TypeScript support (`node -p process.features.typescript` is
+  `false`, the tests fail with `ERR_UNKNOWN_FILE_EXTENSION`): use an official Node 22+ build.
 - `.bive/registry-id`, once committed, is public: the registry is a count, not a proof.
 - GitHub's squash button sets the pull request's GitHub author as commit author (the owner, for #4): use the rebase
   button (`gh pr merge --rebase`) for a one-commit pull request, which keeps the agent as author, until ROADMAP ›
@@ -97,6 +99,18 @@ satellites out, first project installed. GitHub issues are the source of truth o
   those in GitHub's settings.
 
 ## Session log
+
+- **2026-11-08, field report of a Python / ImGui project (coordinator Opus 5.5, started as a subagent of that
+  project's coordinator)**: the first field report (posted on #35) became #22 (worktrees in `.worktrees/issue-<n>`
+  inside the checkout, git-ignored), #28 (identity with `git config --worktree`, and after a model switch), #36
+  (the guard knows a delegate by its worktree path or `.bive/state/role`, also as a child session; closes #21), #37
+  (the review as a checklist in step 7, the core run once per batch in step 9, `docs/COORDINATING.md`) and #35 (field
+  reports: rule, template, prompt lines). All coordinator work (inviolable files), done by the coordinator itself on
+  one branch and one PR each (#38–#42), squash-merged locally into `bived` and the PRs closed with the commit. The
+  session had no subagent tool. Core run once at the end: 24 tests pass. The machine's distro Node 24 has no
+  TypeScript support (`ERR_UNKNOWN_FILE_EXTENSION`); the tests ran on an official Node 22 binary under
+  `.bive/state/`. Not verified live: the guard inside OpenCode (`opencode plugin list`, a subagent refused on
+  `.worktrees/issue-<n>/AGENTS.md`).
 
 - **2026-11-08, 0.1 › 1 and 2 (coordinator Opus 5.5)**: fresh-clone check passed (#13): 0.1 › 1 done. It showed
   token-ratio counting every session on the server, not only its own: fixed by an exact directory match (#14, live
