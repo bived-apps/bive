@@ -57,6 +57,7 @@ create a repository or a remote.
 | `HANDOFF.md`, `ROADMAP.md` | State and plan, kept true by the coordinator (here: Bive's own) |
 | `.bive/prompts/` | The three role prompts, inviolable; `project/` holds a project's additions |
 | `.bive/templates/` | `brief.md` in, `report.md` out; the skeletons of `README.md`, `HANDOFF.md`, `ROADMAP.md` |
+| `docs/COORDINATING.md` | The coordinator's routine (start, review, merge, clean) as shell commands |
 | `.bive/models.json` | The model order per role, for the fallback rule ([docs/PROVIDERS.md](docs/PROVIDERS.md)) |
 | `opencode.jsonc` | Agents and permissions, written by hand and tight |
 | `.opencode/plugins/worktree-guard/` | Refuses writes outside the worktree, shell paths included; `check.ts` decides, `index.ts` plugs it into OpenCode 2 (`node --test tests/*.test.ts`) |
