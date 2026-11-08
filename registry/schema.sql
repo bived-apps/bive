@@ -16,6 +16,9 @@ CREATE TABLE IF NOT EXISTS llm (
   day     TEXT NOT NULL,
   agent   TEXT NOT NULL,      -- the OpenCode agent's name: coordinator, delegate, build, plan…
   model   TEXT NOT NULL,      -- "provider/model" as OpenCode names it
-  tokens  INTEGER NOT NULL    -- agent tokens
+  tokens  INTEGER NOT NULL,   -- agent tokens (output + reasoning)
+  input   INTEGER NOT NULL DEFAULT 0,   -- input tokens (prompt + cache reads)
+  ms      INTEGER NOT NULL DEFAULT 0,   -- summed response time, created -> completed
+  replies INTEGER NOT NULL DEFAULT 0    -- number of responses
 );
 CREATE INDEX IF NOT EXISTS llm_project ON llm (project);

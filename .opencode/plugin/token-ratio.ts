@@ -73,7 +73,14 @@ export const TokenRatio: Plugin = async ({ client, directory, worktree }) => {
   const registryOn = process.env.BIVE_REGISTRY !== "off"
   const registryUrl = process.env.BIVE_REGISTRY_URL || REGISTRY_URL
   const pending = { human: 0, agent: 0, violations: 0 }
-  let pendingModels: Record<string, number> = {}     // agent tokens per "agent|provider/model" (the llm variable)
+  // The llm variable, per "agent|provider/model": output tokens, input tokens (prompt + cache reads) and the summed
+  // response time in milliseconds (created -> completed), from which the registry derives its speed metrics.
+  type Use = { tokens: number, input: number, ms: number, replies: number }
+  let pendingModels: Record<string, Use> = {}
+  const addUse = (key: string, u: Use) => {
+    const c = (pendingModels[key] ??= { tokens: 0, input: 0, ms: 0, replies: 0 })
+    c.tokens += u.tokens; c.input += u.input; c.ms += u.ms; c.replies += u.replies
+  }
   const g = globalThis as { __biveViolations?: number }   // counted by worktree-guard.ts
   let violationsSeen = 0
   let loc = { at: 0, value: 0 }
@@ -101,11 +108,12 @@ export const TokenRatio: Plugin = async ({ client, directory, worktree }) => {
     }
     return parents.get(id) === null
   }
-  const log = (kind: "human" | "agent", tokens: number, session: string, model = "", agentName = "") => {
+  const log = (kind: "human" | "agent", tokens: number, session: string, model = "", agentName = "",
+               input = 0, ms = 0) => {
     if (tokens <= 0) return
     pending[kind] += tokens
     const key = `${agentName || "unknown"}|${model}`
-    if (kind === "agent" && model) pendingModels[key] = (pendingModels[key] ?? 0) + tokens
+    if (kind === "agent" && model) addUse(key, { tokens, input, ms, replies: 1 })
     appendFileSync(file, JSON.stringify({ t: Date.now(), kind, tokens, session, model }) + "\n")
     share()
   }
@@ -138,8 +146,8 @@ export const TokenRatio: Plugin = async ({ client, directory, worktree }) => {
       try { loc = { at: Date.now(), value: twoDigits(codeLines(main)) } } catch { loc.at = Date.now() }
     }
     const body = { v: 1, project, human: pending.human, agent: pending.agent, violations: pending.violations,
-                   llm: Object.entries(pendingModels).map(([k, tokens]) => {
-                     const [agent, model] = k.split("|"); return { agent, model, tokens } }),
+                   llm: Object.entries(pendingModels).map(([k, u]) => {
+                     const [agent, model] = k.split("|"); return { agent, model, ...u } }),
                    loc: loc.value }
     pending.human = pending.agent = pending.violations = 0
     pendingModels = {}
@@ -150,7 +158,7 @@ export const TokenRatio: Plugin = async ({ client, directory, worktree }) => {
     } catch (err) {
       pending.human += body.human; pending.agent += body.agent   // kept for the next session end
       pending.violations += body.violations
-      for (const l of body.llm) pendingModels[`${l.agent}|${l.model}`] = (pendingModels[`${l.agent}|${l.model}`] ?? 0) + l.tokens
+      for (const { agent, model, ...u } of body.llm) addUse(`${agent}|${model}`, u)
       if (!warned) console.error(`Bive registry: not sent (${(err as Error).message}); retried at each session end.`)
       warned = true
     }
@@ -170,7 +178,8 @@ export const TokenRatio: Plugin = async ({ client, directory, worktree }) => {
       const m = event.properties.info
       if (m.role !== "assistant" || !m.time.completed || counted.has(m.id)) return
       counted.add(m.id)
-      log("agent", m.tokens.output + m.tokens.reasoning, m.sessionID, `${m.providerID}/${m.modelID}`, m.mode)
+      log("agent", m.tokens.output + m.tokens.reasoning, m.sessionID, `${m.providerID}/${m.modelID}`, m.mode,
+          m.tokens.input + m.tokens.cache.read, Math.max(0, m.time.completed - m.time.created))
     },
   }
 }

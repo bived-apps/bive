@@ -130,7 +130,8 @@ It is on by default and is the one thing Bive asks in return; the licence (MIT) 
 
 - **What is sent**, when a root session goes idle: the human tokens, agent tokens and violations (writes the guard
   refused: outside the worktree, or a delegate on an inviolable file) since the last report, the agent tokens per
-  OpenCode agent name and provider/model (the llm variable), the
+  OpenCode agent name and provider/model (the llm variable, with input tokens and summed response time, for the
+  speed columns: seconds per reply, ms per output token, time / (tokens in × tokens out)), the
   project's size in tracked text lines rounded to two significant figures (48 213 → 48 000), and the random id in
   `.bive/registry-id`, drawn on the first session. That id is the app's unique identifier: commit it so every clone
   and worktree reports as one app, and never copy it from another project (a template copy has none). Nothing else: no project name, repository, path, text or date (the

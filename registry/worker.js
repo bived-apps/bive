@@ -1,5 +1,5 @@
 // The Bive registry: receives anonymous session counts and serves them publicly.
-// POST /v1/session {v: 1, project: uuid, human, agent, violations, llm: [{agent, model, tokens}], loc} -> 204. GET /v1/stats -> totals. GET / -> the page.
+// POST /v1/session {v: 1, project: uuid, human, agent, violations, llm: [{agent, model, tokens, input, ms, replies}], loc} -> 204. GET /v1/stats -> totals. GET / -> the page.
 // The client's IP is never read or stored; the day is the server's, so no client clock is kept either.
 import page from "./index.html";
 
@@ -10,6 +10,8 @@ const MAX_VIOLATIONS = 100_000;          // per report
 const MODEL = /^[\w.\-]+\/[\w.:\-\/]{1,80}$/;
 const AGENT = /^[\w.\-]{1,40}$/;
 const MAX_MODELS = 20;                   // per report
+const MAX_MS = 7 * 24 * 3600 * 1000;     // a week of responses per report
+const MAX_INPUT = 2_000_000_000;
 const MAX_REPORTS_PER_DAY = 500;          // per project
 
 const json = (data, status = 200, extra = {}) => new Response(JSON.stringify(data), {
@@ -27,8 +29,9 @@ async function report(request, env) {
   }
   const llm = b.llm ?? [];
   if (!Array.isArray(llm) || llm.length > MAX_MODELS
-      || llm.some((l) => !AGENT.test(l?.agent ?? "") || !MODEL.test(l?.model ?? "") || !int(l?.tokens, MAX_TOKENS))) {
-    return json({ error: "llm: at most 20 {agent, model: \"provider/model\", tokens}" }, 400);
+      || llm.some((l) => !AGENT.test(l?.agent ?? "") || !MODEL.test(l?.model ?? "") || !int(l?.tokens, MAX_TOKENS)
+      || !int(l?.input ?? 0, MAX_INPUT) || !int(l?.ms ?? 0, MAX_MS) || !int(l?.replies ?? 0, 1_000_000))) {
+    return json({ error: "llm: at most 20 {agent, model: \"provider/model\", tokens, input, ms, replies}" }, 400);
   }
   const day = new Date().toISOString().slice(0, 10);
   const { n } = await env.DB.prepare("SELECT COUNT(*) AS n FROM sessions WHERE project = ? AND day = ?")
@@ -38,8 +41,8 @@ async function report(request, env) {
     .bind(b.project, day, b.human, b.agent, b.violations ?? 0, b.loc).run();
   if (llm.length) {
     await env.DB.batch(llm.map((l) => env.DB.prepare(
-      "INSERT INTO llm (project, day, agent, model, tokens) VALUES (?, ?, ?, ?, ?)")
-      .bind(b.project, day, l.agent, l.model, l.tokens)));
+      "INSERT INTO llm (project, day, agent, model, tokens, input, ms, replies) VALUES (?, ?, ?, ?, ?, ?, ?, ?)")
+      .bind(b.project, day, l.agent, l.model, l.tokens, l.input ?? 0, l.ms ?? 0, l.replies ?? 0)));
   }
   return new Response(null, { status: 204 });
 }
@@ -72,7 +75,16 @@ async function stats(env) {
   }
   // The llm variable: agent tokens per agent name and model overall, and each listed project's main model.
   const { results: models } = await env.DB.prepare(`SELECT agent, model, SUM(tokens) AS tokens,
-      COUNT(DISTINCT project) AS projects FROM llm GROUP BY agent, model ORDER BY tokens DESC LIMIT 50`).all();
+      SUM(input) AS input, SUM(ms) AS ms, SUM(replies) AS replies, COUNT(DISTINCT project) AS projects
+      FROM llm GROUP BY agent, model ORDER BY tokens DESC LIMIT 50`).all();
+  // Speed, per agent and model, on the mean response: seconds, milliseconds per output token, and the owner's
+  // metric, response time / (tokens in x tokens out), in nanoseconds (it falls fast as either count grows).
+  for (const m of models) {
+    const r = m.replies || 0, tin = r ? m.input / r : 0, tout = r ? m.tokens / r : 0, t = r ? m.ms / r : 0;
+    m.seconds = r ? +(t / 1000).toFixed(1) : null;
+    m.ms_per_token = tout ? +(t / tout).toFixed(1) : null;
+    m.ns_per_in_x_out = tin && tout ? +(t * 1e6 / (tin * tout)).toFixed(2) : null;
+  }
   const { results: mains } = await env.DB.prepare(`SELECT project, model, SUM(tokens) AS tokens FROM llm
       GROUP BY project, model ORDER BY tokens ASC`).all();
   const main = new Map(mains.map((r) => [r.project, r.model]));     // ascending: the largest wins
