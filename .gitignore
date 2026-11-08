@@ -2,3 +2,5 @@
 .bive/state/
 # Wrangler's local cache and temp files (registry/ Worker).
 registry/.wrangler/
+# Delegates' worktrees, one per issue (AGENTS.md › Rules): inside the checkout, never committed.
+.worktrees/

@@ -10,7 +10,9 @@ Also read `.bive/prompts/project/COORDINATOR.md` if it exists: the project's add
    the split (gate 1).
 4. **Brief**: fill `.bive/templates/brief.md` into `.bive/state/briefs/<n>.md`: exact functions, files and tests (the
    delegate may be a simpler model).
-5. **Start**: `git worktree add ../<repo>-<n> -b issue/<n>-<slug> milestone/<name>`, one delegate in it (its own OpenCode process, with `BIVE_ROLE=delegate`).
+5. **Start**: `git worktree add .worktrees/issue-<n> -b issue/<n>-<slug> milestone/<name>`: inside the checkout and
+   git-ignored, because the guard and `external_directory` refuse anything outside the session's directory (never
+   `../<repo>-<n>`). One delegate in it (its own OpenCode process, with `BIVE_ROLE=delegate`).
    At most three at once, never two on overlapping files.
 6. **Fallback**: on a model error (unreachable, 429, quota), restart the brief on the next model of
    `.bive/models.json`; name the model in your review. If all failed, stop and tell the owner which failed and why,

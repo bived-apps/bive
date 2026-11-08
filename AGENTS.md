@@ -15,7 +15,9 @@ Read this file, then [`HANDOFF.md`](HANDOFF.md), before changing anything. Your 
   and what is left) and holds the delegate's report.
 - **Claim the issue** with a short comment before working on it; update it with the result.
 - **Stay in your worktree**: the guard plugin refuses writes outside it, including shell redirections; a delegate's
-  commands may not name any path outside it (absolute, `~`, `$HOME`, `..`) apart from the system folders.
+  commands may not name any path outside it (absolute, `~`, `$HOME`, `..`) apart from the system folders. A
+  delegate's worktree is `.worktrees/issue-<n>`, inside the checkout and git-ignored (never `../<repo>-<n>`: the
+  coordinator's session may not write there).
 - **Never**: force-push, rewrite pushed history, push to `main`, `rm -rf`, read SSH keys or the private paths listed
   in `opencode.jsonc`.
 - **Keep sessions and prompts short**: continue a stuck delegate with one short message rather than a new session;

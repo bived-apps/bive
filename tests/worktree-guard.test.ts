@@ -87,8 +87,23 @@ describe("shell, delegate", () => {
   })
 })
 
+describe("nested worktree (.worktrees/issue-<n>, AGENTS.md › Rules)", () => {
+  const nested = path.join(main, ".worktrees", "issue-5")
+  const d = makeGuard({ root: nested, delegate: true })
+  const c = makeGuard({ root: main, delegate: false })
+  test("a delegate there cannot write into the parent checkout", () => {
+    refused(write(d, "../../a.py"), /outside/)
+    refused(write(d, path.join(main, "a.py")), /outside/)
+    refused(shell(d, "cd ../.. && git status"), /outside/)
+    passes(write(d, "src/a.py"))
+  })
+  test("the coordinator creates it from its own checkout", () => {
+    passes(shell(c, "git worktree add .worktrees/issue-5 -b issue/5-x bived", main))
+  })
+})
+
 describe("violations", () => {
   test("every refusal above was counted", () => {
-    assert.equal(violations(), 19)      // the `refused(...)` calls above, one violation each
+    assert.equal(violations(), 22)      // the `refused(...)` calls above, one violation each
   })
 })
