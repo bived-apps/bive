@@ -9,8 +9,8 @@ const WRITE_TOOLS = new Set(["write", "edit", "multiedit"])
 const PATCH_TOOLS = new Set(["patch", "apply_patch"])
 const SHELL_TOOLS = new Set(["shell", "bash"])            // OpenCode 2 names it `shell`; `bash` was the V1 name
 // Bive's inviolable files: a delegate never changes them. The coordinator and the supervisor complete the role prompts
-// in .bive/prompts/project/ (never the core ones) (AGENTS.md › Inviolable prompts). `.opencode/plugin/` is the V1
-// folder, still protected until #5 empties it.
+// in .bive/prompts/project/ (never the core ones) (AGENTS.md › Inviolable prompts). `.opencode/plugin/` was the V1
+// folder (empty since #5); still matched in case a project kept one.
 const PROTECTED = [/^\.bive\/registry-id$/, /^\.bive\/prompts\//, /^\.bive\/templates\//, /^\.opencode\/plugins?\//,
                    /^\.github\/workflows\/bive-/, /^opencode\.jsonc$/, /^AGENTS\.md$/]
 const PROTECTED_WORDS = [".bive/registry-id", ".bive/prompts/", ".bive/templates", ".opencode/plugin",

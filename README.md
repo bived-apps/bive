@@ -52,7 +52,7 @@ public registry (docs/REGISTRY.md, off unless I turn it on) and ask me whether t
 | `.bive/models.json` | The model order per role, for the fallback rule ([docs/PROVIDERS.md](docs/PROVIDERS.md)) |
 | `opencode.jsonc` | Agents and permissions, written by hand and tight |
 | `.opencode/plugins/worktree-guard/` | Refuses writes outside the worktree, shell paths included; `check.ts` decides, `index.ts` plugs it into OpenCode 2 (`node --test tests/*.test.ts`) |
-| `.opencode/plugin/token-ratio.ts` | Counts human and agent tokens ([docs/TOKENS.md](docs/TOKENS.md)); reports to the registry if asked ([docs/REGISTRY.md](docs/REGISTRY.md)). Still on the V1 plugin API, not loaded by OpenCode 2: ported in #5 |
+| `.opencode/plugins/token-ratio/` | Counts human and agent tokens ([docs/TOKENS.md](docs/TOKENS.md)); reports to the registry if asked ([docs/REGISTRY.md](docs/REGISTRY.md)); `lib.ts` holds the pure helpers the tests import |
 | `.bive/mcp-ssh.sh` | Runs a stdio MCP server on another machine over SSH ([docs/SSH.md](docs/SSH.md)) |
 | `.github/` | Issue and pull request templates; `bive-inviolable` check on delegates' pull requests |
 | `registry/`, `help/` | The registry's Worker and page, the browser help: leaving for their own repository (ROADMAP 0.1 › 5) |

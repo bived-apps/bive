@@ -23,8 +23,9 @@ delegate, report, merge) with no manual step but the three gates.
    discovered, but both plugins were refused as V1 plugins ("Plugin must export a default definition with an id and
    an effect or setup function"). Port each to `Plugin.define` under `.opencode/plugins/<name>/` with its decision
    logic in a pure module, tests on `node --test` (#4 guard, #5 token-ratio; coordinator work, the files are
-   inviolable). The repository is already a GitHub template. Done when `opencode plugin list` shows both IDs and, in
-   a fresh clone, a write to `../outside.txt` is refused and `.bive/state/tokens.jsonl` fills.
+   inviolable). The repository is already a GitHub template. #4 and #5 merged; `opencode plugin list` shows both
+   IDs. Left: in a fresh clone, a write to `../outside.txt` is refused and `.bive/state/tokens.jsonl` fills (the
+   owner, or the first delegate of 0.1 › 4). Done when that check passed.
 2. **Install tested** (S) — todo. The one-line prompt on an empty repository and on a clone of an existing project; the diff shown
    before any write; nothing overwritten. Done when two install pull requests have been reviewed, one per case.
 3. **Guard hardened** (S) — todo. `external_directory: deny` against a worktree of the same repository; the `patch`
