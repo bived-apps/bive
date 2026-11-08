@@ -1,7 +1,7 @@
 // node --test tests/*.test.ts — token-ratio's pure helpers (docs/TOKENS.md); no OpenCode needed.
 import { describe, test } from "node:test"
 import assert from "node:assert/strict"
-import { totals, twoDigits } from "../.opencode/plugins/token-ratio/lib.ts"
+import { ownSession, totals, twoDigits } from "../.opencode/plugins/token-ratio/lib.ts"
 
 describe("totals", () => {
   test("sums human and agent tokens and rounds the ratio", () => {
@@ -20,6 +20,25 @@ describe("totals", () => {
   test("no human token yet: ratio is null", () => {
     assert.deepEqual(totals('{"kind":"agent","tokens":8}\n'), { human: 0, agent: 8, ratio: null })
     assert.deepEqual(totals(""), { human: 0, agent: 0, ratio: null })
+  })
+})
+
+// #14: every instance receives every session's events; only the sessions of its own location are counted.
+describe("ownSession", () => {
+  test("the instance's own directory, written either way", () => {
+    assert.equal(ownSession("/w/bive", "/w/bive"), true)
+    assert.equal(ownSession("/w/bive/", "/w/bive"), true)
+    assert.equal(ownSession("/w/bive/sub/..", "/w/bive"), true)
+  })
+  test("another repository, a worktree, a sub-folder, a parent: not ours (they have their own instance)", () => {
+    assert.equal(ownSession("/w/other", "/w/bive"), false)
+    assert.equal(ownSession("/w/bive-15", "/w/bive"), false)
+    assert.equal(ownSession("/w/bive/.bive/state/fresh", "/w/bive"), false)
+    assert.equal(ownSession("/w", "/w/bive"), false)
+  })
+  test("an unknown directory is not ours", () => {
+    assert.equal(ownSession(undefined, "/w/bive"), false)
+    assert.equal(ownSession("", "/w/bive"), false)
   })
 })
 

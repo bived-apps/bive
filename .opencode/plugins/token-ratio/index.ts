@@ -18,20 +18,21 @@ import { execFile } from "node:child_process"
 import { randomUUID } from "node:crypto"
 import os from "node:os"
 import path from "node:path"
-import { codeLines, mainCheckout, totals, twoDigits } from "./lib.ts"
+import { codeLines, mainCheckout, ownSession, totals, twoDigits } from "./lib.ts"
 
 const SHARE_EVERY_MS = 5 * 60 * 1000
 const FIRST_SHARE_MS = 10 * 1000
 const REGISTRY_URL = "https://bive-registry.jcherfils.workers.dev/v1/session"   // the owner's Worker (registry/)
 const LOC_EVERY_MS = 60 * 60 * 1000
 // The events read (names and fields verified in OpenCode 2.2.5's /openapi.json): a step's tokens, the two session
-// selections that change the model or agent, the session's creation (parent) and its idle moment (report).
+// selections that change the model or agent, the session's creation (parent, directory), its move to another
+// directory and its idle moment (report). Every instance receives every session's events: ownSession filters.
 const EVENTS = ["session.created", "session.step.started", "session.step.ended", "session.idle",
-                "session.model.selected", "session.agent.selected"]
+                "session.model.selected", "session.agent.selected", "session.moved"]
 
 type Use = { tokens: number, input: number, ms: number, replies: number }
 type Tokens = { input: number, output: number, reasoning: number, cache: { read: number, write: number } }
-type SessionFacts = { parentID: string | null, agent: string, model: string }
+type SessionFacts = { parentID: string | null, agent: string, model: string, own: boolean }
 // Event payloads as the server sends them; typed loosely on purpose, every field is checked before use.
 type Loose = Record<string, any>
 
@@ -75,15 +76,18 @@ export default Plugin.define({
     let lastShare = 0
     let timer: ReturnType<typeof setTimeout> | null = null
 
-    // What is known of a session: its parent (null for a root session), its agent and model. Filled from the
-    // `session.created` event, else fetched once; dropped when the session changes agent or model.
+    // What is known of a session: its parent (null for a root session), its agent and model, and whether it is this
+    // instance's own (its directory is this location). Filled from the `session.created` event, else fetched once;
+    // dropped when the session changes agent, model or directory. A session that cannot be fetched is not counted.
     const sessions = new Map<string, SessionFacts>()
+    const root = ctx.location.directory
     const facts = async (id: string): Promise<SessionFacts> => {
       const known = sessions.get(id)
       if (known) return known
       const raw = (await ctx.session.get({ sessionID: id }).catch(() => null)) as Loose | null
       const s: Loose | null = raw && typeof raw === "object" && "data" in raw ? raw.data : raw
-      const f = { parentID: s?.parentID ?? null, agent: String(s?.agent ?? ""), model: modelName(s?.model) }
+      const f = { parentID: s?.parentID ?? null, agent: String(s?.agent ?? ""), model: modelName(s?.model),
+                  own: ownSession(s?.location?.directory, root) }
       if (s) sessions.set(id, f)
       return f
     }
@@ -150,7 +154,9 @@ export default Plugin.define({
       if (delegate) return
       const e = event as unknown as Loose
       const id: string = e.sessionID
-      if (!id || !(await isRoot(id))) return
+      if (!id) return
+      const s = await facts(id)
+      if (!s.own || s.parentID !== null) return
       const text: string = typeof e.prompt?.text === "string" ? e.prompt.text : ""
       log("human", Math.ceil(text.length / 4), id)
     })
@@ -167,19 +173,23 @@ export default Plugin.define({
           if (!id) continue
           switch (e.type) {
             case "session.created":
-              sessions.set(id, { parentID: d.parentID ?? null, agent: String(d.agent ?? ""), model: modelName(d.model) })
+              sessions.set(id, { parentID: d.parentID ?? null, agent: String(d.agent ?? ""), model: modelName(d.model),
+                                 own: ownSession(d.location?.directory, root) })
               break
             case "session.model.selected":
             case "session.agent.selected":
+            case "session.moved":
               sessions.delete(id)                      // fetched again at the next step
               break
             case "session.step.started":
+              if (!(await facts(id)).own) break
               started.set(id, typeof e.created === "number" ? e.created : Date.now())
               break
             case "session.step.ended": {
               const t = d.tokens as Tokens | undefined
               if (!t || typeof t.output !== "number") break
               const s = await facts(id)
+              if (!s.own) break
               const now = typeof e.created === "number" ? e.created : Date.now()
               const ms = Math.max(0, now - (started.get(id) ?? now))
               started.delete(id)
@@ -187,7 +197,7 @@ export default Plugin.define({
               break
             }
             case "session.idle":
-              if (await isRoot(id)) await report()
+              if ((await facts(id)).own && await isRoot(id)) await report()
               break
           }
         }
