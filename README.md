@@ -24,7 +24,7 @@ of `.bive/templates/`.
 Existing project: paste this into OpenCode (or Claude Code) at the root of your repository:
 
 ```text
-Install https://github.com/jcherfils/bive here: copy .bive/, .opencode/plugin/, .github/, docs/ and the .gitignore
+Install https://github.com/jcherfils/bive here: copy .bive/, .opencode/plugins/, .github/, docs/ and the .gitignore
 line without overwriting; create AGENTS.md, HANDOFF.md and ROADMAP.md from .bive/templates/ if missing, else merge
 (keep this project's rules); merge opencode.jsonc. Show me the diff before writing. Fill opencode.jsonc's private
 paths, ask me each role's models (.bive/models.json), then open a pull request (not main). Tell me about Bive's
@@ -51,8 +51,8 @@ public registry (docs/REGISTRY.md, off unless I turn it on) and ask me whether t
 | `.bive/templates/` | `brief.md` in, `report.md` out; the skeletons of `README.md`, `HANDOFF.md`, `ROADMAP.md` |
 | `.bive/models.json` | The model order per role, for the fallback rule ([docs/PROVIDERS.md](docs/PROVIDERS.md)) |
 | `opencode.jsonc` | Agents and permissions, written by hand and tight |
-| `.opencode/plugin/worktree-guard.ts` | Refuses writes outside the worktree, shell paths included (`bun test`) |
-| `.opencode/plugin/token-ratio.ts` | Counts human and agent tokens ([docs/TOKENS.md](docs/TOKENS.md)); reports to the registry if asked ([docs/REGISTRY.md](docs/REGISTRY.md)) |
+| `.opencode/plugins/worktree-guard/` | Refuses writes outside the worktree, shell paths included; `check.ts` decides, `index.ts` plugs it into OpenCode 2 (`node --test tests/*.test.ts`) |
+| `.opencode/plugin/token-ratio.ts` | Counts human and agent tokens ([docs/TOKENS.md](docs/TOKENS.md)); reports to the registry if asked ([docs/REGISTRY.md](docs/REGISTRY.md)). Still on the V1 plugin API, not loaded by OpenCode 2: ported in #5 |
 | `.bive/mcp-ssh.sh` | Runs a stdio MCP server on another machine over SSH ([docs/SSH.md](docs/SSH.md)) |
 | `.github/` | Issue and pull request templates; `bive-inviolable` check on delegates' pull requests |
 | `registry/`, `help/` | The registry's Worker and page, the browser help: leaving for their own repository (ROADMAP 0.1 › 5) |

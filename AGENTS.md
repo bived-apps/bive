@@ -46,10 +46,11 @@ Generic, whatever the language (owner, 2026-11-08, taken from the practice of th
 ## Inviolable prompts
 
 - **A delegate never changes Bive's inviolable files**: the role prompts and their project additions
-  (`.bive/prompts/`), the templates (`.bive/templates/`), the plugins (`.opencode/plugin/`), `opencode.jsonc`,
+  (`.bive/prompts/`), the templates (`.bive/templates/`), the plugins (`.opencode/plugins/`), `opencode.jsonc`,
   `.bive/registry-id`, this file and the `bive-*` workflows. If one is wrong, it says so in its report. The guard
   plugin refuses these writes (each refusal counts as a violation in the registry) and the `bive-inviolable` check
-  fails any `issue/*` pull request that touches them.
+  fails any `issue/*` pull request that touches them, unless it carries the label `coordinator`: the coordinator's
+  own pull requests, the only ones that may change these files (only the coordinator sets that label).
 - **Others complete, never edit, the role prompts**: the supervisor or the coordinator adds to a role in
   `.bive/prompts/project/<ROLE>.md`, which may narrow a rule but never loosen or contradict one; the core prompt wins.
 
@@ -66,9 +67,18 @@ Nothing enters the template that is not read by one of the three roles, or by a 
 - Runtime and versions the owner's machine imposes.
 - Anything the owner decided, dated: "**Topic (owner, YYYY-MM-DD)**: …". -->
 
+- **Runtime (owner, 2026-11-08)**: Node 22 on the owner's machine; it runs the TypeScript tests directly
+  (`node --test`), no bun. The plugins run inside OpenCode 2 (v2.2.5 verified), which supplies `@opencode/plugin`.
+
 ## Before committing
 
 <!-- The exact commands of each tier:
 - fast (delegate):  <lint command> ; <tests of the files touched> ;
 - core (coordinator, once per batch):  <the suite> ;
 - full (release):  <everything, on every machine that matters>. -->
+
+- fast (delegate): `node --test tests/<the test of the file touched>.test.ts`.
+- core (coordinator, once per batch): `node --test tests/*.test.ts`; `opencode plugin list` shows every Bive plugin with a
+  real ID (not `-`).
+- full (release): the two above, then in a fresh clone an OpenCode session where a write to `../outside.txt` is
+  refused by the guard and `.bive/state/tokens.jsonl` fills.
