@@ -59,6 +59,16 @@ Generic, whatever the language (owner, 2026-11-08, taken from the practice of th
 - **Others complete, never edit, the role prompts**: the supervisor or the coordinator adds to a role in
   `.bive/prompts/project/<ROLE>.md`, which may narrow a rule but never loosen or contradict one; the core prompt wins.
 
+## Field reports
+
+- **When**: at the end of each milestone (with gate 3), and at once when a Bive rule, prompt, template or plugin had
+  to be worked around or overridden.
+- **How**: the coordinator (or the supervisor) fills `.bive/templates/field-report.md`: numbered remarks, each with
+  what happened (numbers), what worked, the proposed change and the Bive file it touches. The project's owner passes
+  it to Bive's supervisor, who files one issue per change in Bive's repository.
+- **No names**: no project, product, repository, person, host, path or private data; "a project", "machine A",
+  "the owner". Model ids stay canonical (Bive needs them per model).
+
 ## What goes into Bive
 
 Nothing enters the template that is not read by one of the three roles, or by a human, during a task (owner,

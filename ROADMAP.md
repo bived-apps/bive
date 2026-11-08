@@ -145,7 +145,8 @@ per epic. Nothing of it is a Bive program: prompts, rules, and existing tools wi
 - The registry and the reports feed the briefs, the prompts' project additions and the model order: failure reasons
   classified per model, brief templates compared per model, rules proposed as pull requests to `.bive/prompts/project/`
   (never the core prompts), accepted by the supervisor.
-- Projects report back what they changed in their additions; the common part moves into the template.
+- Projects report back what they changed in their additions, as field reports (`AGENTS.md` › Field reports,
+  `.bive/templates/field-report.md`, #35); the common part moves into the template.
 
 **Decisions of this plan's gate 1** (the owner left the choice to the coordinator, 2026-11-08; each is reversible):
 
