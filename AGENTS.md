@@ -79,6 +79,6 @@ Nothing enters the template that is not read by one of the three roles, or by a 
 
 - fast (delegate): `node --test tests/<the test of the file touched>.test.ts`.
 - core (coordinator, once per batch): `node --test tests/*.test.ts`; `opencode plugin list` shows every Bive plugin with a
-  real ID (not `-`).
+  real ID (not `-`), run after a session has started in the checkout (before that it lists none).
 - full (release): the two above, then in a fresh clone an OpenCode session where a write to `../outside.txt` is
   refused by the guard and `.bive/state/tokens.jsonl` fills.

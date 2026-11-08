@@ -66,12 +66,17 @@ satellites out, first project installed. GitHub issues are the source of truth o
 
 - A plugin OpenCode 2 refuses fails silently for the user: only the server log (`~/.local/share/opencode/log/`,
   "failed to load plugin") and `opencode plugin list` (ID `-`) show it. Check both after any change to a plugin.
+  `plugin list` shows a project's plugins only once a session has loaded them: in a fresh clone (or with
+  `--standalone`) it answers "No plugins found" although they load. Start a session there first.
 - token-ratio reads `session.step.ended` for agent tokens and asks the server for a session's agent and model once
   (cached, dropped when the session switches model or agent). If OpenCode renames an event, tokens stop silently:
   after an OpenCode upgrade, check that `.bive/state/tokens.jsonl` still grows.
 - The guard's shell check is a filter, not a sandbox: it refuses redirections and, for a delegate, any path outside
   the worktree but the system prefixes (`/usr`, `/tmp`, …). `external_directory: deny` in `opencode.jsonc` is the
-  belt; whether it treats a worktree of the same repository as outside is unverified.
+  belt; whether it treats a worktree of the same repository as outside is unverified. Seen 2026-11-08 from the
+  coordinator's session: it refuses `cd ../bive-15` and `cd <absolute path>` and a tool's `workdir` outside, but lets
+  `git worktree add ../bive-15` and `ls ../bive-none` through. So the coordinator can create a worktree but not start
+  a delegate in it (ROADMAP 0.1 › 4). The guard also refuses a non-delegate's `workdir` outside its checkout.
 - `.bive/registry-id`, once committed, is public: the registry is a count, not a proof.
 - GitHub's squash button sets the pull request's GitHub author as commit author (the owner, for #4): use the rebase
   button (`gh pr merge --rebase`) for a one-commit pull request, which keeps the agent as author, until ROADMAP ›
