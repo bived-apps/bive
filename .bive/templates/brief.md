@@ -1,37 +1,21 @@
-# Brief — #<N> <title>
+# Brief #<N> <title>
 
-- **Issue**: #<N> (full text below)
-- **Branch**: `issue/<N>-<slug>`, from `<integration branch>`
-- **Worktree**: `<path>`
-- **Model**: `<provider/model>` (fallback: `<next>`)
+Branch `issue/<N>-<slug>` from `<integration branch>` · worktree `<path>` · model `<provider/model>`
 
-## Goal
+**Goal**: <!-- one or two sentences -->
 
-<!-- One or two sentences. -->
+**Read first**: <!-- files and functions, in order -->
 
-## Read first
+**Steps**: <!-- exactly what to write: functions, files, signatures -->
 
-<!-- Files and functions, in order. -->
+**Done when**: <!-- observable criteria -->
 
-## Steps
-
-<!-- Exactly what to write: functions, files, signatures. -->
-
-## Done when
-
-<!-- Observable criteria. -->
-
-## Checks to run before the pull request
-
+**Checks**:
 ```bash
-# fast checks: lint, the tests of the files touched
+# lint and the tests of the files touched
 ```
 
-## Pull request
+Then open the pull request against `<integration branch>`: body `Closes #<N>` (or `Part of #<N>` and what is left)
+plus the report (`.bive/templates/report.md`), and stop.
 
-Against `<integration branch>`. The body starts with `Closes #<N>` (or `Part of #<N>` and what is left) and is your
-report (`.bive/templates/report.md`). Then stop.
-
-## Issue text
-
-<!-- Pasted from the issue. -->
+**Issue**: <!-- pasted -->

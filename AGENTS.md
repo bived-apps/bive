@@ -1,7 +1,7 @@
 # Instructions for agents
 
-Several agents (and people) work on this repository one after another. Read this file, then
-[`HANDOFF.md`](HANDOFF.md), before changing anything. Your role's prompt is in [`.bive/prompts/`](.bive/prompts/).
+Read this file, then [`HANDOFF.md`](HANDOFF.md), before changing anything. Your role's prompt is in
+[`.bive/prompts/`](.bive/prompts/).
 
 ## Roles
 
@@ -17,9 +17,8 @@ Several agents (and people) work on this repository one after another. Read this
 - **Stay in your worktree**: the guard plugin refuses writes outside it.
 - **Never**: force-push, rewrite pushed history, push to `main`, `rm -rf`, read SSH keys or the private paths listed
   in `opencode.jsonc`.
-- **Keep sessions short**: continue a stuck delegate with a short message rather than starting a new one; if it fails
-  twice, the coordinator does the issue itself or splits it.
-- **Large issues stay large; delegate in small tasks** with their own done-when and tests.
+- **Keep sessions and prompts short**: continue a stuck delegate with one short message rather than a new session;
+  a brief names files to read instead of pasting them. Delegate in small tasks with their own done-when and tests.
 - **Keep `HANDOFF.md` and `ROADMAP.md` true**: the coordinator updates them once per batch of merges, in the same
   commit as the code they describe. Delete what is no longer accurate rather than adding contradictions.
 

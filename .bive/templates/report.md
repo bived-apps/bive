@@ -1,21 +1,11 @@
 Closes #<N>
 
-## State
+**State**: <!-- done | partial | blocked | failed -->
 
-<!-- One of: done | partial | blocked | failed -->
+**Changed**: <!-- files and what each change does -->
 
-## What changed
+**Checks**: <!-- each command and its result -->
 
-<!-- Files and what each change does. -->
+**Left**: <!-- not done and why; what the coordinator must decide -->
 
-## Checks
-
-<!-- Each command run and its result. -->
-
-## Left / blocked
-
-<!-- What is not done and why; what the coordinator must decide. -->
-
-## Session log
-
-<!-- Date, branch head SHA, model, one line. -->
+**Log**: <!-- date, head SHA, model -->

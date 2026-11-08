@@ -2,8 +2,8 @@
 
 A repository template for building software with LLM agents in three roles: a **supervisor** (you, with your
 Claude project), a **coordinator** (one agent that splits, briefs, reviews and merges) and **delegates** (one agent
-per issue, one git worktree, one pull request). It runs on OpenCode 2 and adds no tooling of its own except one
-guard: a ~30-line plugin that refuses any write outside the session's worktree.
+per issue, one git worktree, one pull request). It runs on OpenCode 2 and adds two small plugins: a guard that
+refuses any write outside the session's worktree, and a counter of the project's human : agent token ratio.
 
 What Bive is not: no delegation tools (OpenCode 2's subagents do that), no provider probe (a simple fallback rule on
 error), no package to install. The flow already works without tooling; Bive only writes it down.
@@ -15,11 +15,9 @@ New project: **Use this template** on GitHub, then open OpenCode in the clone.
 Existing project: paste this into OpenCode (or Claude Code) at the root of your repository:
 
 ```text
-Install Bive from https://github.com/jcherfils/bive into this repository: copy .bive/, .opencode/plugin/,
-.github/ISSUE_TEMPLATE/delegate.md, .github/pull_request_template.md and the .gitignore line, without overwriting
-any existing file (merge AGENTS.md, HANDOFF.md, ROADMAP.md and opencode.jsonc by hand: keep this project's rules,
-add Bive's). Then fill opencode.jsonc's private paths for this project and ask me which models each role uses (.bive/models.json).
-Commit on a branch and open a pull request; do not push to main.
+Install https://github.com/jcherfils/bive here: copy .bive/, .opencode/plugin/, .github/ and the .gitignore line
+without overwriting; merge AGENTS.md, HANDOFF.md, ROADMAP.md and opencode.jsonc (keep this project's rules). Fill
+opencode.jsonc's private paths, ask me each role's models (.bive/models.json), then open a pull request (not main).
 ```
 
 ## Files
@@ -34,6 +32,7 @@ Commit on a branch and open a pull request; do not push to main.
 | `.bive/templates/` | The transmission contract: `brief.md` (in), `report.md` (out) |
 | `opencode.jsonc` | Agents and permissions, written by hand and tight |
 | `.opencode/plugin/worktree-guard.ts` | Refuses writes outside the session's worktree |
+| `.opencode/plugin/token-ratio.ts` | Counts human and agent tokens into `.bive/state/tokens.jsonl` |
 | `.bive/mcp-ssh.sh` | Runs a stdio MCP server on another machine over SSH |
 | `.github/` | Issue template for delegated tasks, pull request template |
 | `.bive/state/` | Run-time state, ignored by git |
@@ -89,3 +88,26 @@ the list failed, a project can offer a provider search: FiFoo has `tools/find_pr
 `find_providers`, whose result is a card in its Questions window), which tries every model OpenCode knows with one
 tiny prompt and prints the ones that answer, fastest first, as a `.bive/models.json` line. A delegate's work that a
 reviewer rejects is redone by the next model, not patched by the same one.
+
+## Token ratio
+
+`token-ratio.ts` measures how much the agents produce for what the humans write. **Human** tokens are the messages
+typed in a root session (a coordinator's prompt to its delegate counts as agent work), estimated at four characters
+a token; **agent** tokens are the providers' own output and reasoning counts. Each message adds one line of numbers
+(no text) to `.bive/state/tokens.jsonl` in the main checkout, shared by every worktree. Totals:
+
+```bash
+jq -s 'group_by(.kind) | map({(.[0].kind): (map(.tokens) | add)}) | add' .bive/state/tokens.jsonl
+```
+
+**Live on GitHub (opt-in).** Create a public gist holding a file `bive-tokens.json` (`gh gist create --public
+bive-tokens.json`), then `export BIVE_TOKENS_GIST=<gist id>` on the agents' machine. The plugin rewrites that file at
+most every five minutes (with `gh`, signed in) as a [shields.io endpoint](https://shields.io/badges/endpoint-badge),
+so a README badge shows the ratio live:
+
+```markdown
+![human : agent tokens](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/<you>/<gist id>/raw/bive-tokens.json)
+```
+
+Only the two totals leave, never a message. An app that drives agents can show the same file in its own panel
+(FiFoo: the Agent panel).
