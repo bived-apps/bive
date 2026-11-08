@@ -34,9 +34,11 @@ delegate, report, merge) with no manual step but the three gates.
    `Plugin.define` under `.opencode/plugins/<name>/` (#4 guard, #5 token-ratio). Fresh-clone check passed on
    2026-11-08: a delegate session's write to `../outside.txt` was refused and `.bive/state/tokens.jsonl` filled. It
    also showed token-ratio counting other projects' sessions (#14).
-2. **Install tested** (S) — todo (#17). The one-line prompt on an empty repository and on an existing project, both
-   local `git init` repositories (owner, 2026-11-08); the diff shown before any write; nothing overwritten. Done when
-   both cases ran and README › Install is fixed where they failed.
+2. **Install tested** (S) — done in #17. The install prompt on an empty repository and on an existing project, both
+   local `git init` repositories (owner, 2026-11-08), on `opencode/beam-free`. The first prompt failed both: no
+   diff, no questions, answers assumed, and on the empty repository the agent created a private GitHub repository to
+   open its pull request. README › Install now runs in two turns (read only and ask, then write on `install/bive`;
+   never create a repository or a remote), and both cases passed with it.
 3. **Guard hardened** (S) — todo (#16; its test cases are #15's). `external_directory: deny` against a worktree of
    the same repository; the `patch` tool and here-docs; the coordinator's own commands checked for false positives.
    Done when `node --test` covers them and the commands of `.bive/prompts/COORDINATOR.md` all pass.
