@@ -22,8 +22,8 @@ You are the coordinator of bive's milestone 0.1 (GitHub jcherfils/bive). Read AG
 then .bive/prompts/COORDINATOR.md: it is your prompt. Integration branch: bived (never push to main; the owner
 merges bived into main). Work epic by epic in ROADMAP order; split each into issues labelled delegate (goal, read
 first, steps, done-when, tests), and stop at gate 1 to show me the split before any delegate starts. Delegates run
-on the models of .bive/models.json, one worktree each under ../bive-<n>, with BIVE_ROLE=delegate, and open their PR
-against bived. Review each PR yourself (diff, bun test, a complete report.md); squash-merge as "#N: title". Bive's
+on the models of .bive/models.json, one worktree each under .worktrees/issue-<n>, with BIVE_ROLE=delegate, and open
+their PR against bived. Review each PR yourself (diff, node --test, a complete report.md); squash-merge as "#N: title". Bive's
 own rule applies to Bive: nothing enters the template that a role or a human does not read during a task.
 ```
 
@@ -76,7 +76,8 @@ satellites out, first project installed. GitHub issues are the source of truth o
   belt; whether it treats a worktree of the same repository as outside is unverified. Seen 2026-11-08 from the
   coordinator's session: it refuses `cd ../bive-15` and `cd <absolute path>` and a tool's `workdir` outside, but lets
   `git worktree add ../bive-15` and `ls ../bive-none` through. So the coordinator can create a worktree but not start
-  a delegate in it (ROADMAP 0.1 › 4). The guard also refuses a non-delegate's `workdir` outside its checkout.
+  a delegate in it (ROADMAP 0.1 › 4). The guard also refuses a non-delegate's `workdir` outside its checkout. Hence
+  the layout `.worktrees/issue-<n>` inside the checkout (#22), which a project ran a whole batch with.
 - `.bive/registry-id`, once committed, is public: the registry is a count, not a proof.
 - GitHub's squash button sets the pull request's GitHub author as commit author (the owner, for #4): use the rebase
   button (`gh pr merge --rebase`) for a one-commit pull request, which keeps the agent as author, until ROADMAP ›

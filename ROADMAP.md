@@ -47,7 +47,9 @@ delegate, report, merge) with no manual step but the three gates.
    `.bive/registry-id` committed): project #1 (owner, 2026-11-08). Done when HANDOFF.md tells the session and every
    gap became an issue. Blocked on 2026-11-08: `external_directory: deny` refuses the coordinator's `cd ../bive-15`,
    so it cannot start a delegate in its worktree; the owner chose to wait for bivedream › *Delegates as sessions*
-   (#15, its first delegate issue, moved to that milestone).
+   (#15, its first delegate issue, moved to that milestone). #22 lifts that block: worktrees now live in
+   `.worktrees/issue-<n>` inside the checkout, where neither the guard nor `external_directory` refuses the
+   coordinator; whether to resume before bivedream is the owner's call.
 5. **Satellites out** (S) — todo. `help/` (WebLLM page) and the registry page move to a repository `bive-registry`;
    the template keeps only the client (`.opencode/plugins/token-ratio/`). Done when every file of the template is read by a role or a
    human during a task.

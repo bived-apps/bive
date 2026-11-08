@@ -1,6 +1,6 @@
 # Brief #<N> <title>
 
-Branch `issue/<N>-<slug>` from `<integration branch>` · worktree `<path>` · model `<provider/model>`
+Branch `issue/<N>-<slug>` from `<integration branch>` · worktree `.worktrees/issue-<N>` · model `<provider/model>`
 
 **Goal**: <!-- one or two sentences -->
 
