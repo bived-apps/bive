@@ -78,6 +78,11 @@ satellites out, first project installed. GitHub issues are the source of truth o
   `git worktree add ../bive-15` and `ls ../bive-none` through. So the coordinator can create a worktree but not start
   a delegate in it (ROADMAP 0.1 › 4). The guard also refuses a non-delegate's `workdir` outside its checkout. Hence
   the layout `.worktrees/issue-<n>` inside the checkout (#22), which a project ran a whole batch with.
+- The guard knows a delegate by `BIVE_ROLE=delegate`, a session directory `.worktrees/issue-<n>`, or the role file
+  `.bive/state/role` (#36). A delegate run as a child session or on the shared OpenCode server carries no variable
+  (#21); in the coordinator's session, writes and shell `workdir` under `.worktrees/issue-<n>/` are then checked as
+  that delegate's, but a command run from the checkout's root that only names such a path (`cd .worktrees/… && …`)
+  is not, and a delegate session elsewhere without the variable or the role file fails open.
 - `.bive/registry-id`, once committed, is public: the registry is a count, not a proof.
 - GitHub's squash button sets the pull request's GitHub author as commit author (the owner, for #4): use the rebase
   button (`gh pr merge --rebase`) for a one-commit pull request, which keeps the agent as author, until ROADMAP ›

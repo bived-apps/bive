@@ -3,7 +3,7 @@ import { describe, test } from "node:test"
 import assert from "node:assert/strict"
 import os from "node:os"
 import path from "node:path"
-import { makeGuard, violations, type Check } from "../.opencode/plugins/worktree-guard/check.ts"
+import { isDelegate, makeGuard, violations, type Check } from "../.opencode/plugins/worktree-guard/check.ts"
 
 // Fake paths under the home folder, never created: /tmp is a system prefix the guard lets through.
 const base = path.join(os.homedir(), ".bive-guard-test")
@@ -102,8 +102,34 @@ describe("nested worktree (.worktrees/issue-<n>, AGENTS.md › Rules)", () => {
   })
 })
 
+describe("delegate detection (child sessions inherit the coordinator's environment, #36)", () => {
+  test("BIVE_ROLE, a .worktrees/issue-<n> root or the role file make a delegate", () => {
+    assert.equal(isDelegate(main, "delegate", undefined), true)
+    assert.equal(isDelegate(path.join(main, ".worktrees", "issue-12"), undefined, undefined), true)
+    assert.equal(isDelegate(wt, undefined, "delegate\n"), true)
+    assert.equal(isDelegate(main, undefined, undefined), false)
+    assert.equal(isDelegate(path.join(main, ".worktrees", "issue-12x"), "coordinator", "coordinator"), false)
+  })
+  test("a coordinator's session checks what lands in .worktrees/issue-<n>/ as that delegate's", () => {
+    const c = makeGuard({ root: main, delegate: false })
+    const nested = path.join(main, ".worktrees", "issue-12")
+    // a subagent's write into its worktree's inviolable file, through the coordinator's plugin instance
+    refused(write(c, ".worktrees/issue-12/AGENTS.md"), /inviolable/)
+    refused(write(c, path.join(nested, ".bive/prompts/DELEGATE.md")), /inviolable/)
+    refused(() => c("patch", { patchText: "*** Begin Patch\n*** Update File: .worktrees/issue-12/opencode.jsonc\n*** End Patch" }),
+            /inviolable/)
+    // a shell command run there gets the delegate's checks: no path outside that worktree, no inviolable file
+    refused(shell(c, "cat ../../a.py", nested), /outside/)
+    refused(shell(c, "sed -i 's/a/b/' AGENTS.md", nested), /inviolable/)
+    passes(shell(c, "git status && node --test tests/a.test.ts", nested))
+    passes(write(c, ".worktrees/issue-12/src/a.py"))
+    passes(write(c, ".worktrees/issue-12/.bive/state/role"))   // the coordinator writes the role file
+    passes(write(c, "AGENTS.md"))                                // its own checkout stays its own
+  })
+})
+
 describe("violations", () => {
   test("every refusal above was counted", () => {
-    assert.equal(violations(), 22)      // the `refused(...)` calls above, one violation each
+    assert.equal(violations(), 27)      // the `refused(...)` calls above, one violation each
   })
 })
