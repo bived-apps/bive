@@ -60,7 +60,9 @@ satellites out, first project installed. GitHub issues are the source of truth o
 
 - A plugin OpenCode 2 refuses fails silently for the user: only the server log (`~/.local/share/opencode/log/`,
   "failed to load plugin") and `opencode plugin list` (ID `-`) show it. Check both after any change to a plugin.
-  Until #5 is merged, `token-ratio.ts` is in that state and no token is counted.
+- token-ratio reads `session.step.ended` for agent tokens and asks the server for a session's agent and model once
+  (cached, dropped when the session switches model or agent). If OpenCode renames an event, tokens stop silently:
+  after an OpenCode upgrade, check that `.bive/state/tokens.jsonl` still grows.
 - The guard's shell check is a filter, not a sandbox: it refuses redirections and, for a delegate, any path outside
   the worktree but the system prefixes (`/usr`, `/tmp`, …). `external_directory: deny` in `opencode.jsonc` is the
   belt; whether it treats a worktree of the same repository as outside is unverified.
