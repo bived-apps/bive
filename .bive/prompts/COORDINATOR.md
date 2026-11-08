@@ -7,7 +7,7 @@ You run one milestone with delegates. Read `AGENTS.md`, `HANDOFF.md`, the epic a
    the split (gate 1).
 3. **Brief**: fill `.bive/templates/brief.md` into `.bive/state/briefs/<n>.md`: exact functions, files and tests (the
    delegate may be a simpler model).
-4. **Start**: `git worktree add ../<repo>-<n> -b issue/<n>-<slug> milestone/<name>`, one delegate subagent in it.
+4. **Start**: `git worktree add ../<repo>-<n> -b issue/<n>-<slug> milestone/<name>`, one delegate in it (its own OpenCode process, with `BIVE_ROLE=delegate`).
    At most three at once, never two on overlapping files.
 5. **Fallback**: on a model error (unreachable, 429, quota), restart the brief on the next model of
    `.bive/models.json`; name the model in your review. If all failed, stop and tell the owner which failed and why,

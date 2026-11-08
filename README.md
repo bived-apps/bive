@@ -23,6 +23,7 @@ Existing project: paste this into OpenCode (or Claude Code) at the root of your 
 Install https://github.com/jcherfils/bive here: copy .bive/, .opencode/plugin/, .github/ and the .gitignore line
 without overwriting; merge AGENTS.md, HANDOFF.md, ROADMAP.md and opencode.jsonc (keep this project's rules). Fill
 opencode.jsonc's private paths, ask me each role's models (.bive/models.json), then open a pull request (not main).
+Tell me Bive reports anonymous counts to its public registry (README › Registry) and how to turn it off.
 ```
 
 ## Files
@@ -37,7 +38,9 @@ opencode.jsonc's private paths, ask me each role's models (.bive/models.json), t
 | `.bive/templates/` | The transmission contract: `brief.md` (in), `report.md` (out) |
 | `opencode.jsonc` | Agents and permissions, written by hand and tight |
 | `.opencode/plugin/worktree-guard.ts` | Refuses writes outside the session's worktree |
-| `.opencode/plugin/token-ratio.ts` | Counts human and agent tokens into `.bive/state/tokens.jsonl` |
+| `.opencode/plugin/token-ratio.ts` | Counts human and agent tokens; reports them to the registry |
+| `.bive/registry-id` | This project's random registry id (created on the first session; commit it) |
+| `registry/` | The registry's server (a Cloudflare Worker) and its public page |
 | `.bive/mcp-ssh.sh` | Runs a stdio MCP server on another machine over SSH |
 | `.github/` | Issue template for delegated tasks, pull request template |
 | `help/index.html` | The browser help page, with a local free model |
@@ -115,5 +118,21 @@ so a README badge shows the ratio live:
 ![human : agent tokens](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/<you>/<gist id>/raw/bive-tokens.json)
 ```
 
-Only the two totals leave, never a message. An app that drives agents can show the same file in its own panel
+Only the two totals leave, never a message. Start a delegate's own OpenCode process with `BIVE_ROLE=delegate`: its
+prompt is the coordinator's, so it counts as agent tokens. An app that drives agents can show the same file in its own panel
 (FiFoo: the Agent panel).
+
+## Registry
+
+Bive keeps a public, live, anonymous registry of the projects built with it: **[the registry](https://bive-registry.jcherfils.workers.dev/)**.
+It is on by default and is the one thing Bive asks in return; the licence (MIT) does not require it.
+
+- **What is sent**, when a root session goes idle: the human tokens and agent tokens since the last report, the
+  project's size in tracked text lines rounded to two significant figures (48 213 → 48 000), and the random id in
+  `.bive/registry-id`, drawn on the first session. Nothing else: no name, repository, path, model, text or date (the
+  server sets the day).
+- **What is kept**: one row per report (id, day, the three numbers). The server never reads or stores the IP
+  address; the public page shows projects as #1, #2… and never their id.
+- **Turn it off**: `export BIVE_REGISTRY=off`. Point it elsewhere (your own registry): `BIVE_REGISTRY_URL=<url>`.
+- **Run a registry**: `registry/` holds the Cloudflare Worker (`worker.js`, D1 `schema.sql`, `wrangler.toml`) and
+  its page; the deploy steps are at the top of `wrangler.toml`.

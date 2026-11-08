@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Bive Registry</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* One column: totals, the daily chart, the anonymous projects table. Refreshed every minute. */
+:root {
+  --bg: #f6f7f4; --panel: #ffffff; --fg: #1d211c; --muted: #5d6659; --line: #d9ddd4;
+  --human: #b5651d; --agent: #2f6b3a;
+  --sans: "IBM Plex Sans", system-ui, sans-serif; --mono: "IBM Plex Mono", ui-monospace, monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root { --bg: #141713; --panel: #1c201b; --fg: #e4e8e0; --muted: #9aa494; --line: #333a30;
+          --human: #e0a060; --agent: #7fbf87; color-scheme: dark; }
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--fg); font: 15px/1.55 var(--sans); }
+main { max-width: 960px; margin: 0 auto; display: flex; flex-direction: column; gap: 24px; padding-block: 24px;
+       padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+h1 { margin: 0; font-size: 24px; text-wrap: balance; }
+h2 { margin: 0 0 8px; font-size: 15px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+p { margin: 0; max-width: 68ch; color: var(--muted); }
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; }
+.tile { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 12px; }
+.tile b { display: block; font: 600 22px var(--mono); font-variant-numeric: tabular-nums; }
+.tile span { font-size: 13px; color: var(--muted); }
+.chart { overflow-x: auto; }
+svg text { fill: var(--muted); font: 11px var(--mono); }
+.legend { display: flex; gap: 16px; font-size: 13px; color: var(--muted); }
+.legend i { display: inline-block; width: 10px; height: 10px; margin-right: 6px; border-radius: 2px; }
+.table { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; }
+th, td { text-align: right; padding: 6px 10px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+th:first-child, td:first-child { text-align: left; }
+th { font-weight: 600; font-size: 13px; color: var(--muted); }
+td { font-family: var(--mono); font-size: 13px; }
+.status { font: 12px var(--mono); color: var(--muted); }
+</style>
+</head>
+<body>
+<main>
+  <header style="display:flex;flex-direction:column;gap:8px">
+    <h1>Bive Registry</h1>
+    <p>Projects built with <a href="https://github.com/jcherfils/bive">Bive</a>, anonymously: at the end of each session a
+      project sends its human tokens, its agent tokens and its code size, nothing else. No name, path, text or IP is kept.</p>
+    <div class="status" id="status">Loading…</div>
+  </header>
+
+  <section class="tiles" id="tiles"></section>
+
+  <section>
+    <h2>Last 90 days, tokens per day</h2>
+    <div class="legend"><span><i style="background:var(--agent)"></i>agent</span><span><i style="background:var(--human)"></i>human</span></div>
+    <div class="chart" id="chart"></div>
+  </section>
+
+  <section>
+    <h2>Projects</h2>
+    <div class="table"><table>
+      <thead><tr><th>Project</th><th>Since</th><th>Sessions</th><th>Human tokens</th><th>Agent tokens</th><th>Human : agent</th><th>Lines of code</th><th>Agent tokens per line</th></tr></thead>
+      <tbody id="rows"></tbody>
+    </table></div>
+  </section>
+</main>
+<script>
+const fmt = (n) => n == null ? "—" : n >= 1e9 ? (n / 1e9).toFixed(1) + " G" : n >= 1e6 ? (n / 1e6).toFixed(1) + " M"
+  : n >= 1e4 ? Math.round(n / 1e3) + " k" : String(n);
+const ratio = (h, a) => h ? "1 : " + Math.round(a / h) : "—";
+const perLine = (a, l) => l ? (a / l).toFixed(1) : "—";
+
+function chart(days) {
+  const W = Math.max(600, days.length * 10), H = 180, pad = 36;
+  const max = Math.max(1, ...days.map((d) => d.agent + d.human));
+  const bw = Math.min(14, (W - pad) / Math.max(1, days.length));
+  const y = (v) => H - 20 - (v / max) * (H - 30);
+  let s = `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" role="img" aria-label="Tokens per day">`;
+  for (const t of [0, max / 2, max]) s += `<line x1="${pad}" x2="${W}" y1="${y(t)}" y2="${y(t)}" stroke="var(--line)"/><text x="0" y="${y(t) + 4}">${fmt(Math.round(t))}</text>`;
+  days.forEach((d, i) => {
+    const x = pad + i * bw;
+    s += `<rect x="${x}" y="${y(d.agent + d.human)}" width="${Math.max(1, bw - 2)}" height="${y(0) - y(d.agent)}" fill="var(--agent)"><title>${d.day}: ${d.agent} agent, ${d.human} human, ${d.sessions} sessions</title></rect>`;
+    s += `<rect x="${x}" y="${y(d.human)}" width="${Math.max(1, bw - 2)}" height="${y(0) - y(d.human)}" fill="var(--human)"/>`;
+  });
+  if (days.length) s += `<text x="${pad}" y="${H - 4}">${days[0].day}</text><text x="${W - 70}" y="${H - 4}">${days.at(-1).day}</text>`;
+  return s + "</svg>";
+}
+
+async function load() {
+  try {
+    const r = await fetch("/v1/stats");
+    const d = await r.json();
+    document.getElementById("tiles").innerHTML = [
+      [d.projects, "projects"], [d.sessions, "sessions"], [fmt(d.human), "human tokens"], [fmt(d.agent), "agent tokens"],
+      [ratio(d.human, d.agent), "human : agent"], [fmt(d.loc), "lines of code"], [perLine(d.agent, d.loc), "agent tokens per line"],
+    ].map(([v, l]) => `<div class="tile"><b>${v}</b><span>${l}</span></div>`).join("");
+    document.getElementById("chart").innerHTML = d.days.length ? chart(d.days) : "<p>No session reported yet.</p>";
+    document.getElementById("rows").innerHTML = d.rows.map((p, i) => `<tr><td>#${i + 1}</td><td>${p.since}</td>
+      <td>${p.sessions}</td><td>${fmt(p.human)}</td><td>${fmt(p.agent)}</td><td>${ratio(p.human, p.agent)}</td>
+      <td>${fmt(p.loc)}</td><td>${perLine(p.agent, p.loc)}</td></tr>`).join("");
+    document.getElementById("status").textContent = "Live, refreshed every minute. Last: " + new Date().toLocaleTimeString();
+  } catch (e) {
+    document.getElementById("status").textContent = "Could not read the registry: " + e.message;
+  }
+}
+load();
+setInterval(load, 60_000);
+</script>
+</body>
+</html>
