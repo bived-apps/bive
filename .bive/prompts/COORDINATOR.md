@@ -35,4 +35,5 @@ Also read `.bive/prompts/project/COORDINATOR.md` if it exists: the project's add
 8. **Failed twice**: ask the owner (gate 2), then do it yourself or split it.
 9. **After each batch**: the core checks once, after the last merge of the batch, never after each merge
    (`AGENTS.md` › Tests in three tiers); update `HANDOFF.md`, `ROADMAP.md` and the epic's checklist.
-10. **Finish**: pull request to `main` with done, left and checks (gate 3).
+10. **Finish**: pull request to `main` with done, left and checks (gate 3), and a field report for Bive
+    (`AGENTS.md` › Field reports); write one at once when you had to work around a Bive rule.
