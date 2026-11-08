@@ -1,6 +1,6 @@
 # Token ratio
 
-`token-ratio.ts` measures how much the agents produce for what the humans write. **Human** tokens are the messages
+The plugin `.opencode/plugins/token-ratio/` measures how much the agents produce for what the humans write. **Human** tokens are the messages
 typed in a root session (a coordinator's prompt to its delegate counts as agent work), estimated at four characters
 a token; **agent** tokens are the providers' own output and reasoning counts. Each message adds one line of numbers
 (no text) to `.bive/state/tokens.jsonl` in the main checkout, shared by every worktree. Totals:
