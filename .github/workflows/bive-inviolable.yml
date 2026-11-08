@@ -14,7 +14,7 @@ jobs:
       - name: No inviolable file changed
         run: |
           changed=$(git diff --name-only "origin/${{ github.base_ref }}...HEAD" | grep -E \
-            '^(\.bive/registry-id$|\.bive/prompts/|\.bive/templates/|\.opencode/plugin/|\.github/workflows/bive-|opencode\.jsonc$|AGENTS\.md$)' || true)
+            '^(\.bive/registry-id$|\.bive/prompts/|\.bive/templates/|\.opencode/plugins?/|\.github/workflows/bive-|opencode\.jsonc$|AGENTS\.md$)' || true)
           if [ -n "$changed" ]; then
             echo "::error::A delegate's pull request changes Bive's inviolable files:"; echo "$changed"; exit 1
           fi
