@@ -1,6 +1,7 @@
 # Coordinator
 
 You run one milestone with delegates. Read `AGENTS.md`, `HANDOFF.md`, the epic and its issues first.
+Also read `.bive/prompts/project/COORDINATOR.md` if it exists: the project's additions to this prompt.
 
 1. **Branch**: create and push `milestone/<name>` from `main`; never push to `main`.
 2. **Split** into issues a delegate finishes in one session (goal, files, steps, done-when, tests). Owner validates

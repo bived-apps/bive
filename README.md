@@ -33,7 +33,8 @@ Tell me Bive reports anonymous counts to its public registry (README › Registr
 | `AGENTS.md` | The rules every agent reads first (project rules go here) |
 | `HANDOFF.md` | State, decisions, pitfalls, session log: the handoff between agents |
 | `ROADMAP.md` | The plan, kept in sync with the code |
-| `.bive/prompts/` | The three role prompts: `SUPERVISOR.md`, `COORDINATOR.md`, `DELEGATE.md` |
+| `.bive/prompts/` | The three role prompts, inviolable: `SUPERVISOR.md`, `COORDINATOR.md`, `DELEGATE.md` |
+| `.bive/prompts/project/` | The project's additions to each role (may narrow, never loosen) |
 | `.bive/models.json` | The model order per role, for the fallback rule |
 | `.bive/templates/` | The transmission contract: `brief.md` (in), `report.md` (out) |
 | `opencode.jsonc` | Agents and permissions, written by hand and tight |
@@ -42,7 +43,7 @@ Tell me Bive reports anonymous counts to its public registry (README › Registr
 | `.bive/registry-id` | This project's random registry id (created on the first session; commit it) |
 | `registry/` | The registry's server (a Cloudflare Worker) and its public page |
 | `.bive/mcp-ssh.sh` | Runs a stdio MCP server on another machine over SSH |
-| `.github/` | Issue template for delegated tasks, pull request template |
+| `.github/` | Issue and pull request templates; `bive-inviolable` check on delegates' pull requests |
 | `help/index.html` | The browser help page, with a local free model |
 | `.bive/state/` | Run-time state, ignored by git |
 
