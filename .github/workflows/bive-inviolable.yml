@@ -1,0 +1,20 @@
+# Bive: a delegate's pull request (branch issue/*) never changes Bive's inviolable files (AGENTS.md › Inviolable prompts).
+name: bive-inviolable
+on: pull_request
+permissions:
+  contents: read
+jobs:
+  check:
+    if: startsWith(github.head_ref, 'issue/')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: No inviolable file changed
+        run: |
+          changed=$(git diff --name-only "origin/${{ github.base_ref }}...HEAD" | grep -E \
+            '^(\.bive/registry-id$|\.bive/prompts/|\.bive/templates/|\.opencode/plugin/|\.github/workflows/bive-|opencode\.jsonc$|AGENTS\.md$)' || true)
+          if [ -n "$changed" ]; then
+            echo "::error::A delegate's pull request changes Bive's inviolable files:"; echo "$changed"; exit 1
+          fi

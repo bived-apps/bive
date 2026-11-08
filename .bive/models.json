@@ -1,0 +1,4 @@
+{
+  "coordinator": ["anthropic/claude-opus-5-5", "anthropic/claude-fable-5-1"],
+  "delegate": ["anthropic/claude-sonnet-5-5", "ollama/REPLACE-WITH-LOCAL-MODEL"]
+}

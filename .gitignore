@@ -1,0 +1,2 @@
+# Bive: run-time state of the agents (briefs and reports being written, session notes). Prompts and templates are versioned.
+.bive/state/
