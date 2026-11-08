@@ -8,7 +8,7 @@ compatibility_date = "2026-10-01"
 [[d1_databases]]
 binding = "DB"
 database_name = "bive-registry"
-database_id = "REPLACE-WITH-THE-ID-FROM-d1-create"
+database_id = "82ea305d-72a7-469d-8e7b-99ad7e04164f"
 
 [[rules]]
 type = "Text"
