@@ -57,8 +57,8 @@ td { font-family: var(--mono); font-size: 13px; }
 <main>
   <header style="display:flex;flex-direction:column;gap:8px">
     <h1>Bive Registry</h1>
-    <p>Projects built with <a href="https://github.com/jcherfils/bive">Bive</a>, anonymously: at the end of each session a
-      project sends its human tokens, its agent tokens, its code size, how many writes its guard refused, and which agents and LLMs produced the tokens, nothing else. No name, path, text or IP is kept.</p>
+    <p>Projects built with <a href="https://github.com/jcherfils/bive">Bive</a> whose owners opted in: at the end of each session a
+      project sends its human tokens, its agent tokens, its code size, how many writes its guard refused, and which agents and LLMs produced the tokens, nothing else. No name, path, text or IP is kept. A project is listed once it has reported three sessions on two different days.</p>
     <div class="status" id="status">Loading…</div>
   </header>
 
@@ -88,7 +88,7 @@ td { font-family: var(--mono); font-size: 13px; }
   <section>
     <h2>LLMs and agents</h2>
     <div class="table"><table>
-      <thead><tr><th>Agent</th><th>LLM</th><th>Agent tokens</th><th>Projects</th><th>Reply (s)</th><th>ms per token out</th><th>Time / (in × out), ns</th></tr></thead>
+      <thead><tr><th>Agent</th><th>LLM</th><th>Agent tokens</th><th>Projects</th><th>Reply (s)</th><th>Tokens out / s</th><th>Tokens in per token out</th></tr></thead>
       <tbody id="models"></tbody>
     </table></div>
   </section>
@@ -263,7 +263,7 @@ async function load() {
     setCube(d.paths || []);
     document.getElementById("models").innerHTML = (d.models || []).map((m) => `<tr><td>${esc(m.agent)}</td>
       <td>${esc(m.model)}</td><td>${fmt(m.tokens)}</td><td>${m.projects}</td><td>${m.seconds ?? "—"}</td>
-      <td>${m.ms_per_token ?? "—"}</td><td>${m.ns_per_in_x_out ?? "—"}</td></tr>`).join("") || "<tr><td>—</td></tr>";
+      <td>${m.tokens_per_s ?? "—"}</td><td>${m.in_per_out ?? "—"}</td></tr>`).join("") || "<tr><td>—</td></tr>";
     document.getElementById("chart").innerHTML = d.days.length ? chart(d.days) : "<p>No session reported yet.</p>";
     document.getElementById("rows").innerHTML = d.rows.map((p, i) => `<tr><td>#${i + 1}</td><td>${p.since}</td>
       <td>${p.sessions}</td><td>${fmt(p.human)}</td><td>${fmt(p.agent)}</td><td>${ratio(p.human, p.agent)}</td>

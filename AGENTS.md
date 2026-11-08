@@ -14,7 +14,8 @@ Read this file, then [`HANDOFF.md`](HANDOFF.md), before changing anything. Your 
 - **One branch and one pull request per issue**: `issue/<n>-<slug>`. The body starts with `Closes #N` (or `Part of #N`
   and what is left) and holds the delegate's report.
 - **Claim the issue** with a short comment before working on it; update it with the result.
-- **Stay in your worktree**: the guard plugin refuses writes outside it.
+- **Stay in your worktree**: the guard plugin refuses writes outside it, including shell redirections; a delegate's
+  commands may not name any path outside it (absolute, `~`, `$HOME`, `..`) apart from the system folders.
 - **Never**: force-push, rewrite pushed history, push to `main`, `rm -rf`, read SSH keys or the private paths listed
   in `opencode.jsonc`.
 - **Keep sessions and prompts short**: continue a stuck delegate with one short message rather than a new session;
@@ -31,6 +32,11 @@ Read this file, then [`HANDOFF.md`](HANDOFF.md), before changing anything. Your 
   fails any `issue/*` pull request that touches them.
 - **Others complete, never edit, the role prompts**: the supervisor or the coordinator adds to a role in
   `.bive/prompts/project/<ROLE>.md`, which may narrow a rule but never loosen or contradict one; the core prompt wins.
+
+## What goes into Bive
+
+Nothing enters the template that is not read by one of the three roles, or by a human, during a task (owner,
+2026-11-08). Anything else (a public page, a visualisation, a helper for the registry) lives in its own repository.
 
 ## Project rules
 

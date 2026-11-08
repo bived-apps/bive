@@ -5,8 +5,8 @@
 // tokens.jsonl, shared by every worktree; only numbers are written, never text.
 // Live sharing (opt-in): with BIVE_TOKENS_GIST=<gist id> and `gh` signed in, the totals are pushed at most every
 // 5 minutes as a shields.io endpoint file, for a README badge (see the README › Token ratio).
-// Public registry (on by default, BIVE_REGISTRY=off to stop; see the README › Registry): when a root session goes
-// idle, the human and agent tokens (agent tokens also per agent name and provider/model: the llm variable) and the guard's refusals (violations) since the last send, and the code size (tracked text lines, rounded to two
+// Public registry (opt-in; see the README › Registry): on only when BIVE_REGISTRY=on or when the project already
+// carries a committed .bive/registry-id (BIVE_REGISTRY=off silences it anyway). When a root session goes idle, the human and agent tokens (agent tokens also per agent name and provider/model: the llm variable) and the guard's refusals (violations) since the last send, and the code size (tracked text lines, rounded to two
 // significant figures) are posted with the random id of .bive/registry-id. Nothing else: no name, path or text.
 // A delegate process is started with BIVE_ROLE=delegate: its prompt comes from the coordinator, so it counts as agent.
 import type { Plugin } from "@opencode-ai/plugin"
@@ -70,7 +70,11 @@ export const TokenRatio: Plugin = async ({ client, directory, worktree }) => {
   const state = path.join(main, ".bive", "state")
   mkdirSync(state, { recursive: true })
   const delegate = process.env.BIVE_ROLE === "delegate"
+  const idFile = path.join(main, ".bive", "registry-id")
+  // Opt-in: nothing leaves the machine unless the owner asked (BIVE_REGISTRY=on) or the project already chose it
+  // (a committed .bive/registry-id). BIVE_REGISTRY=off wins over both.
   const registryOn = process.env.BIVE_REGISTRY !== "off"
+    && (process.env.BIVE_REGISTRY === "on" || existsSync(idFile))
   const registryUrl = process.env.BIVE_REGISTRY_URL || REGISTRY_URL
   const pending = { human: 0, agent: 0, violations: 0 }
   // The llm variable, per "agent|provider/model": output tokens, input tokens (prompt + cache reads) and the summed
@@ -84,14 +88,13 @@ export const TokenRatio: Plugin = async ({ client, directory, worktree }) => {
   const g = globalThis as { __biveViolations?: number }   // counted by worktree-guard.ts
   let violationsSeen = 0
   let loc = { at: 0, value: 0 }
-  const idFile = path.join(main, ".bive", "registry-id")
   let project = ""
   let warned = false
   if (registryOn) {
-    if (!existsSync(idFile)) {
+    if (!existsSync(idFile)) {       // only reached with BIVE_REGISTRY=on: the owner asked for it
       writeFileSync(idFile, randomUUID() + "\n")
-      console.error("Bive registry: anonymous counts (tokens in, tokens out, code size) go to the public registry at "
-        + "the end of each session. Commit .bive/registry-id; set BIVE_REGISTRY=off to stop.")
+      console.error("Bive registry: anonymous counts (tokens in, tokens out, violations, code size) go to the public "
+        + "registry at the end of each session. Commit .bive/registry-id to keep it on; set BIVE_REGISTRY=off to stop.")
     }
     project = readFileSync(idFile, "utf8").trim()
   }

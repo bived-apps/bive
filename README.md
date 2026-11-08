@@ -23,7 +23,7 @@ Existing project: paste this into OpenCode (or Claude Code) at the root of your 
 Install https://github.com/jcherfils/bive here: copy .bive/, .opencode/plugin/, .github/ and the .gitignore line
 without overwriting; merge AGENTS.md, HANDOFF.md, ROADMAP.md and opencode.jsonc (keep this project's rules). Fill
 opencode.jsonc's private paths, ask me each role's models (.bive/models.json), then open a pull request (not main).
-Tell me Bive reports anonymous counts to its public registry (README › Registry) and how to turn it off.
+Tell me about Bive's public registry (README › Registry, off unless I turn it on) and ask me whether to join it.
 ```
 
 ## Files
@@ -38,7 +38,7 @@ Tell me Bive reports anonymous counts to its public registry (README › Registr
 | `.bive/models.json` | The model order per role, for the fallback rule |
 | `.bive/templates/` | The transmission contract: `brief.md` (in), `report.md` (out) |
 | `opencode.jsonc` | Agents and permissions, written by hand and tight |
-| `.opencode/plugin/worktree-guard.ts` | Refuses writes outside the session's worktree |
+| `.opencode/plugin/worktree-guard.ts` | Refuses writes outside the session's worktree, shell paths included (`bun test` runs its tests in `tests/`) |
 | `.opencode/plugin/token-ratio.ts` | Counts human and agent tokens; reports them to the registry |
 | `.bive/registry-id` | This project's random registry id (created on the first session; commit it) |
 | `registry/` | The registry's server (a Cloudflare Worker) and its public page |
@@ -126,18 +126,26 @@ prompt is the coordinator's, so it counts as agent tokens. An app that drives ag
 ## Registry
 
 Bive keeps a public, live, anonymous registry of the projects built with it: **[the registry](https://bive-registry.jcherfils.workers.dev/)**.
-It is on by default and is the one thing Bive asks in return; the licence (MIT) does not require it.
+It is **off by default** (opt-in): nothing leaves the machine until the owner turns it on. Joining is the one thing
+Bive asks in return; the licence (MIT) does not require it.
+
+- **Turn it on**: `export BIVE_REGISTRY=on` on the agents' machine, once; the first session then draws the random id
+  into `.bive/registry-id` and says so. Commit that file: from then on the project reports in every clone and
+  worktree, without the variable. **Turn it off**: `export BIVE_REGISTRY=off` (wins over the file), or delete the
+  file. Point it elsewhere (your own registry): `BIVE_REGISTRY_URL=<url>`.
 
 - **What is sent**, when a root session goes idle: the human tokens, agent tokens and violations (writes the guard
   refused: outside the worktree, or a delegate on an inviolable file) since the last report, the agent tokens per
   OpenCode agent name and provider/model (the llm variable, with input tokens and summed response time, for the
-  speed columns: seconds per reply, ms per output token, time / (tokens in × tokens out)), the
+  speed columns: seconds per reply, output tokens per second, tokens in per token out), the
   project's size in tracked text lines rounded to two significant figures (48 213 → 48 000), and the random id in
-  `.bive/registry-id`, drawn on the first session. That id is the app's unique identifier: commit it so every clone
+  `.bive/registry-id`. That id is the app's unique identifier: commit it so every clone
   and worktree reports as one app, and never copy it from another project (a template copy has none). Nothing else: no project name, repository, path, text or date (the
   server sets the day).
 - **What is kept**: one row per report (id, day, the four numbers) and one per agent and model. The server never reads or stores the IP
   address; the public page shows projects as #1, #2… and never their id.
-- **Turn it off**: `export BIVE_REGISTRY=off`. Point it elsewhere (your own registry): `BIVE_REGISTRY_URL=<url>`.
+- **What is shown**: only projects that reported at least three sessions on two different days, and the server
+  accepts at most fifty new projects a day. The id is public (it is committed), so the registry is a count, not a
+  proof: an invented or copied id can only add noise within those bounds.
 - **Run a registry**: `registry/` holds the Cloudflare Worker (`worker.js`, D1 `schema.sql`, `wrangler.toml`) and
   its page; the deploy steps are at the top of `wrangler.toml`.
