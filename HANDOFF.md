@@ -13,7 +13,8 @@ and its first example.
 
 - Repository `https://github.com/jcherfils/bive`. Integration branch **`bived`** (agents' pull requests go there);
   `main` is the template people copy and is protected: the owner merges `bived` into it by pull request.
-- No build. Tests: `bun test tests/`. Worker: `registry/` (deployed by the owner with `npx wrangler deploy`).
+- No build. Tests: `node --test tests/*.test.ts` (Node 22; no bun). Worker: `registry/` (deployed by the owner with
+  `npx wrangler deploy`).
 - The coordinator of Bive is started in a clone with this prompt (OpenCode, model Opus 5.5 or Fable 5.1):
 
 ```text
@@ -41,6 +42,11 @@ own rule applies to Bive: nothing enters the template that a role or a human doe
   registry as project #1.
 - **Speed metric (owner, 2026-11-08)**: output tokens per second per model; time / (tokens in × tokens out) dropped.
 - **Branches (owner, 2026-11-08)**: `main` minimal and illustrative, protected; `bived` for the agents.
+- **Plugins on the OpenCode 2 API, under `.opencode/plugins/` (gate 1, 2026-11-08)**: OpenCode 2.2.5 discovers both
+  `.opencode/plugin/` and `.opencode/plugins/` but refused Bive's two plugins, written for the V1 API. Each is ported
+  to `Plugin.define` in its own folder, decision logic in a pure module the tests import. Test runner: `node --test`
+  (Node 22 runs TypeScript directly; bun is not on the owner's machine). Epic 0.1 › 1 is coordinator work: the
+  plugins, the workflow and `AGENTS.md` are inviolable, so no delegate can take it (#4, #5).
 - **Skeletons live in `.bive/templates/` (2026-11-08)**: `HANDOFF.md`, `ROADMAP.md`, `README.md` there are what a
   new project starts from; the root files of this repository are Bive's own. "Use this template" copies `main` as
   is, so the first session of a new project replaces the root files with the skeletons.
@@ -52,8 +58,9 @@ satellites out, first project installed. GitHub issues are the source of truth o
 
 ## Watch out
 
-- OpenCode 2's documentation auto-discovers `.opencode/plugins/`; this repository uses `.opencode/plugin/`. Verify
-  on the owner's machine before anything else (ROADMAP 0.1 › 1).
+- A plugin OpenCode 2 refuses fails silently for the user: only the server log (`~/.local/share/opencode/log/`,
+  "failed to load plugin") and `opencode plugin list` (ID `-`) show it. Check both after any change to a plugin.
+  Until #5 is merged, `token-ratio.ts` is in that state and no token is counted.
 - The guard's shell check is a filter, not a sandbox: it refuses redirections and, for a delegate, any path outside
   the worktree but the system prefixes (`/usr`, `/tmp`, …). `external_directory: deny` in `opencode.jsonc` is the
   belt; whether it treats a worktree of the same repository as outside is unverified.
@@ -63,6 +70,11 @@ satellites out, first project installed. GitHub issues are the source of truth o
 
 ## Session log
 
+- **2026-11-08, 0.1 › 1 (coordinator Fable 5.1, supervisor Fable 5.1 in the same session at the owner's request)**:
+  found both plugins refused by OpenCode 2.2.5 (V1 API, not the folder name); gate 1 split epic 1 into #4 (guard)
+  and #5 (token-ratio), coordinator work. #4: guard ported to `.opencode/plugins/worktree-guard/` (`check.ts` +
+  `index.ts`), tests on `node --test`, inviolable pattern `.opencode/plugins?/` everywhere. Owner's decisions:
+  delegates on the free OpenCode models (`.bive/models.json`), registry Worker's D1 id committed.
 - **2026-11-08, 0.0 (owner, Fable and Opus in the owner's Claude project)**: the template written, then the history
   flattened into this one commit at the owner's request. Roles, transmission contract, tight `opencode.jsonc`,
   worktree guard (files and shell paths), MCP over SSH, token ratio, inviolable prompts, opt-in and filtered

@@ -1,72 +1,94 @@
-// bun test — the guard's shell path checks (README › Files). Runs the plugin's hook on fake tool calls.
-import { afterAll, beforeAll, describe, expect, test } from "bun:test"
-import { mkdtempSync, mkdirSync, rmSync } from "node:fs"
+// node --test tests/*.test.ts — the guard's decisions (README › Files) on fake tool calls; no OpenCode needed.
+import { describe, test } from "node:test"
+import assert from "node:assert/strict"
 import os from "node:os"
 import path from "node:path"
-import { WorktreeGuard } from "../.opencode/plugin/worktree-guard"
+import { makeGuard, violations, type Check } from "../.opencode/plugins/worktree-guard/check.ts"
 
-type Hook = (input: { tool: string, sessionID: string, callID: string }, output: { args: Record<string, unknown> }) => Promise<void>
+// Fake paths under the home folder, never created: /tmp is a system prefix the guard lets through.
+const base = path.join(os.homedir(), ".bive-guard-test")
+const main = path.join(base, "repo")
+const wt = path.join(base, "repo-3")
+const delegate = makeGuard({ root: wt, delegate: true })
+const coordinator = makeGuard({ root: wt, delegate: false })
 
-let base: string, wt: string, main: string, hooks: { delegate: Hook, coordinator: Hook }
-const bash = async (h: Hook, command: string) => h({ tool: "bash", sessionID: "s", callID: "c" }, { args: { command } })
-const write = async (h: Hook, filePath: string) => h({ tool: "write", sessionID: "s", callID: "c" }, { args: { filePath } })
-
-beforeAll(async () => {
-  // Not under /tmp: that is a system prefix the guard lets through.
-  base = mkdtempSync(path.join(os.homedir(), ".bive-guard-test-"))
-  main = path.join(base, "repo"); wt = path.join(base, "repo-3")
-  mkdirSync(main); mkdirSync(wt)
-  const make = async (role?: string) => {
-    if (role) process.env.BIVE_ROLE = role; else delete process.env.BIVE_ROLE
-    const p = await (WorktreeGuard as any)({ directory: wt, worktree: wt, client: {}, $: {} })
-    return p["tool.execute.before"] as Hook
-  }
-  hooks = { delegate: await make("delegate"), coordinator: await make() }
-})
-afterAll(() => rmSync(base, { recursive: true, force: true }))
+const shell = (check: Check, command: string, workdir?: string) => () => check("shell", { command, workdir })
+const write = (check: Check, p: string) => () => check("write", { path: p })
+const passes = (fn: () => void) => assert.doesNotThrow(fn)
+const refused = (fn: () => void, re: RegExp) => assert.throws(fn, re)
 
 describe("write tools", () => {
-  test("inside the worktree passes", async () => { await write(hooks.delegate, "src/a.py") })
-  test("outside the worktree is refused for every role", async () => {
-    await expect(write(hooks.delegate, path.join(main, "a.py"))).rejects.toThrow(/outside this session's worktree/)
-    await expect(write(hooks.coordinator, "../repo/a.py")).rejects.toThrow(/outside/)
+  test("inside the worktree passes", () => {
+    passes(write(delegate, "src/a.py"))
+    passes(() => delegate("edit", { path: "src/a.py", oldString: "a", newString: "b" }))
   })
-  test("a delegate never touches an inviolable file", async () => {
-    await expect(write(hooks.delegate, "AGENTS.md")).rejects.toThrow(/inviolable/)
-    await write(hooks.coordinator, "AGENTS.md")
+  test("outside the worktree is refused for every role", () => {
+    refused(write(delegate, path.join(main, "a.py")), /outside this session's worktree/)
+    refused(write(coordinator, "../repo/a.py"), /outside/)
+  })
+  test("a delegate never touches an inviolable file", () => {
+    refused(write(delegate, "AGENTS.md"), /inviolable/)
+    refused(write(delegate, ".opencode/plugins/worktree-guard/check.ts"), /inviolable/)
+    refused(write(delegate, ".opencode/plugin/token-ratio.ts"), /inviolable/)
+    passes(write(coordinator, "AGENTS.md"))
+  })
+  test("the V1 names still work (filePath, bash)", () => {
+    refused(() => delegate("write", { filePath: path.join(main, "a.py") }), /outside/)
+    refused(() => delegate("bash", { command: `echo x > ${main}/f.py` }), /outside/)
+  })
+})
+
+describe("patch", () => {
+  test("every file of a patch is checked", () => {
+    const patch = `*** Begin Patch\n*** Update File: src/a.py\n-a\n+b\n*** Add File: ${main}/b.py\n+x\n*** End Patch`
+    refused(() => coordinator("patch", { patchText: patch }), /outside/)
+    passes(() => coordinator("patch", { patchText: "*** Begin Patch\n*** Update File: src/a.py\n-a\n+b\n*** End Patch" }))
+    refused(() => delegate("patch", { patchText: "*** Begin Patch\n*** Update File: opencode.jsonc\n-a\n+b\n*** End Patch" }),
+            /inviolable/)
   })
 })
 
 describe("shell, every role", () => {
-  test("a redirection outside the worktree is refused (issue #101)", async () => {
-    await expect(bash(hooks.coordinator, `echo x > ${main}/f.py`)).rejects.toThrow(/outside/)
-    await expect(bash(hooks.coordinator, "echo x >> ../repo/f.py")).rejects.toThrow(/outside/)
+  test("a redirection outside the worktree is refused", () => {
+    refused(shell(coordinator, `echo x > ${main}/f.py`), /outside/)
+    refused(shell(coordinator, "echo x >> ../repo/f.py"), /outside/)
   })
-  test("redirections to /dev/null, stderr and inside pass", async () => {
-    await bash(hooks.coordinator, "pytest -q > out.txt 2>&1")
-    await bash(hooks.coordinator, "cmd >/dev/null 2>&1; echo >&2 oops")
-    await bash(hooks.coordinator, "cat <<EOF > notes.md\nhi\nEOF")
+  test("redirections to /dev/null, stderr and inside pass", () => {
+    passes(shell(coordinator, "pytest -q > out.txt 2>&1"))
+    passes(shell(coordinator, "cmd >/dev/null 2>&1; echo >&2 oops"))
+    passes(shell(coordinator, "cat <<EOF > notes.md\nhi\nEOF"))
   })
-  test("a coordinator may name paths outside (it creates worktrees)", async () => {
-    await bash(hooks.coordinator, "git worktree add ../repo-4 -b issue/4-x dev")
+  test("a working directory outside the worktree is refused", () => {
+    refused(shell(coordinator, "ls", main), /outside/)
+    passes(shell(coordinator, "ls", path.join(wt, "src")))
+  })
+  test("a coordinator may name paths outside (it creates worktrees)", () => {
+    passes(shell(coordinator, "git worktree add ../repo-4 -b issue/4-x dev"))
   })
 })
 
 describe("shell, delegate", () => {
-  test("an absolute, ~, $HOME or .. path outside the worktree is refused", async () => {
-    await expect(bash(hooks.delegate, `cd ${main} && git status`)).rejects.toThrow(/outside/)
-    await expect(bash(hooks.delegate, "cd ../repo && ls")).rejects.toThrow(/outside/)
-    await expect(bash(hooks.delegate, "cat ~/.app/agent.json")).rejects.toThrow(/outside/)
-    await expect(bash(hooks.delegate, "ls $HOME/other")).rejects.toThrow(/outside/)
-    await expect(bash(hooks.delegate, "cp a.py src/../../repo/a.py")).rejects.toThrow(/outside/)
+  test("an absolute, ~, $HOME or .. path outside the worktree is refused", () => {
+    refused(shell(delegate, `cd ${main} && git status`), /outside/)
+    refused(shell(delegate, "cd ../repo && ls"), /outside/)
+    refused(shell(delegate, "cat ~/.app/agent.json"), /outside/)
+    refused(shell(delegate, "ls $HOME/other"), /outside/)
+    refused(shell(delegate, "cp a.py src/../../repo/a.py"), /outside/)
   })
-  test("system prefixes, flags, URLs and relative names pass", async () => {
-    await bash(hooks.delegate, "/usr/bin/python3 -m pytest tests/test_a.py -q --tb=short")
-    await bash(hooks.delegate, "curl -sS https://example.com/x.json -o /tmp/x.json")
-    await bash(hooks.delegate, `ls ${wt}/src && git add -A && git commit -m 'x (#3)'`)
-    await bash(hooks.delegate, "ruff check src tests")
+  test("system prefixes, flags, URLs and relative names pass", () => {
+    passes(shell(delegate, "/usr/bin/python3 -m pytest tests/test_a.py -q --tb=short"))
+    passes(shell(delegate, "curl -sS https://example.com/x.json -o /tmp/x.json"))
+    passes(shell(delegate, `ls ${wt}/src && git add -A && git commit -m 'x (#3)'`))
+    passes(shell(delegate, "ruff check src tests"))
   })
-  test("an inviolable file is still refused through the shell", async () => {
-    await expect(bash(hooks.delegate, "sed -i 's/a/b/' opencode.jsonc")).rejects.toThrow(/inviolable/)
+  test("an inviolable file is still refused through the shell", () => {
+    refused(shell(delegate, "sed -i 's/a/b/' opencode.jsonc"), /inviolable/)
+    refused(shell(delegate, "cp x.ts .opencode/plugins/worktree-guard/index.ts"), /inviolable/)
+  })
+})
+
+describe("violations", () => {
+  test("every refusal above was counted", () => {
+    assert.equal(violations(), 19)      // the `refused(...)` calls above, one violation each
   })
 })

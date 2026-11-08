@@ -19,10 +19,12 @@ here is committed with the code it describes (an item started → `doing`, finis
 Done when the owner's first project runs with Bive installed and one of its issues has gone through the whole flow (brief, worktree,
 delegate, report, merge) with no manual step but the three gates.
 
-1. **Loading verified** (S) — todo. Does OpenCode 2 load `.opencode/plugin/` or only `.opencode/plugins/`? Rename
-   if needed (folder, inviolable patterns in the guard and the `bive-inviolable` workflow). Mark the repository as a
-   GitHub template (it is not yet). Done when `opencode run` in a fresh clone shows the guard active and
-   `.bive/state/tokens.jsonl` fills.
+1. **Loading verified** (S) — doing. Verified 2026-11-08 on the owner's machine (OpenCode v2.2.5): both folders are
+   discovered, but both plugins were refused as V1 plugins ("Plugin must export a default definition with an id and
+   an effect or setup function"). Port each to `Plugin.define` under `.opencode/plugins/<name>/` with its decision
+   logic in a pure module, tests on `node --test` (#4 guard, #5 token-ratio; coordinator work, the files are
+   inviolable). The repository is already a GitHub template. Done when `opencode plugin list` shows both IDs and, in
+   a fresh clone, a write to `../outside.txt` is refused and `.bive/state/tokens.jsonl` fills.
 2. **Install tested** (S) — todo. The one-line prompt on an empty repository and on a clone of an existing project; the diff shown
    before any write; nothing overwritten. Done when two install pull requests have been reviewed, one per case.
 3. **Guard hardened** (S) — todo. `external_directory: deny` against a worktree of the same repository; the `patch`
