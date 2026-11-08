@@ -89,6 +89,16 @@ per epic. Nothing of it is a Bive program: prompts, rules, and existing tools wi
   `bived` is unprotected, `main` has a ruleset). The coordinator closes issues on merge into `bived` (GitHub closes on
   the default branch only; #4 stayed open). A Projects board is optional and needs the `project` token scope the owner
   has not granted. Done when two delegates work in parallel on Bive itself without a conflict.
+- **Options as Markdown** (S; owner's idea, 2026-11-08). A project sets Bive's options in one Markdown file,
+  `.bive/OPTIONS.md`: a task list per module (`- [x] registry`, `- [ ] MCP over SSH`) and per decision, with a line
+  of explanation each, which GitHub renders as checkboxes and every role reads as text; the install prompt fills it,
+  and a fast check verifies that a checked module's files are present and an unchecked one's are absent. The same
+  format already configures OpenCode: agents, skills and commands are Markdown with front matter, so a Bive agent file
+  can carry its options in its front matter. For real widgets, a GitHub issue form (`.github/ISSUE_TEMPLATE/
+  bive-options.yml`: dropdowns, checkboxes, text fields) lets the owner choose from GitHub; the coordinator reads the
+  issue and writes `.bive/OPTIONS.md` by pull request. Checkboxes in repository files are rendered, not clickable;
+  only issues, pull requests and discussions have live task lists. `.bive/models.json` stays JSON (a machine reads it
+  for the fallback). Done when a project toggles a module by editing one line and the check catches a mismatch.
 - **Authorship kept through merges** (S). GitHub's squash button made the owner the author of #4's merge; the
   coordinator squashes locally so the delegate stays the author, the command goes into `COORDINATOR.md`, and a test
   reads `git log` for an author that is not a role. Done when every commit on `bived` since 0.1 names its agent.
@@ -133,7 +143,8 @@ per epic. Nothing of it is a Bive program: prompts, rules, and existing tools wi
 - Projects report back what they changed in their additions; the common part moves into the template.
 
 **Decisions this plan asks of the owner** (its gate 1): the `bivel` branch or profile; the `project` scope for a
-board or issues and milestones only; role prompts as `.opencode/agents/<role>.md`; the order of Order 1 after 0.1.
+board or issues and milestones only; role prompts as `.opencode/agents/<role>.md`; options in `.bive/OPTIONS.md`
+with or without the issue form; the order of Order 1 after 0.1.
 
 ### Waiting
 
