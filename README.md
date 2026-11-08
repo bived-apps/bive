@@ -6,7 +6,7 @@ A repository template for building software with LLM agents in three roles, on O
    you + your Claude project          one agent                      one agent per issue
    ┌──────────────┐   plan, 3 gates   ┌──────────────┐  brief, worktree  ┌──────────────┐
    │  supervisor  │ ───────────────▶  │ coordinator  │ ────────────────▶ │   delegate   │
-   └──────────────┘ ◀─────────────── └──────────────┘ ◀──────────────── └──────────────┘
+   └──────────────┘ ◀───────────────  └──────────────┘ ◀──────────────── └──────────────┘
                      PR to main          splits, reviews, merges        report.md, PR, stops
 ```
 
