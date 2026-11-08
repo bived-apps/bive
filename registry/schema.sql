@@ -4,6 +4,7 @@ CREATE TABLE IF NOT EXISTS sessions (
   day     TEXT NOT NULL,      -- UTC date set by the server (YYYY-MM-DD)
   human   INTEGER NOT NULL,   -- human tokens since the last report (estimated)
   agent   INTEGER NOT NULL,   -- agent tokens since the last report (provider counts)
+  violations INTEGER NOT NULL DEFAULT 0,  -- writes the guard refused since the last report
   loc     INTEGER NOT NULL    -- tracked text lines, rounded to two significant figures
 );
 CREATE INDEX IF NOT EXISTS sessions_project_day ON sessions (project, day);

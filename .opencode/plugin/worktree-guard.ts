@@ -8,11 +8,18 @@ import path from "node:path"
 const WRITE_TOOLS = new Set(["write", "edit", "multiedit"])
 // Bive's inviolable files: a delegate (BIVE_ROLE=delegate) never changes them. The coordinator and the supervisor
 // complete the role prompts in .bive/prompts/project/ (never the core ones) (AGENTS.md › Inviolable prompts).
-const PROTECTED = [/^\.bive\/prompts\//, /^\.bive\/templates\//, /^\.opencode\/plugin\//,
+const PROTECTED = [/^\.bive\/registry-id$/, /^\.bive\/prompts\//, /^\.bive\/templates\//, /^\.opencode\/plugin\//,
                    /^\.github\/workflows\/bive-/, /^opencode\.jsonc$/, /^AGENTS\.md$/]
-const PROTECTED_WORDS = [".bive/prompts/", ".bive/templates", ".opencode/plugin", ".github/workflows/bive-",
+const PROTECTED_WORDS = [".bive/registry-id", ".bive/prompts/", ".bive/templates", ".opencode/plugin", ".github/workflows/bive-",
                          "opencode.jsonc", "AGENTS.md"]
 const SHELL_WRITE = /(\btee\b|\bsed\s+-i|\bperl\s+-[a-z]*i|\bmv\b|\bcp\b|\brm\b|\btruncate\b|\bgit\s+(rm|mv|checkout|restore|apply))/
+
+// Each refusal is a violation: counted in this process for token-ratio.ts, which reports the count to the registry.
+const g = globalThis as { __biveViolations?: number }
+const violation = (message: string): never => {
+  g.__biveViolations = (g.__biveViolations ?? 0) + 1
+  throw new Error(message)
+}
 
 export const WorktreeGuard: Plugin = async ({ directory, worktree }) => {
   const root = path.resolve(worktree || directory)
@@ -26,12 +33,12 @@ export const WorktreeGuard: Plugin = async ({ directory, worktree }) => {
   const guard = (p: string) => {
     if (!inside(p)) refuse(p)
     if (delegate && isProtected(p)) {
-      throw new Error(`worktree-guard: ${rel(p)} is one of Bive's inviolable files; a delegate never changes it. `
+      violation(`worktree-guard: ${rel(p)} is one of Bive's inviolable files; a delegate never changes it. `
         + "Say in your report what should change and why.")
     }
   }
   const refuse = (p: string) => {
-    throw new Error(`worktree-guard: ${p} is outside this session's worktree (${root}); work only inside it.`)
+    violation(`worktree-guard: ${p} is outside this session's worktree (${root}); work only inside it.`)
   }
   return {
     "tool.execute.before": async (input, output) => {
@@ -52,7 +59,7 @@ export const WorktreeGuard: Plugin = async ({ directory, worktree }) => {
           const redirected = [...cmd.matchAll(/>{1,2}\s*["']?([^\s"';&|]+)/g)].map((m) => m[1])
           const hit = PROTECTED_WORDS.find((w) => redirected.some((t) => t.includes(w))
                                                   || (SHELL_WRITE.test(cmd) && cmd.includes(w)))
-          if (hit) throw new Error(`worktree-guard: this command may change ${hit}, one of Bive's inviolable files; `
+          if (hit) violation(`worktree-guard: this command may change ${hit}, one of Bive's inviolable files; `
             + "a delegate never changes it. Say in your report what should change and why.")
         }
       }

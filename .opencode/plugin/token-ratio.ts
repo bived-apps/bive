@@ -6,7 +6,7 @@
 // Live sharing (opt-in): with BIVE_TOKENS_GIST=<gist id> and `gh` signed in, the totals are pushed at most every
 // 5 minutes as a shields.io endpoint file, for a README badge (see the README › Token ratio).
 // Public registry (on by default, BIVE_REGISTRY=off to stop; see the README › Registry): when a root session goes
-// idle, the human and agent tokens since the last send and the code size (tracked text lines, rounded to two
+// idle, the human and agent tokens and the guard's refusals (violations) since the last send, and the code size (tracked text lines, rounded to two
 // significant figures) are posted with the random id of .bive/registry-id. Nothing else: no name, path or text.
 // A delegate process is started with BIVE_ROLE=delegate: its prompt comes from the coordinator, so it counts as agent.
 import type { Plugin } from "@opencode-ai/plugin"
@@ -60,7 +60,7 @@ function totals(log: string) {     // not exported: OpenCode runs every export a
     try { r = JSON.parse(line) } catch { continue }
     if (typeof r.tokens !== "number") continue
     if (r.kind === "human") human += r.tokens
-    else agent += r.tokens
+    else if (r.kind === "agent") agent += r.tokens
   }
   return { human, agent, ratio: human ? Math.round(agent / human) : null }
 }
@@ -72,7 +72,9 @@ export const TokenRatio: Plugin = async ({ client, directory, worktree }) => {
   const delegate = process.env.BIVE_ROLE === "delegate"
   const registryOn = process.env.BIVE_REGISTRY !== "off"
   const registryUrl = process.env.BIVE_REGISTRY_URL || REGISTRY_URL
-  const pending = { human: 0, agent: 0 }
+  const pending = { human: 0, agent: 0, violations: 0 }
+  const g = globalThis as { __biveViolations?: number }   // counted by worktree-guard.ts
+  let violationsSeen = 0
   let loc = { at: 0, value: 0 }
   const idFile = path.join(main, ".bive", "registry-id")
   let project = ""
@@ -122,18 +124,26 @@ export const TokenRatio: Plugin = async ({ client, directory, worktree }) => {
   }
 
   const report = async () => {
-    if (!registryOn || !project || (!pending.human && !pending.agent)) return
+    const v = (g.__biveViolations ?? 0) - violationsSeen
+    if (v > 0) {
+      violationsSeen += v
+      pending.violations += v
+      appendFileSync(file, JSON.stringify({ t: Date.now(), kind: "violation", count: v }) + "\n")
+    }
+    if (!registryOn || !project || (!pending.human && !pending.agent && !pending.violations)) return
     if (Date.now() - loc.at > LOC_EVERY_MS) {
       try { loc = { at: Date.now(), value: twoDigits(codeLines(main)) } } catch { loc.at = Date.now() }
     }
-    const body = { v: 1, project, human: pending.human, agent: pending.agent, loc: loc.value }
-    pending.human = pending.agent = 0
+    const body = { v: 1, project, human: pending.human, agent: pending.agent, violations: pending.violations,
+                   loc: loc.value }
+    pending.human = pending.agent = pending.violations = 0
     try {
       const r = await fetch(registryUrl, { method: "POST", headers: { "content-type": "application/json" },
                                            body: JSON.stringify(body), signal: AbortSignal.timeout(10_000) })
       if (!r.ok) throw new Error(`HTTP ${r.status}`)
     } catch (err) {
       pending.human += body.human; pending.agent += body.agent   // kept for the next session end
+      pending.violations += body.violations
       if (!warned) console.error(`Bive registry: not sent (${(err as Error).message}); retried at each session end.`)
       warned = true
     }
