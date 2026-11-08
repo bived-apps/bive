@@ -84,10 +84,23 @@ satellites out, first project installed. GitHub issues are the source of truth o
   #N" acts on merges into `main` only: the coordinator closes the issue when it merges into `bived`.
 - The guard's shell check scans the whole command text: a heredoc or a message that quotes a redirect such as
   `echo x > ../f` is refused too. Put long bodies in a file under `.bive/state/` and pass `--body-file`.
+- A prompt that says "show me" or "ask me" without "stop and wait" is run through by a model, all the more under
+  `opencode run`: it assumes the answers. Any prompt with a human step must end its turn there, and must never let
+  the agent create a repository or a remote (README › Install, #17).
 - Branch deletion and branch protection through the API were refused from the review session's proxy; the owner does
   those in GitHub's settings.
 
 ## Session log
+
+- **2026-11-08, 0.1 › 1 and 2 (coordinator Opus 5.5)**: fresh-clone check passed (#13): 0.1 › 1 done. It showed
+  token-ratio counting every session on the server, not only its own: fixed by an exact directory match (#14, live
+  check in a clone). `plugin list` lists nothing before a session has loaded the plugins (AGENTS.md core check
+  reworded). The first delegate (#15, guard test cases) could not start: `external_directory: deny` refuses the
+  coordinator's `cd ../bive-15`; the owner chose to wait for bivedream › *Delegates as sessions* (#15 moved there, #16
+  waits on it). Install tested (#17) on two local repositories: the old prompt let a free model skip the diff and
+  the questions and create a private GitHub repository (`jcherfils/install-empty`, the owner decides its fate); the
+  two-turn prompt passed both cases. Test repositories nested under `.bive/state/` inherit this checkout's
+  `opencode.jsonc` and plugins: a truer install test needs a directory outside, which `external_directory` forbids.
 
 - **2026-11-08, 0.1 › 1 (coordinator Fable 5.1, supervisor Fable 5.1 in the same session at the owner's request)**:
   found both plugins refused by OpenCode 2.2.5 (V1 API, not the folder name); gate 1 split epic 1 into #4 (guard)
