@@ -1,7 +1,8 @@
 // Bive's guard, the decision part: refuse any file write outside this session's git worktree (the bug that sank Delege:
 // a delegate wrote into the main checkout instead of its worktree) and, for a delegate (isDelegate below), any change
 // to Bive's inviolable files, also when it runs as a child session of the coordinator's. Pure: no OpenCode import,
-// so `node --test tests/*.test.ts` exercises it; index.ts plugs it into OpenCode 2's tool hook. Start each delegate as its own OpenCode session in its worktree, so that `root` is its own.
+// so `node --test tests/*.test.ts` exercises it; index.ts plugs it into OpenCode 2's tool hook. Best: each delegate
+// in its own session rooted in its worktree, so that `root` is its own.
 import os from "node:os"
 import path from "node:path"
 
