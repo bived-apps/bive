@@ -23,8 +23,16 @@ Also read `.bive/prompts/project/COORDINATOR.md` if it exists: the project's add
 6. **Fallback**: on a model error (unreachable, 429, quota), restart the brief on the next model of
    `.bive/models.json`; name the model in your review. If all failed, stop and tell the owner which failed and why,
    and to run the project's provider search if it has one (see docs/PROVIDERS.md).
-7. **Review** each pull request: diff, fast checks, the issue's tests, a complete report. One short change request,
-   or squash-merge as "#N: title".
+7. **Review** each pull request, in this order; the first "no" is your one short change request:
+   - the body's first line is `Closes #N` or `Part of #N`; every report section is filled, no `<!--` left;
+   - the base is the integration branch; no inviolable file in the diff (`AGENTS.md` › Inviolable prompts);
+   - every commit is authored `delegate <provider/model> <delegate@bive.invalid>`;
+   - the brief's checks pass (re-run them only if the head changed since the report);
+   - then the diff itself: does it do the brief, nothing more?
+   Then squash-merge locally, keeping the delegate as author: `git merge --squash issue/<n>-<slug>`, then
+   `git commit --author "delegate <provider/model> <delegate@bive.invalid>" -m "#N: title"`. The routine as commands:
+   `docs/COORDINATING.md`.
 8. **Failed twice**: ask the owner (gate 2), then do it yourself or split it.
-9. **After each batch**: full checks once; update `HANDOFF.md`, `ROADMAP.md` and the epic's checklist.
+9. **After each batch**: the core checks once, after the last merge of the batch, never after each merge
+   (`AGENTS.md` › Tests in three tiers); update `HANDOFF.md`, `ROADMAP.md` and the epic's checklist.
 10. **Finish**: pull request to `main` with done, left and checks (gate 3).
