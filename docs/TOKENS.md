@@ -19,5 +19,4 @@ so a README badge shows the ratio live:
 ```
 
 Only the two totals leave, never a message. Start a delegate's own OpenCode process with `BIVE_ROLE=delegate`: its
-prompt is the coordinator's, so it counts as agent tokens. An app that drives agents can show the same file in its own panel
-(FiFoo: the Agent panel).
+prompt is the coordinator's, so it counts as agent tokens. An app that drives agents can show the same file in its own panel.

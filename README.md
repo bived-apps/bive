@@ -13,7 +13,7 @@ A repository template for building software with LLM agents in three roles, on O
 Bive is a template and two small plugins, nothing else: a **guard** that refuses any write outside the session's
 worktree, and a **counter** of human and agent tokens. No delegation tools (OpenCode 2's subagents do that), no
 provider probe (a fallback rule on error), no package to install. The flow ran by hand on
-[FiFoo](https://github.com/jcherfils/FiFoo) before Bive wrote it down; Bive now develops itself with it.
+the owner's first project before Bive wrote it down; Bive now develops itself with it.
 
 ## Install
 

@@ -48,7 +48,7 @@ own rule applies to Bive: nothing enters the template that a role or a human doe
 ## Tasks
 
 ROADMAP.md › 0.1, in order: loading verified, install tested, guard hardened, first full flow on Bive itself,
-satellites out, FiFoo installed. GitHub issues are the source of truth once the coordinator has split them.
+satellites out, first project installed. GitHub issues are the source of truth once the coordinator has split them.
 
 ## Watch out
 
@@ -79,7 +79,7 @@ satellites out, FiFoo installed. GitHub issues are the source of truth once the 
   browser help page (WebLLM); the public registry (Cloudflare Worker, D1, live page) and MIT licence; inviolable
   prompts (delegates never change Bive's files, project additions folder, guard and PR check); violations counter and
   the 5D cascade; the llm variable (tokens per agent and model); response-time columns.
-- **Before Bive (FiFoo, 2026-11-02 to 11-07)**: the flow ran by hand on FiFoo's 1.0 (106 issues): a coordinator
+- **Before Bive (2026-11-02 to 11-07)**: the flow ran by hand on the owner's first project, a 1.0 of 106 issues: a coordinator
   (Fable, then Opus) and Sonnet delegates, one worktree per issue. Delege, the earlier standalone tool, was dropped
   on 11-03: too much machinery around too weak models, and a delegate's writes escaped its worktree (issue #101),
   the bug the guard exists for.

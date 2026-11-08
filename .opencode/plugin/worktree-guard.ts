@@ -15,7 +15,7 @@ const PROTECTED_WORDS = [".bive/registry-id", ".bive/prompts/", ".bive/templates
                          "opencode.jsonc", "AGENTS.md"]
 const SHELL_WRITE = /(\btee\b|\bsed\s+-i|\bperl\s+-[a-z]*i|\bmv\b|\bcp\b|\brm\b|\btruncate\b|\bgit\s+(rm|mv|checkout|restore|apply))/
 // Shell paths: a command may name a file outside the worktree through an absolute path, `~`, `$HOME` or `..`
-// (`echo x > /Users/jj/FiFoo/f.py`, `cd ../FiFoo && …`: the exact scenario of FiFoo's issue #101). A redirection
+// (`echo x > /Users/you/app/f.py`, `cd ../app && …`: how a delegate's writes once escaped a worktree). A redirection
 // target outside the worktree is refused for every role; for a delegate, any such path is, apart from the system
 // prefixes below, which commands read but never write (interpreters, tools, /tmp for scratch).
 const SYSTEM_PREFIXES = ["/usr", "/bin", "/sbin", "/lib", "/lib64", "/opt", "/etc", "/dev", "/proc", "/sys", "/tmp",

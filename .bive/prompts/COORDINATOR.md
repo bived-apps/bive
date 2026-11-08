@@ -14,7 +14,7 @@ Also read `.bive/prompts/project/COORDINATOR.md` if it exists: the project's add
    At most three at once, never two on overlapping files.
 6. **Fallback**: on a model error (unreachable, 429, quota), restart the brief on the next model of
    `.bive/models.json`; name the model in your review. If all failed, stop and tell the owner which failed and why,
-   and to run the project's provider search if any (FiFoo: `tools/find_providers.py` or MCP `find_providers`).
+   and to run the project's provider search if it has one (see docs/PROVIDERS.md).
 7. **Review** each pull request: diff, fast checks, the issue's tests, a complete report. One short change request,
    or squash-merge as "#N: title".
 8. **Failed twice**: ask the owner (gate 2), then do it yourself or split it.

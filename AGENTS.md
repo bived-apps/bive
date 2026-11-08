@@ -25,7 +25,7 @@ Read this file, then [`HANDOFF.md`](HANDOFF.md), before changing anything. Your 
 
 ## Coding rules
 
-Generic, whatever the language (owner, 2026-11-08, taken from FiFoo's practice). The project's own rules go under
+Generic, whatever the language (owner, 2026-11-08, taken from the practice of the owner's first project). The project's own rules go under
 *Project rules* below.
 
 - **Everything in English**: interface, code, comments, docstrings, documentation.

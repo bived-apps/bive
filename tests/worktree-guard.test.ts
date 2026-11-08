@@ -56,15 +56,15 @@ describe("shell, delegate", () => {
   test("an absolute, ~, $HOME or .. path outside the worktree is refused", async () => {
     await expect(bash(hooks.delegate, `cd ${main} && git status`)).rejects.toThrow(/outside/)
     await expect(bash(hooks.delegate, "cd ../repo && ls")).rejects.toThrow(/outside/)
-    await expect(bash(hooks.delegate, "cat ~/.fifoo/agent.json")).rejects.toThrow(/outside/)
-    await expect(bash(hooks.delegate, "ls $HOME/FiFoo")).rejects.toThrow(/outside/)
+    await expect(bash(hooks.delegate, "cat ~/.app/agent.json")).rejects.toThrow(/outside/)
+    await expect(bash(hooks.delegate, "ls $HOME/other")).rejects.toThrow(/outside/)
     await expect(bash(hooks.delegate, "cp a.py src/../../repo/a.py")).rejects.toThrow(/outside/)
   })
   test("system prefixes, flags, URLs and relative names pass", async () => {
     await bash(hooks.delegate, "/usr/bin/python3 -m pytest tests/test_a.py -q --tb=short")
     await bash(hooks.delegate, "curl -sS https://example.com/x.json -o /tmp/x.json")
     await bash(hooks.delegate, `ls ${wt}/src && git add -A && git commit -m 'x (#3)'`)
-    await bash(hooks.delegate, "ruff check fifoo tests")
+    await bash(hooks.delegate, "ruff check src tests")
   })
   test("an inviolable file is still refused through the shell", async () => {
     await expect(bash(hooks.delegate, "sed -i 's/a/b/' opencode.jsonc")).rejects.toThrow(/inviolable/)

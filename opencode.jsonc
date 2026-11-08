@@ -6,10 +6,10 @@
   "$schema": "https://opencode.ai/config.json",
 
   // MCP servers. A server on another machine runs over SSH (stdio through ssh, see .bive/mcp-ssh.sh and the README);
-  // the host is BIVE_MCP_SSH in the environment, never in this file. Example (FiFoo on the owner's Mac):
+  // the host is BIVE_MCP_SSH in the environment, never in this file. Example (a Python server on the owner's machine):
   // "mcp": {
-  //   "fifoo": {"type": "local", "command": ["sh", ".bive/mcp-ssh.sh",
-  //             "~/FiFoo/.venv/bin/python", "-m", "fifoo.mcp_server"]}
+  //   "app": {"type": "local", "command": ["sh", ".bive/mcp-ssh.sh",
+  //           "~/app/.venv/bin/python", "-m", "app.mcp_server"]}
   // },
 
   "policies": [
