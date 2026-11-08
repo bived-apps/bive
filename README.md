@@ -8,6 +8,11 @@ refuses any write outside the session's worktree, and a counter of the project's
 What Bive is not: no delegation tools (OpenCode 2's subagents do that), no provider probe (a simple fallback rule on
 error), no package to install. The flow already works without tooling; Bive only writes it down.
 
+**Help in your browser**: open `help/index.html` (or, with GitHub Pages on for this repository,
+`https://<owner>.github.io/<repo>/help/`). It runs a free model locally (WebLLM, WebGPU) on these docs; its
+*Supervisor assistant* tab checks a coordinator's gate card against `SUPERVISOR.md` and proposes a verdict, the
+decision staying yours. Nothing typed there leaves the machine.
+
 ## Install
 
 New project: **Use this template** on GitHub, then open OpenCode in the clone.
@@ -35,6 +40,7 @@ opencode.jsonc's private paths, ask me each role's models (.bive/models.json), t
 | `.opencode/plugin/token-ratio.ts` | Counts human and agent tokens into `.bive/state/tokens.jsonl` |
 | `.bive/mcp-ssh.sh` | Runs a stdio MCP server on another machine over SSH |
 | `.github/` | Issue template for delegated tasks, pull request template |
+| `help/index.html` | The browser help page, with a local free model |
 | `.bive/state/` | Run-time state, ignored by git |
 
 ## The flow
