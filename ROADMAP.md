@@ -47,7 +47,7 @@ delegate, report, merge) with no manual step but the three gates.
    `.bive/registry-id` committed): project #1 (owner, 2026-11-08). Done when HANDOFF.md tells the session and every
    gap became an issue.
 5. **Satellites out** (S) — todo. `help/` (WebLLM page) and the registry page move to a repository `bive-registry`;
-   the template keeps only the client (`token-ratio.ts`). Done when every file of the template is read by a role or a
+   the template keeps only the client (`.opencode/plugins/token-ratio/`). Done when every file of the template is read by a role or a
    human during a task.
 6. **First project installed** (M) — todo. The owner's first project: its `opencode.jsonc` replaced, its private paths declared, its role additions
    in `.bive/prompts/project/`, its first issue through the flow. Done when 0.1's criterion holds.
