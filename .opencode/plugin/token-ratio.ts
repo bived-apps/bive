@@ -4,8 +4,8 @@
 // provider's own count (output + reasoning). One line per message is appended to <main checkout>/.bive/state/
 // tokens.jsonl, shared by every worktree; only numbers are written, never text.
 // Live sharing (opt-in): with BIVE_TOKENS_GIST=<gist id> and `gh` signed in, the totals are pushed at most every
-// 5 minutes as a shields.io endpoint file, for a README badge (see the README › Token ratio).
-// Public registry (opt-in; see the README › Registry): on only when BIVE_REGISTRY=on or when the project already
+// 5 minutes as a shields.io endpoint file, for a README badge (see the docs/TOKENS.md).
+// Public registry (opt-in; see the docs/REGISTRY.md): on only when BIVE_REGISTRY=on or when the project already
 // carries a committed .bive/registry-id (BIVE_REGISTRY=off silences it anyway). When a root session goes idle, the human and agent tokens (agent tokens also per agent name and provider/model: the llm variable) and the guard's refusals (violations) since the last send, and the code size (tracked text lines, rounded to two
 // significant figures) are posted with the random id of .bive/registry-id. Nothing else: no name, path or text.
 // A delegate process is started with BIVE_ROLE=delegate: its prompt comes from the coordinator, so it counts as agent.
