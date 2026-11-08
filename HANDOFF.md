@@ -50,8 +50,9 @@ own rule applies to Bive: nothing enters the template that a role or a human doe
 - **bivedream (owner, 2026-11-08)**: the vision is a ROADMAP section and a GitHub milestone, never reached; versions
   tend to 1.0 (0.9 → 0.91 → … → 0.99 → 0.991, Principles › Versions); existing tools first (OpenCode 2, GitHub,
   maintained Actions), no Bive package; modular and optional beyond the core; delegates on the free OpenCode models
-  (`.bive/models.json`); GitHub milestones `0.1` and `bivedream` hold the issues. Open: `bivel` branch or profile,
-  `project` scope, role prompts as OpenCode agent files (ROADMAP › bivedream › Decisions).
+  (`.bive/models.json`); GitHub milestones `0.1` and `bivedream` hold the issues. The plan's five open choices were left
+  to the coordinator by the owner and are recorded in ROADMAP › bivedream › Decisions (bivel a profile, no project
+  scope, role prompts as agent files, `.bive/OPTIONS.md`, Order 1 as written).
 - **Skeletons live in `.bive/templates/` (2026-11-08)**: `HANDOFF.md`, `ROADMAP.md`, `README.md` there are what a
   new project starts from; the root files of this repository are Bive's own. "Use this template" copies `main` as
   is, so the first session of a new project replaces the root files with the skeletons.
