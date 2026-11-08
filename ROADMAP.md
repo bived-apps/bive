@@ -142,9 +142,13 @@ per epic. Nothing of it is a Bive program: prompts, rules, and existing tools wi
   (never the core prompts), accepted by the supervisor.
 - Projects report back what they changed in their additions; the common part moves into the template.
 
-**Decisions this plan asks of the owner** (its gate 1): the `bivel` branch or profile; the `project` scope for a
-board or issues and milestones only; role prompts as `.opencode/agents/<role>.md`; options in `.bive/OPTIONS.md`
-with or without the issue form; the order of Order 1 after 0.1.
+**Decisions of this plan's gate 1** (the owner left the choice to the coordinator, 2026-11-08; each is reversible):
+
+- `bivel` is a profile (a list of files), not a branch; a branch only once external projects need support.
+- No `project` token scope: issues, sub-issues, dependencies and milestones carry the work.
+- Role prompts move to `.opencode/agents/<role>.md` in the first Order 1 epic; the inviolable list follows them.
+- Options in `.bive/OPTIONS.md` first; the issue form only if editing a line proves too much for owners.
+- Order 1 runs in the order written above, starting with *Delegates as sessions* as 0.2 once 0.1 is done.
 
 ### Waiting
 
