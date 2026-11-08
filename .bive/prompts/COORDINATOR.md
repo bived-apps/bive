@@ -12,7 +12,10 @@ Also read `.bive/prompts/project/COORDINATOR.md` if it exists: the project's add
    delegate may be a simpler model).
 5. **Start**: `git worktree add .worktrees/issue-<n> -b issue/<n>-<slug> milestone/<name>`: inside the checkout and
    git-ignored, because the guard and `external_directory` refuse anything outside the session's directory (never
-   `../<repo>-<n>`). One delegate in it (its own OpenCode process, with `BIVE_ROLE=delegate`).
+   `../<repo>-<n>`). Its identity in that worktree only: `git config extensions.worktreeConfig true` (once), then
+   `git -C .worktrees/issue-<n> config --worktree user.name "delegate <provider/model>"` and `user.email`
+   `delegate@bive.invalid` the same way; yours too, with `--worktree`, in your checkout. One delegate in it (its own
+   OpenCode process, with `BIVE_ROLE=delegate`).
    At most three at once, never two on overlapping files.
 6. **Fallback**: on a model error (unreachable, 429, quota), restart the brief on the next model of
    `.bive/models.json`; name the model in your review. If all failed, stop and tell the owner which failed and why,
