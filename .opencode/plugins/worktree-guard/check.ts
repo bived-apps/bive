@@ -1,7 +1,7 @@
 // Bive's guard, the decision part: refuse any file write outside this session's git worktree (the bug that sank Delege:
-// a delegate wrote into the main checkout instead of its worktree) and, for a delegate (BIVE_ROLE=delegate), any change
-// to Bive's inviolable files. Pure: no OpenCode import, so `node --test tests/*.test.ts` exercises it; index.ts plugs it into
-// OpenCode 2's tool hook. Start each delegate as its own OpenCode session in its worktree, so that `root` is its own.
+// a delegate wrote into the main checkout instead of its worktree) and, for a delegate (isDelegate below), any change
+// to Bive's inviolable files, also when it runs as a child session of the coordinator's. Pure: no OpenCode import,
+// so `node --test tests/*.test.ts` exercises it; index.ts plugs it into OpenCode 2's tool hook. Start each delegate as its own OpenCode session in its worktree, so that `root` is its own.
 import os from "node:os"
 import path from "node:path"
 
@@ -34,10 +34,20 @@ const violation = (message: string): never => {
   throw new Error(message)
 }
 
+// A delegate's worktree (AGENTS.md › Rules): `.worktrees/issue-<n>` inside the checkout.
+const DELEGATE_WORKTREE = /^\.worktrees\/issue-\d+(?=\/|$)/
+// Whether the session rooted at `root` is a delegate's: BIVE_ROLE=delegate, a root that is a delegate's worktree, or
+// the role file `.bive/state/role` the coordinator writes there (its text, undefined when missing). A delegate
+// started as a child session inherits the coordinator's environment, so the variable alone misses it.
+export function isDelegate(root: string, role: string | undefined, roleFile: string | undefined): boolean {
+  return role === "delegate" || /[\\/]\.worktrees[\\/]issue-\d+$/.test(path.resolve(root))
+    || roleFile?.trim() === "delegate"
+}
+
 export type GuardOptions = {
   root: string          // the session's worktree: every write stays under it
   directory?: string    // where relative paths resolve from (default: root)
-  delegate: boolean     // BIVE_ROLE=delegate: inviolable files and any path outside are refused too
+  delegate: boolean     // a delegate's session (isDelegate): inviolable files and any path outside are refused too
   home?: string         // what `~` and $HOME expand to (default: the user's home)
 }
 export type ToolInput = Record<string, unknown>
@@ -70,14 +80,21 @@ export function makeGuard(options: GuardOptions): Check {
     }
     return out
   }
-  const rel = (p: string) => path.relative(root, path.resolve(directory, p)).split(path.sep).join("/")
-  const isProtected = (p: string) => PROTECTED.some((re) => re.test(rel(p)))
+  const rel = (p: string, base = root) =>
+    path.relative(base, path.resolve(directory, expand(p))).split(path.sep).join("/")
+  // Any other session: a path in `.worktrees/issue-<n>/` is a delegate's worktree (a child session runs in this
+  // session's plugin instance), so it is checked as that delegate's. Returns that worktree, or undefined.
+  const nested = (p: string): string | undefined => {
+    const m = delegate ? null : DELEGATE_WORKTREE.exec(rel(p))
+    return m ? path.join(root, m[0]) : undefined
+  }
   const refuse = (p: string): never =>
     violation(`worktree-guard: ${p} is outside this session's worktree (${root}); work only inside it.`)
   const guard = (p: string) => {
     if (!inside(p)) refuse(p)
-    if (delegate && isProtected(p)) {
-      violation(`worktree-guard: ${rel(p)} is one of Bive's inviolable files; a delegate never changes it. `
+    const base = delegate ? root : nested(p)
+    if (base !== undefined && PROTECTED.some((re) => re.test(rel(p, base)))) {
+      violation(`worktree-guard: ${rel(p, base)} is one of Bive's inviolable files; a delegate never changes it. `
         + "Say in your report what should change and why.")
     }
   }
@@ -92,6 +109,11 @@ export function makeGuard(options: GuardOptions): Check {
     } else if (SHELL_TOOLS.has(tool)) {
       const workdir = str("workdir") ?? str("cwd")
       if (workdir !== undefined && !inside(workdir)) refuse(workdir)
+      const sub = workdir === undefined ? undefined : nested(workdir)
+      if (sub !== undefined && workdir !== undefined) {
+        const at = path.resolve(directory, expand(workdir))
+        return makeGuard({ root: sub, directory: at, delegate: true, home })(tool, input)
+      }
       const cmd = str("command") ?? ""
       // Every role: a redirection never lands outside the worktree (/dev/null and the system prefixes excepted).
       const redirected = [...cmd.matchAll(REDIRECT)].map((m) => m[1])
