@@ -1,5 +1,5 @@
 // The Bive registry: receives anonymous session counts and serves them publicly.
-// POST /v1/session {v: 1, project: uuid, human, agent, violations, llm: [{agent, model, tokens, input, ms, replies}], loc} -> 204 (a registered project only: README › Registry). GET /v1/stats -> totals. GET / -> the page.
+// POST /v1/session {v: 1, project: uuid, human, agent, violations, llm: [{agent, model, tokens, input, ms, replies}], loc} -> 204 (a registered project only: docs/REGISTRY.md). GET /v1/stats -> totals. GET / -> the page.
 // The client's IP is never read or stored; the day is the server's, so no client clock is kept either.
 import page from "./index.html";
 
