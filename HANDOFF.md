@@ -47,6 +47,11 @@ own rule applies to Bive: nothing enters the template that a role or a human doe
   to `Plugin.define` in its own folder, decision logic in a pure module the tests import. Test runner: `node --test`
   (Node 22 runs TypeScript directly; bun is not on the owner's machine). Epic 0.1 › 1 is coordinator work: the
   plugins, the workflow and `AGENTS.md` are inviolable, so no delegate can take it (#4, #5).
+- **bivedream (owner, 2026-11-08)**: the vision is a ROADMAP section and a GitHub milestone, never reached; versions
+  tend to 1.0 (0.9 → 0.91 → … → 0.99 → 0.991, Principles › Versions); existing tools first (OpenCode 2, GitHub,
+  maintained Actions), no Bive package; modular and optional beyond the core; delegates on the free OpenCode models
+  (`.bive/models.json`); GitHub milestones `0.1` and `bivedream` hold the issues. Open: `bivel` branch or profile,
+  `project` scope, role prompts as OpenCode agent files (ROADMAP › bivedream › Decisions).
 - **Skeletons live in `.bive/templates/` (2026-11-08)**: `HANDOFF.md`, `ROADMAP.md`, `README.md` there are what a
   new project starts from; the root files of this repository are Bive's own. "Use this template" copies `main` as
   is, so the first session of a new project replaces the root files with the skeletons.
@@ -67,6 +72,11 @@ satellites out, first project installed. GitHub issues are the source of truth o
   the worktree but the system prefixes (`/usr`, `/tmp`, …). `external_directory: deny` in `opencode.jsonc` is the
   belt; whether it treats a worktree of the same repository as outside is unverified.
 - `.bive/registry-id`, once committed, is public: the registry is a count, not a proof.
+- GitHub's squash button sets the pull request's GitHub author as commit author (the owner, for #4): squash locally
+  (`git merge --squash`, commit as the delegate or coordinator) until ROADMAP › bivedream › Authorship lands. "Closes
+  #N" acts on merges into `main` only: the coordinator closes the issue when it merges into `bived`.
+- The guard's shell check scans the whole command text: a heredoc or a message that quotes a redirect such as
+  `echo x > ../f` is refused too. Put long bodies in a file under `.bive/state/` and pass `--body-file`.
 - Branch deletion and branch protection through the API were refused from the review session's proxy; the owner does
   those in GitHub's settings.
 
@@ -76,7 +86,12 @@ satellites out, first project installed. GitHub issues are the source of truth o
   found both plugins refused by OpenCode 2.2.5 (V1 API, not the folder name); gate 1 split epic 1 into #4 (guard)
   and #5 (token-ratio), coordinator work. #4: guard ported to `.opencode/plugins/worktree-guard/` (`check.ts` +
   `index.ts`), tests on `node --test`, inviolable pattern `.opencode/plugins?/` everywhere. Owner's decisions:
-  delegates on the free OpenCode models (`.bive/models.json`), registry Worker's D1 id committed.
+  delegates on the free OpenCode models (`.bive/models.json`), registry Worker's D1 id committed. Then #8: the
+  bivedream plan (ROADMAP › bivedream) after reading OpenCode 2.2.5's API and docs and probing GitHub's API on this
+  repository; findings that became epics: sessions created by API in a worktree with an agent and permissions,
+  OpenCode's own shell scanner, GitHub sub-issues and dependencies, template-sync Actions. Lessons of the day in
+  Watch out: GitHub's squash loses the author; "Closes" works on `main` only; the guard's text filter bit the
+  coordinator once.
 - **2026-11-08, 0.0 (owner, Fable and Opus in the owner's Claude project)**: the template written, then the history
   flattened into this one commit at the owner's request. Roles, transmission contract, tight `opencode.jsonc`,
   worktree guard (files and shell paths), MCP over SSH, token ratio, inviolable prompts, opt-in and filtered
