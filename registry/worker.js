@@ -1,5 +1,5 @@
 // The Bive registry: receives anonymous session counts and serves them publicly.
-// POST /v1/session {v: 1, project: uuid, human, agent, violations, llm: [{agent, model, tokens, input, ms, replies}], loc} -> 204. GET /v1/stats -> totals. GET / -> the page.
+// POST /v1/session {v: 1, project: uuid, human, agent, violations, llm: [{agent, model, tokens, input, ms, replies}], loc} -> 204 (a registered project only: README › Registry). GET /v1/stats -> totals. GET / -> the page.
 // The client's IP is never read or stored; the day is the server's, so no client clock is kept either.
 import page from "./index.html";
 
@@ -13,6 +13,10 @@ const MAX_MODELS = 20;                   // per report
 const MAX_MS = 7 * 24 * 3600 * 1000;     // a week of responses per report
 const MAX_INPUT = 2_000_000_000;
 const MAX_REPORTS_PER_DAY = 500;          // per project
+const MAX_NEW_PROJECTS_PER_DAY = 50;     // first appearances: bounds what an invented id can add
+// A project is listed once it has reported at least 3 sessions on at least 2 distinct days: a one-off or a flood
+// of fresh ids never reaches the page or the totals.
+const LISTED = "SELECT project FROM sessions GROUP BY project HAVING COUNT(*) >= 3 AND COUNT(DISTINCT day) >= 2";
 
 const json = (data, status = 200, extra = {}) => new Response(JSON.stringify(data), {
   status, headers: { "content-type": "application/json", "access-control-allow-origin": "*", ...extra } });
@@ -37,6 +41,13 @@ async function report(request, env) {
   const { n } = await env.DB.prepare("SELECT COUNT(*) AS n FROM sessions WHERE project = ? AND day = ?")
     .bind(b.project, day).first();
   if (n >= MAX_REPORTS_PER_DAY) return json({ error: "too many reports today" }, 429);
+  const { seen } = await env.DB.prepare("SELECT COUNT(*) AS seen FROM sessions WHERE project = ?").bind(b.project).first();
+  if (!seen) {
+    const { fresh } = await env.DB.prepare(
+      "SELECT COUNT(*) AS fresh FROM (SELECT project, MIN(day) AS first FROM sessions GROUP BY project HAVING first = ?)")
+      .bind(day).first();
+    if (fresh >= MAX_NEW_PROJECTS_PER_DAY) return json({ error: "too many new projects today" }, 429);
+  }
   await env.DB.prepare("INSERT INTO sessions (project, day, human, agent, violations, loc) VALUES (?, ?, ?, ?, ?, ?)")
     .bind(b.project, day, b.human, b.agent, b.violations ?? 0, b.loc).run();
   if (llm.length) {
@@ -50,15 +61,15 @@ async function report(request, env) {
 async function stats(env) {
   const total = await env.DB.prepare(`SELECT COUNT(DISTINCT project) AS projects, COUNT(*) AS sessions,
       COALESCE(SUM(human), 0) AS human, COALESCE(SUM(agent), 0) AS agent,
-      COALESCE(SUM(violations), 0) AS violations FROM sessions`).first();
+      COALESCE(SUM(violations), 0) AS violations FROM sessions WHERE project IN (${LISTED})`).first();
   // Each project's current size is its latest non-zero report; the id itself is never returned.
   const { results: projects } = await env.DB.prepare(`SELECT project, SUM(human) AS human, SUM(agent) AS agent,
       SUM(violations) AS violations, COUNT(*) AS sessions, MIN(day) AS since,
       (SELECT s2.loc FROM sessions s2 WHERE s2.project = s.project AND s2.loc > 0 ORDER BY s2.rowid DESC LIMIT 1) AS loc
-      FROM sessions s GROUP BY project ORDER BY agent DESC LIMIT 200`).all();
+      FROM sessions s WHERE project IN (${LISTED}) GROUP BY project ORDER BY agent DESC LIMIT 200`).all();
   const { results: days } = await env.DB.prepare(`SELECT day, COUNT(*) AS sessions, SUM(human) AS human,
       SUM(agent) AS agent, SUM(violations) AS violations FROM sessions WHERE day >= date('now', '-90 day')
-      GROUP BY day ORDER BY day`).all();
+      AND project IN (${LISTED}) GROUP BY day ORDER BY day`).all();
   // The time dimension: each listed project's cumulative path, one point per active day, [day, human, agent, loc,
   // violations]. Rows are matched by position, never by id.
   const index = new Map(projects.map((p, i) => [p.project, i]));
@@ -76,17 +87,17 @@ async function stats(env) {
   // The llm variable: agent tokens per agent name and model overall, and each listed project's main model.
   const { results: models } = await env.DB.prepare(`SELECT agent, model, SUM(tokens) AS tokens,
       SUM(input) AS input, SUM(ms) AS ms, SUM(replies) AS replies, COUNT(DISTINCT project) AS projects
-      FROM llm GROUP BY agent, model ORDER BY tokens DESC LIMIT 50`).all();
-  // Speed, per agent and model, on the mean response: seconds, milliseconds per output token, and the owner's
-  // metric, response time / (tokens in x tokens out), in nanoseconds (it falls fast as either count grows).
+      FROM llm WHERE project IN (${LISTED}) GROUP BY agent, model ORDER BY tokens DESC LIMIT 50`).all();
+  // Speed, per agent and model: seconds per reply (mean), output tokens per second (the one number that compares
+  // providers), and context per output token (tokens in / tokens out: how much context each produced token carries).
   for (const m of models) {
-    const r = m.replies || 0, tin = r ? m.input / r : 0, tout = r ? m.tokens / r : 0, t = r ? m.ms / r : 0;
+    const r = m.replies || 0, t = r ? m.ms / r : 0;
     m.seconds = r ? +(t / 1000).toFixed(1) : null;
-    m.ms_per_token = tout ? +(t / tout).toFixed(1) : null;
-    m.ns_per_in_x_out = tin && tout ? +(t * 1e6 / (tin * tout)).toFixed(2) : null;
+    m.tokens_per_s = m.ms ? +(m.tokens * 1000 / m.ms).toFixed(1) : null;
+    m.in_per_out = m.tokens ? +(m.input / m.tokens).toFixed(1) : null;
   }
   const { results: mains } = await env.DB.prepare(`SELECT project, model, SUM(tokens) AS tokens FROM llm
-      GROUP BY project, model ORDER BY tokens ASC`).all();
+      WHERE project IN (${LISTED}) GROUP BY project, model ORDER BY tokens ASC`).all();
   const main = new Map(mains.map((r) => [r.project, r.model]));     // ascending: the largest wins
   const loc = projects.reduce((n, p) => n + (p.loc || 0), 0);
   return json({ ...total, loc, rows: projects.map(({ project, since, ...p }) => ({ ...p, since: since.slice(0, 7),
