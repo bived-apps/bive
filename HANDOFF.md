@@ -63,6 +63,11 @@ satellites out, FiFoo installed. GitHub issues are the source of truth once the 
 
 ## Session log
 
+- **2026-11-08, Fable (review thread), PR to `bived`**: generic coding rules added to AGENTS.md (English, fail-safe,
+  linter, three tiers, docs in the same commit, agent-authored commits, no Git hooks), chosen by the owner from the
+  nineteen rules of his first project; *Project rules* and *Before committing* now say what to fill in. Every
+  mention of that project removed from the template (owner, 2026-11-08): Bive names no project.
+
 - **2026-11-08, Fable (review thread), PR to `bived`**: Bive's own HANDOFF.md and ROADMAP.md (0.1) written; the
   skeletons moved to `.bive/templates/` with a README skeleton; README cut to a minimal, illustrative page, its long
   sections moved to `docs/` (SSH, providers, tokens, registry); the install prompt and `COORDINATOR.md` say to start a

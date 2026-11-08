@@ -23,6 +23,22 @@ Read this file, then [`HANDOFF.md`](HANDOFF.md), before changing anything. Your 
 - **Keep `HANDOFF.md` and `ROADMAP.md` true**: the coordinator updates them once per batch of merges, in the same
   commit as the code they describe. Delete what is no longer accurate rather than adding contradictions.
 
+## Coding rules
+
+Generic, whatever the language (owner, 2026-11-08, taken from FiFoo's practice). The project's own rules go under
+*Project rules* below.
+
+- **Everything in English**: interface, code, comments, docstrings, documentation.
+- **Fail-safe**: no exception swallowed in silence (catch the precise one, or log once and say why); a timeout on
+  every subprocess and every network call; a file the program reads may be missing or corrupt without a crash.
+- **A linter in the fast checks**; never reformat a whole file; every suppressed warning says why, in parentheses.
+- **Tests in three tiers**: *fast* (the delegate, before its pull request: lint and the tests of the files touched),
+  *core* (the coordinator, once per batch of merges, never after each merge), *full* (before a release).
+- **Docs change in the same commit** as the code they describe (README, reference pages, HANDOFF, ROADMAP).
+- **Commits are authored by the agent that made them**: set `git config user.name` / `user.email` to the agent's
+  identity in the working copy, not the owner's.
+- **No Git hooks**: a delegate is started by the coordinator, never by a Git command.
+
 ## Inviolable prompts
 
 - **A delegate never changes Bive's inviolable files**: the role prompts and their project additions
@@ -40,8 +56,15 @@ Nothing enters the template that is not read by one of the three roles, or by a 
 
 ## Project rules
 
-<!-- The project's own rules go here: language, data that never leaves the machine, tests, style, licences. -->
+<!-- Filled at install, with the owner (cards). Keep each as one line:
+- Data: where the program writes (caches, settings, user data) and what never leaves the machine.
+- Licences: where a third-party model, asset or dataset is registered (file + table), checked by which test.
+- Runtime and versions the owner's machine imposes.
+- Anything the owner decided, dated: "**Topic (owner, YYYY-MM-DD)**: …". -->
 
 ## Before committing
 
-<!-- The project's fast checks (lint, the tests of the files touched) and its full checks (the coordinator, once per batch). -->
+<!-- The exact commands of each tier:
+- fast (delegate):  <lint command> ; <tests of the files touched> ;
+- core (coordinator, once per batch):  <the suite> ;
+- full (release):  <everything, on every machine that matters>. -->
