@@ -73,8 +73,9 @@ satellites out, first project installed. GitHub issues are the source of truth o
   the worktree but the system prefixes (`/usr`, `/tmp`, …). `external_directory: deny` in `opencode.jsonc` is the
   belt; whether it treats a worktree of the same repository as outside is unverified.
 - `.bive/registry-id`, once committed, is public: the registry is a count, not a proof.
-- GitHub's squash button sets the pull request's GitHub author as commit author (the owner, for #4): squash locally
-  (`git merge --squash`, commit as the delegate or coordinator) until ROADMAP › bivedream › Authorship lands. "Closes
+- GitHub's squash button sets the pull request's GitHub author as commit author (the owner, for #4): use the rebase
+  button (`gh pr merge --rebase`) for a one-commit pull request, which keeps the agent as author, until ROADMAP ›
+  bivedream › Authorship lands. "Closes
   #N" acts on merges into `main` only: the coordinator closes the issue when it merges into `bived`.
 - The guard's shell check scans the whole command text: a heredoc or a message that quotes a redirect such as
   `echo x > ../f` is refused too. Put long bodies in a file under `.bive/state/` and pass `--body-file`.
@@ -92,7 +93,11 @@ satellites out, first project installed. GitHub issues are the source of truth o
   repository; findings that became epics: sessions created by API in a worktree with an agent and permissions,
   OpenCode's own shell scanner, GitHub sub-issues and dependencies, template-sync Actions. Lessons of the day in
   Watch out: GitHub's squash loses the author; "Closes" works on `main` only; the guard's text filter bit the
-  coordinator once.
+  coordinator once. Then #5: token-ratio ported to `.opencode/plugins/token-ratio/` (`lib.ts` + `index.ts`): human
+  tokens from the `prompt` hook, agent tokens from `session.step.ended`, step time from `session.step.started`;
+  registry and gist unchanged; the V1 folder `.opencode/plugin/` is gone; `tokens.jsonl` fills. Merged with
+  GitHub's *rebase* button, which kept the coordinator as author. The plan's five choices were left to the
+  coordinator by the owner (ROADMAP › bivedream › Decisions). README diagram in Mermaid at the owner's request (PR #7).
 - **2026-11-08, 0.0 (owner, Fable and Opus in the owner's Claude project)**: the template written, then the history
   flattened into this one commit at the owner's request. Roles, transmission contract, tight `opencode.jsonc`,
   worktree guard (files and shell paths), MCP over SSH, token ratio, inviolable prompts, opt-in and filtered

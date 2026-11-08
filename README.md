@@ -2,12 +2,17 @@
 
 A repository template for building software with LLM agents in three roles, on OpenCode 2:
 
-```text
-   you + your Claude project          one agent                      one agent per issue
-   ┌──────────────┐   plan, 3 gates   ┌──────────────┐  brief, worktree  ┌──────────────┐
-   │  supervisor  │ ───────────────▶  │ coordinator  │ ────────────────▶ │   delegate   │
-   └──────────────┘ ◀─────────────── └──────────────┘ ◀──────────────── └──────────────┘
-                     PR to main          splits, reviews, merges        report.md, PR, stops
+```mermaid
+flowchart LR
+  S(["supervisor<br/>you + your Claude project"])
+  C["coordinator<br/>one agent: splits, reviews, merges"]
+  D1["delegate<br/>issue 12, its own worktree"]
+  D2["delegate<br/>issue 13, its own worktree"]
+  S -- "plan · gate 1: the split" --> C
+  C -- "brief" --> D1 & D2
+  D1 & D2 -- "report.md + pull request, then stops" --> C
+  C -. "gate 2: failed twice" .-> S
+  C == "gate 3: pull request to main" ==> S
 ```
 
 Bive is a template and two small plugins, nothing else: a **guard** that refuses any write outside the session's
