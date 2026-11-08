@@ -38,11 +38,14 @@ Generic, whatever the language (owner, 2026-11-08, taken from the practice of th
   *core* (the coordinator, once per batch of merges, never after each merge), *full* (before a release).
 - **Docs change in the same commit** as the code they describe (README, reference pages, HANDOFF, ROADMAP).
 - **Commits are authored by the agent that made them, under an explicit name** (owner, 2026-11-08): in its working
-  copy an agent sets `git config user.name "<role> <provider/model>"`, the model's name **and version**, the same
-  name as in the registry's llm variable (e.g. `delegate anthropic/claude-sonnet-5-5`, never `delegate` or
-  `Claude`), and `user.email "<role>@bive.invalid"`, never the owner's identity. A squash merge keeps the delegate
-  as author; the coordinator is the committer. Anyone must be able to tell from `git log` who wrote each change,
-  human or model.
+  copy an agent sets `git config --worktree user.name "<role> <provider/model>"`, the model's name **and version**,
+  the same name as in the registry's llm variable (e.g. `delegate anthropic/claude-sonnet-5-5`, never `delegate` or
+  `Claude`), and `git config --worktree user.email "<role>@bive.invalid"`, never the owner's identity. `--worktree`
+  is required: plain `git config` writes the config every worktree shares, so one delegate's name becomes everyone's;
+  it needs `git config extensions.worktreeConfig true` once per clone. The name is that of the model running now:
+  when the session's model changes, set it again before the next commit and sign comments with the new name. A squash
+  merge keeps the delegate as author; the coordinator is the committer. Anyone must be able to tell from `git log` who
+  wrote each change, human or model.
 - **No Git hooks**: a delegate is started by the coordinator, never by a Git command.
 
 ## Inviolable prompts
