@@ -34,8 +34,9 @@ own rule applies to Bive: nothing enters the template that a role or a human doe
 
 ## Decisions
 
-- **No machinery (owner, 2026-11-08)**: no delegation tools, no provider probe, no package; a template and two
-  plugins. Reviewed and confirmed by an independent read ("Bive — avis critique", Fable, 2026-11-08).
+- **No machinery (owner, 2026-11-08)**: no delegation tools, automatic provider probe/search tool, or package; a
+  template and two plugins. A one-model manual availability check is documented in `docs/PROVIDERS.md`; it is not a
+  probe tool. Reviewed and confirmed by an independent read ("Bive — avis critique", Fable, 2026-11-08).
 - **Nothing in the template that a role or a human does not read during a task (owner, 2026-11-08)**: satellites
   (registry page, browser help) go to their own repository (ROADMAP 0.1 › 5).
 - **Registry opt-in (owner, 2026-11-08)**: off unless `BIVE_REGISTRY=on` or a committed `.bive/registry-id`; the
