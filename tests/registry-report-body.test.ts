@@ -57,3 +57,30 @@ test("stream is cancelled as soon as it exceeds the limit", async () => {
   await new Promise((r) => setTimeout(r, 0))
   assert.equal(cancelled, true)
 })
+
+test("cancellation failure is reported and oversized body still throws", async () => {
+  const originalError = console.error
+  const messages: any[] = []
+  console.error = (...args: any[]) => { messages.push(args) }
+  try {
+    const stream = new ReadableStream<Uint8Array>({
+      start(controller) {
+        controller.enqueue(new Uint8Array(LIMIT).fill(0x61))
+        controller.enqueue(new Uint8Array(10).fill(0x61))
+      },
+      cancel() { throw new Error("cancel failed") },
+    })
+    let thrown: any
+    try {
+      await readReportBody(makeRequest(stream))
+    } catch (e) {
+      thrown = e
+    }
+    assert.ok(thrown instanceof ReportBodyTooLargeError)
+    assert.ok(thrown.cause instanceof Error)
+    assert.equal(thrown.cause.message, "cancel failed")
+    assert.ok(messages.length > 0)
+  } finally {
+    console.error = originalError
+  }
+})

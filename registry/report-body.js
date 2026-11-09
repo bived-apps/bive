@@ -3,8 +3,8 @@
 const DEFAULT_LIMIT = 8192;
 
 export class ReportBodyTooLargeError extends Error {
-  constructor(message = "report body too large") {
-    super(message);
+  constructor(message = "report body too large", options) {
+    super(message, options);
     this.name = "ReportBodyTooLargeError";
   }
 }
@@ -27,14 +27,31 @@ async function readReportBody(input, limit = DEFAULT_LIMIT) {
       const chunk = value instanceof Uint8Array ? value : new Uint8Array(value);
       total += chunk.byteLength;
       if (total > limit) {
-        try { await reader.cancel(); } catch { /* ignore */ }
-        throw new ReportBodyTooLargeError();
+        let cancelError = null;
+        try {
+          await reader.cancel();
+        } catch (err) {
+          cancelError = err;
+          console.error("report-body: failed to cancel oversized body reader:", err);
+        }
+        throw new ReportBodyTooLargeError("report body too large",
+          cancelError ? { cause: cancelError } : undefined);
       }
       chunks.push(chunk);
     }
   } catch (err) {
     if (err instanceof ReportBodyTooLargeError) throw err;
-    try { await reader.cancel(); } catch { /* ignore */ }
+    let cancelError = null;
+    try {
+      await reader.cancel();
+    } catch (cancelErr) {
+      cancelError = cancelErr;
+      console.error("report-body: failed to cancel body reader:", cancelErr);
+    }
+    if (cancelError) {
+      // Preserve the cancellation failure alongside the original read failure.
+      err.cause = err.cause ?? cancelError;
+    }
     throw err;
   }
   const out = new Uint8Array(total);
@@ -44,14 +61,4 @@ async function readReportBody(input, limit = DEFAULT_LIMIT) {
 }
 
 export { readReportBody };
-export const readBody = readReportBody;
-export const readRequestBody = readReportBody;
-export const readBoundedBody = readReportBody;
-export const readBodyText = readReportBody;
-
-export const MAX_REPORT_BODY_BYTES = DEFAULT_LIMIT;
-export const MAX_BODY_BYTES = DEFAULT_LIMIT;
-export const BODY_LIMIT = DEFAULT_LIMIT;
-export const LIMIT = DEFAULT_LIMIT;
-
 export default readReportBody;
