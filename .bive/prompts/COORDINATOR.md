@@ -22,7 +22,9 @@ Also read `.bive/prompts/project/COORDINATOR.md` if it exists: the project's add
    environment). One delegate in it: a subagent, or its own OpenCode process with `BIVE_ROLE=delegate`. Your own
    work (inviolable files) goes on a branch in your checkout, never under `.worktrees/issue-*`, which the guard
    treats as a delegate's.
-   At most three at once, never two on overlapping files.
+   At most three at once, never two on overlapping files. Record each delegate process PID when starting it; to
+   continue a busy process-based delegate, wait for that PID to exit, then run `opencode run --continue` (or target its
+   session with `--session <id>`).
 6. **Model and fallback**: before starting a delegate, resolve its canonical model from `.bive/models.json` through
    `.bive/state/models.local.json` if that optional machine-local alias map exists; use the resolved ID to invoke
    OpenCode, but keep the canonical ID for the Git author identity. A missing or unreadable alias file means use the
