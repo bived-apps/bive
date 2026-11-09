@@ -15,7 +15,31 @@ Branch `issue/<N>-<slug>` from `<integration branch>` · worktree `.worktrees/is
 # lint and the tests of the files touched
 ```
 
-Then open the pull request against `<integration branch>`: body `Closes #<N>` (or `Part of #<N>` and what is left)
-plus the report (`.bive/templates/report.md`), and stop.
+<!-- Optional: use Parts instead of the single-session Steps/Done when/Checks above when the work exceeds the
+     per-session limit of 3 source files and 1 test file. Each part is one session and must fit that limit. -->
+## Parts (optional)
+
+<!-- State the PR strategy: default is one PR against the named integration branch after the final part. If opening
+     PRs after each part, say so explicitly; each intermediate PR starts with `Part of #<N>` and names what remains. -->
+**Pull request strategy**: <!-- after the final part | after each part -->
+
+### Part A — <short title>
+**Steps**: <!-- exact work and files; max 3 source files + 1 test file in this session -->
+**Done when**: <!-- observable criteria for this part -->
+**Checks**:
+```bash
+# this part's lint and tests
+```
+
+### Part B — <short title>
+**Steps**: <!-- exact work and files; max 3 source files + 1 test file in this session -->
+**Done when**: <!-- observable criteria for this part -->
+**Checks**:
+```bash
+# this part's lint and tests
+```
+
+Follow the pull request strategy above. The final report starts with `Closes #<N>` when complete, or `Part of #<N>`
+and what remains; fill `.bive/templates/report.md` and stop after your assigned part.
 
 **Issue**: <!-- pasted -->

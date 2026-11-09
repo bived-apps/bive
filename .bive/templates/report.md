@@ -1,6 +1,6 @@
 Closes #<N>
 
-**State**: <!-- done | partial | blocked | failed -->
+**State**: <!-- done | part <A/B/…> done | partial | blocked | failed -->
 
 **Changed**: <!-- files and what each change does -->
 

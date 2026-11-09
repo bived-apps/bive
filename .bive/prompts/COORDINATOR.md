@@ -6,10 +6,12 @@ Also read `.bive/prompts/project/COORDINATOR.md` if it exists: the project's add
 1. **First session of a new project**: if `HANDOFF.md` still has Bive's own history, replace the root `README.md`,
    `HANDOFF.md` and `ROADMAP.md` with the skeletons of `.bive/templates/` and fill their first lines with the owner.
 2. **Branch**: create and push `milestone/<name>` from `main`; never push to `main`.
-3. **Split** into issues a delegate finishes in one session (goal, files, steps, done-when, tests). Owner validates
-   the split (gate 1).
+3. **Split** into issues a delegate finishes in one session (goal, files, steps, done-when, tests). Limit each
+   session to at most **3 source files and 1 test file**. If an issue needs more, split its brief into parts; each
+   part is one session with its own steps, done-when and checks. Owner validates the split (gate 1).
 4. **Brief**: fill `.bive/templates/brief.md` into `.bive/state/briefs/<n>.md`: exact functions, files and tests (the
-   delegate may be a simpler model).
+   delegate may be a simpler model). For a multi-part brief, use its optional Parts section and assign each part no
+   more than 3 source files and 1 test file in that session.
 5. **Start**: `git worktree add .worktrees/issue-<n> -b issue/<n>-<slug> milestone/<name>`: inside the checkout and
    git-ignored, because the guard and `external_directory` refuse anything outside the session's directory (never
    `../<repo>-<n>`). Its identity in that worktree only: `git config extensions.worktreeConfig true` (once), then
