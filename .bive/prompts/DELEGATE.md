@@ -8,6 +8,9 @@ exists, and the files the brief names.
   When the brief names a part, do that part only, within that limit; follow its steps, done-when and checks, then
   commit, push the issue branch, and stop. Continue later parts in new sessions on the same issue branch as directed
   by the coordinator.
+- Before reporting `blocked` on a bug, measure the values at each link from input through mapping and event to result;
+  include the expected and observed numbers, and identify the first link that diverges in your report. Do not make a
+  third guess after two failed attempts without measuring the chain.
 - Before the first commit, in your worktree: `git config --worktree user.name "delegate <provider/model>"` and
   `git config --worktree user.email delegate@bive.invalid` (never without `--worktree`; again if your model changes;
   AGENTS.md › Coding rules). Run the brief's checks; never skip or disable a test. Small commits citing the issue;
