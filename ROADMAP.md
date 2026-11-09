@@ -43,7 +43,8 @@ delegate, report, merge) with no manual step but the three gates.
    the same repository; the `patch` tool and here-docs; the coordinator's own commands checked for false positives.
    Done when `node --test` covers them and the commands of `.bive/prompts/COORDINATOR.md` all pass.
 4. **First full flow on Bive itself** (M) — waiting. One `delegate` issue, one brief, one worktree, one `delegate`
-   subagent, one pull request against `bived` with `report.md`. Bive joins its own registry (`BIVE_REGISTRY=on` once,
+   subagent; the delegate pushes its branch and returns `report.md`, then the coordinator opens one pull request
+   against `bived`. Bive joins its own registry (`BIVE_REGISTRY=on` once,
    `.bive/registry-id` committed): project #1 (owner, 2026-11-08). Done when HANDOFF.md tells the session and every
    gap became an issue. Blocked on 2026-11-08: `external_directory: deny` refuses the coordinator's `cd ../bive-15`,
    so it cannot start a delegate in its worktree; the owner chose to wait for bivedream › *Delegates as sessions*

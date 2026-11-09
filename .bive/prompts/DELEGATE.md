@@ -12,9 +12,8 @@ exists, and the files the brief names.
   `git config --worktree user.email delegate@bive.invalid` (never without `--worktree`; again if your model changes;
   AGENTS.md › Coding rules). Run the brief's checks; never skip or disable a test. Small commits citing the issue;
   push only your branch.
-- Open one pull request against the branch the brief names only after the final part, using the filled
-  `.bive/templates/report.md` as its body. Do not open a pull request for an intermediate part unless the brief
-  explicitly says otherwise; if it does, use `Part of #<N>` and state what remains. The coordinator specifies this
-  strategy in the brief.
+- Never create a pull request. After your assigned work (or part), push the issue branch and return the completed
+  `.bive/templates/report.md` in your final response to the coordinator. The coordinator creates or updates the pull
+  request from your branch. Follow the brief's pull-request timing, but do not open the PR yourself.
 - Never change Bive's inviolable files (`AGENTS.md` › Inviolable prompts); if one is wrong, say so in your report.
 - Then stop: never start an agent, merge, or touch another issue.

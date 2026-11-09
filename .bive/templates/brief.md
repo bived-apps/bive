@@ -19,9 +19,10 @@ Branch `issue/<N>-<slug>` from `<integration branch>` · worktree `.worktrees/is
      per-session limit of 3 source files and 1 test file. Each part is one session and must fit that limit. -->
 ## Parts (optional)
 
-<!-- State the PR strategy: default is one PR against the named integration branch after the final part. If opening
-     PRs after each part, say so explicitly; each intermediate PR starts with `Part of #<N>` and names what remains. -->
-**Pull request strategy**: <!-- after the final part | after each part -->
+<!-- The coordinator alone creates PRs. Default: one PR against the named integration branch after the final part.
+     If the coordinator should create/update a PR after each part, say so explicitly; each intermediate PR starts
+     with `Part of #<N>` and names what remains. -->
+**Pull request timing (coordinator)**: <!-- after the final part | after each part -->
 
 ### Part A — <short title>
 **Steps**: <!-- exact work and files; max 3 source files + 1 test file in this session -->
@@ -39,7 +40,8 @@ Branch `issue/<N>-<slug>` from `<integration branch>` · worktree `.worktrees/is
 # this part's lint and tests
 ```
 
-Follow the pull request strategy above. The final report starts with `Closes #<N>` when complete, or `Part of #<N>`
-and what remains; fill `.bive/templates/report.md` and stop after your assigned part.
+Follow the pull request timing above. After your assigned part, push the issue branch and return the filled
+`.bive/templates/report.md` to the coordinator in your final response. The coordinator creates or updates the PR;
+its body starts with `Closes #<N>` when complete, or `Part of #<N>` and what remains.
 
 **Issue**: <!-- pasted -->
