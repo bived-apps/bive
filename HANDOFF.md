@@ -115,6 +115,10 @@ satellites out, first project installed. GitHub issues are the source of truth o
 
 ## Session log
 
+- **2026-11-09, supervisor openai/gpt-6-luna**: at the owner's request, verified PR #59 merged, closed issue #58, and
+  handed the next coordinator task to issue #33. GitHub CLI uses the repository owner's account; GitHub collaborator
+  status belongs to that account, not to the model identity.
+
 - **2026-11-08, field report of a Python / ImGui project (coordinator Opus 5.5, started as a subagent of that
   project's coordinator)**: the first field report (posted on #35) became #22 (worktrees in `.worktrees/issue-<n>`
   inside the checkout, git-ignored), #28 (identity with `git config --worktree`, and after a model switch), #36
