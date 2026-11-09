@@ -67,10 +67,13 @@ describe("shell, every role", () => {
     // The redirect in 'cat <<EOF > ../x' lands outside the worktree, so it is refused for every role.
     refused(shell(coordinator, "cat <<EOF > ../x"), /outside/)
   })
-  test.todo("a quoted here-document whose body only contains '> ../x' is allowed (current guard false positive: the REDIRECT regex scans the whole command text, including heredoc bodies, and treats the literal '> ../x' as a redirection)", () => {
-    // Desired behavior: the '>' only appears inside a quoted heredoc body, so it is not a
-    // redirection and the command should pass. The current guard refuses it (false positive)
-    // because REDIRECT scans the entire command text. Retained as a todo; the guard is unchanged.
+  test("heredoc-like text in quotes or a comment cannot hide a later redirect", () => {
+    // Here-document syntax only counts outside shell quotes and comments; later commands remain checked.
+    refused(shell(coordinator, "echo '<<EOF'\n> ../x"), /outside/)
+    refused(shell(coordinator, "echo ok # <<EOF\n> ../x\nEOF"), /outside/)
+  })
+  test("a quoted here-document whose body only contains '> ../x' is allowed", () => {
+    // Quoted here-document body text is data, not a live shell redirection.
     passes(shell(coordinator, "cat <<'EOF'\n> ../x\nEOF"))
   })
   test("a working directory outside the worktree is refused", () => {
@@ -151,6 +154,6 @@ describe("delegate detection (child sessions inherit the coordinator's environme
 
 describe("violations", () => {
   test("every refusal above was counted", () => {
-    assert.equal(violations(), 30)      // the `refused(...)` calls above, plus the todo's current false-positive refusal, one violation each
+    assert.equal(violations(), 31)      // every `refused(...)` call above contributes one violation
   })
 })

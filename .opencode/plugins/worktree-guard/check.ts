@@ -24,6 +24,59 @@ const SHELL_WRITE = /(\btee\b|\bsed\s+-i|\bperl\s+-[a-z]*i|\bmv\b|\bcp\b|\brm\b|
 const SYSTEM_PREFIXES = ["/usr", "/bin", "/sbin", "/lib", "/lib64", "/opt", "/etc", "/dev", "/proc", "/sys", "/tmp",
                          "/var", "/private/tmp", "/private/var", "/Library", "/System", "/Applications", "/nix"]
 const REDIRECT = /(?:^|[^<>])>{1,2}\s*["']?([^\s"';&|)]+)/g
+// A heredoc body is data, not shell syntax: do not interpret its quoted redirect-like text as a live redirect.
+function heredocDelimiters(line: string): string[] {
+  const delimiters: string[] = []
+  let quote = ""
+  for (let i = 0; i < line.length; i++) {
+    const char = line[i]
+    if (quote) {
+      if (char === quote) quote = ""
+      else if (char === "\\" && quote === '"') i++
+      continue
+    }
+    if (char === "'" || char === '"') { quote = char; continue }
+    if (char === "\\") { i++; continue }
+    if (char === "#" && (i === 0 || /\s/.test(line[i - 1]))) break
+    if (char !== "<" || line[i - 1] === "<" || line[i + 1] !== "<" || line[i + 2] === "<") continue
+    i += 2
+    if (line[i] === "-") i++
+    while (/\s/.test(line[i] ?? "")) i++
+    const delimiterQuote = line[i] === "'" || line[i] === '"' ? line[i++] : ""
+    let delimiter = ""
+    while (i < line.length) {
+      const next = line[i]
+      if (delimiterQuote ? next === delimiterQuote : /[\s;&|<>]/.test(next)) break
+      if (next === "\\" && i + 1 < line.length) delimiter += line[++i]
+      else delimiter += next
+      i++
+    }
+    if (delimiter) delimiters.push(delimiter)
+  }
+  return delimiters
+}
+
+function withoutHeredocBodies(command: string): string {
+  const lines = command.split("\n")
+  const syntax: string[] = []
+  let delimiters: string[] = []
+  let inBody = false
+  for (const line of lines) {
+    if (!inBody) {
+      syntax.push(line)
+      delimiters = heredocDelimiters(line)
+      inBody = delimiters.length > 0
+      continue
+    }
+    syntax.push("")
+    const terminator = line.replace(/^\t+/, "")
+    if (terminator === delimiters[0]) {
+      delimiters.shift()
+      inBody = delimiters.length > 0
+    }
+  }
+  return syntax.join("\n")
+}
 const WORD = /(?:[^\s"'=;&|()<>]|\\ )+/g              // a shell word; `=` splits `--out=/x` into its value
 const PATCH_FILE = /^\*\*\* (?:Add|Update|Delete) File: (.+)$|^\*\*\* Move to: (.+)$/gm
 
@@ -117,13 +170,14 @@ export function makeGuard(options: GuardOptions): Check {
       }
       const cmd = str("command") ?? ""
       // Every role: a redirection never lands outside the worktree (/dev/null and the system prefixes excepted).
-      const redirected = [...cmd.matchAll(REDIRECT)].map((m) => m[1])
+      const shellSyntax = withoutHeredocBodies(cmd)
+      const redirected = [...shellSyntax.matchAll(REDIRECT)].map((m) => m[1])
       for (const t of redirected) if (!inside(t) && !system(t)) refuse(t)
       // A delegate: no path outside its worktree at all, read or write, but the system prefixes.
-      if (delegate) for (const w of pathWords(cmd)) if (!inside(w) && !system(w)) refuse(w)
+      if (delegate) for (const w of pathWords(shellSyntax)) if (!inside(w) && !system(w)) refuse(w)
       if (delegate) {
         const hit = PROTECTED_WORDS.find((w) => redirected.some((t) => t.includes(w))
-                                                || (SHELL_WRITE.test(cmd) && cmd.includes(w)))
+                                                 || (SHELL_WRITE.test(shellSyntax) && shellSyntax.includes(w)))
         if (hit) violation(`worktree-guard: this command may change ${hit}, one of Bive's inviolable files; `
           + "a delegate never changes it. Say in your report what should change and why.")
       }
