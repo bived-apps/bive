@@ -44,19 +44,16 @@ delegate, report, merge) with no manual step but the three gates.
     verify a delegate session in an outside same-repository worktree cannot write into the main checkout, and confirm
     the registry opt-in report reaches the Worker (this machine could not resolve its hostname). Done when the tests
     cover the guard cases, the coordinator commands pass, and the remaining live checks are recorded.
-4. **First full flow on Bive itself** (M) — next (owner, 2026-11-09: before anything of bivedream). One `delegate` issue, one brief, one worktree, one `delegate`
-   subagent; the delegate pushes its branch and returns `report.md`, then the coordinator opens one pull request
-   against `bived`, approves it, and the supervisor merges. Bive joins its own registry (`BIVE_REGISTRY=on` once,
-   `.bive/registry-id` committed): project #1 (owner, 2026-11-08). Done when HANDOFF.md tells the session and every
-   gap became an issue. Blocked on 2026-11-08: `external_directory: deny` refuses the coordinator's `cd ../bive-15`,
-   so it cannot start a delegate in its worktree; the owner chose to wait for bivedream › *Delegates as sessions*
-   (#15, its first delegate issue, moved to that milestone). #22 lifts that block: worktrees now live in
-   `.worktrees/issue-<n>` inside the checkout, where neither the guard nor `external_directory` refuses the
-   coordinator; whether to resume before bivedream is the owner's call.
+4. **First full flow on Bive itself** (M) — done in #79 (PR #83, merge commit `7549dec`, log in #87). One
+   `delegate` issue, one brief, one worktree `.worktrees/issue-79`, a delegate on `opencode/beam-free` that pushed
+   its branch with its report; the coordinator opened and reviewed PR #83, the supervisor merged it with a merge
+   commit. The steps that still needed a hand became issues: no `delegate` agent in `opencode.jsonc` (#84), #70's
+   gate text next to #78's roles on `bived` (#85), no approval possible when coordinator and owner share one GitHub
+   account (#86). Bive is project #1 of its own registry (`.bive/registry-id` committed).
 5. **Satellites out** (S) — todo. `help/` (WebLLM page) and the registry page move to a repository `bive-registry`;
    the template keeps only the client (`.opencode/plugins/token-ratio/`). Done when every file of the template is read by a role or a
    human during a task.
-6. **First project installed** (M) — todo. The owner's first project: its `opencode.jsonc` replaced, its private paths declared, its role additions
+6. **First project installed** (M) — next (#80), once #85 is merged. The owner's first project: its `opencode.jsonc` replaced, its private paths declared, its role additions
    in `.bive/prompts/project/`, its first issue through the flow. Done when 0.1's criterion holds.
 
 ### bivedream — the limit (GitHub milestone `bivedream`)
@@ -170,12 +167,12 @@ per epic. Nothing of it is a Bive program: prompts, rules, and existing tools wi
 
 ### Waiting
 
-- **Integration safeguards (2026-11-09)**: follow-up batch #69–#75, approved at gate 1; #70 (merge gate) and #74
-  (merge waiter) are superseded by the roles decision of 2026-11-09 (the coordinator never merges; `pr-merge-wait`
-  removed) and wait for the owner to close them. #71 records the required CI
-  checks in `docs/REQUIRED-CHECKS.md`; #70 covers a green-CI and dated-authorization merge gate; #72 conflict-aware
-  planning around shared files; #73 fresh branches after squash merges; #74 a repository-configurable merge waiter;
-  #75 generated-doc regeneration; #69 headless plugin validation. #71 is integrated; the other issues are unstarted.
+- **Integration safeguards (2026-11-09)**: follow-up batch #69–#75, approved at gate 1. #71 (required CI checks,
+  `docs/REQUIRED-CHECKS.md`) is integrated; #70's merge gate was merged by #81 and is kept by the owner as a check
+  before the supervisor's merge, extended to `milestone/*` with #88 (alignment in #85); #74 (merge waiter) is
+  superseded by the removal of `pr-merge-wait` and waits for the owner to close it. Unstarted: #72 conflict-aware
+  planning around shared files (the supervisor arbitrates at gate 1, #88), #73 fresh branches after squash merges
+  (moot once squash is off), #75 generated-doc regeneration, #69 headless plugin validation.
 - Signed registry ids (a challenge, a proof of work, an HMAC token; patch kept in the owner's Claude project): only if noise
   appears on the public page.
 - Deploy the filtered Worker (`npx wrangler deploy`): the owner.
