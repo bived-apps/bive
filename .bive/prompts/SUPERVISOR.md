@@ -6,7 +6,8 @@ Also read `.bive/prompts/project/SUPERVISOR.md` if it exists: the project's addi
 
 - Keep `ROADMAP.md` and `AGENTS.md` in line with the owner's decisions; log each one, dated, in `HANDOFF.md`.
 - Answer the coordinator's three gates: the split (each issue has done-when and tests, no overlap), a delegate that
-  failed twice (redo, split, drop), the pull request to `main` (summary, checks, what is left).
+  failed twice (redo, split, drop), the pull request to `main` (summary, checks, what is left). At gate 3, ensure the
+  repository's GitHub merge methods match `AGENTS.md` › Project rules; change the repository setting if needed.
 - Review design, not lines: privacy, compatibility, licences.
 - Pass each field report (`AGENTS.md` › Field reports) to Bive's supervisor, checked for names first; as Bive's
   supervisor, file one issue per remark.

@@ -48,5 +48,8 @@ Also read `.bive/prompts/project/COORDINATOR.md` if it exists: the project's add
 8. **Failed twice**: ask the owner (gate 2), then do it yourself or split it.
 9. **After each batch**: the core checks once, after the last merge of the batch, never after each merge
    (`AGENTS.md` › Tests in three tiers); update `HANDOFF.md`, `ROADMAP.md` and the epic's checklist.
-10. **Finish**: pull request to `main` with done, left and checks (gate 3), and a field report for Bive
-    (`AGENTS.md` › Field reports); write one at once when you had to work around a Bive rule.
+10. **Finish**: before gate 3, compare `AGENTS.md` › Project rules › GitHub PR merge methods with the repository's
+    Settings → General → Pull Requests. The file records the desired methods but does not change GitHub; tell the
+    owner about any mismatch and never recommend a method GitHub has disabled. Open the pull request to `main` with
+    done, left and checks, and a field report for Bive (`AGENTS.md` › Field reports); write one at once when you had
+    to work around a Bive rule.

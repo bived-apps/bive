@@ -88,10 +88,11 @@ satellites out, first project installed. GitHub issues are the source of truth o
 - Some Linux distributions build Node without TypeScript support (`node -p process.features.typescript` is
   `false`, the tests fail with `ERR_UNKNOWN_FILE_EXTENSION`): use an official Node 22+ build.
 - `.bive/registry-id`, once committed, is public: the registry is a count, not a proof.
-- GitHub's squash button sets the pull request's GitHub author as commit author (the owner, for #4): use the rebase
-  button (`gh pr merge --rebase`) for a one-commit pull request, which keeps the agent as author, until ROADMAP ›
-  bivedream › Authorship lands. "Closes
-  #N" acts on merges into `main` only: the coordinator closes the issue when it merges into `bived`.
+- GitHub's PR merge buttons are configured at repository level under Settings → General → Pull Requests; the desired
+  methods are recorded in `AGENTS.md` › Project rules. Bive allows `merge` and `squash`, not `rebase`. For issue PRs
+  into `bived`, the coordinator uses the local squash procedure in `docs/COORDINATING.md` and supplies `--author` to
+  preserve the delegate as commit author. "Closes #N" acts on merges into `main` only: the coordinator closes the
+  issue when it merges into `bived`.
 - The guard's shell check scans the whole command text: a heredoc or a message that quotes a redirect such as
   `echo x > ../f` is refused too. Put long bodies in a file under `.bive/state/` and pass `--body-file`.
 - A prompt that says "show me" or "ask me" without "stop and wait" is run through by a model, all the more under
