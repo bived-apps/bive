@@ -46,16 +46,16 @@ Also read `.bive/prompts/project/COORDINATOR.md` if it exists: the project's add
    - if base CI is red, merge only baseline-fix PRs one at a time, with failure logs proving each has no remaining
      failure except another identified baseline issue; recheck after each and block all other merges until green;
    - then the diff itself: does it do the brief, nothing more?
-   Merge to a protected branch only when the supervisor has given a written grant in your brief or an issue comment
-   that names the scope, target branch, and expiry, and the grant is logged in `HANDOFF.md` › Decisions. Merge only
-   within that scope and before expiry; identify the grant in each merge's record. A grant never permits direct pushes
-   to `main`.
-   Then squash-merge locally, keeping the delegate as author: `git merge --squash issue/<n>-<slug>`, then
-   `git commit --author "delegate <provider/model> <delegate@bive.invalid>" -m "#N: title"`. The routine as commands:
-   `docs/COORDINATING.md`.
-8. **Failed twice**: ask the owner (gate 2), then do it yourself or split it.
+   Wait for CI with `gh pr checks <pr> --watch --fail-fast` (blocks until the checks finish; no plugin, no poller):
+   red is yours to read and brief again. When every point holds and CI is green: approve (`gh pr review <pr> --approve`) and comment `Ready to merge` with the checks
+   you ran; the supervisor merges (with a merge commit, which keeps each commit's author). You never merge, close, or
+   push to the integration branch. After the merge, close the issue with a comment if GitHub did not (`Closes #N`
+   acts on the default branch only). The routine as commands: `docs/COORDINATING.md`.
+8. **Failed twice**: ask the owner (gate 2): split it again, re-brief it on another model, or drop it. Never do the
+   work yourself.
 9. **After each batch**: the core checks once, after the last merge of the batch, never after each merge
-   (`AGENTS.md` › Tests in three tiers); update `HANDOFF.md`, `ROADMAP.md` and the epic's checklist.
+   (`AGENTS.md` › Tests in three tiers); update `HANDOFF.md`, `ROADMAP.md` and the epic's checklist on your own
+   branch and pull request labelled `coordinator`, which the supervisor merges like any other.
 10. **Finish**: before gate 3, compare `AGENTS.md` › Project rules › GitHub PR merge methods with the repository's
     Settings → General → Pull Requests. The file records the desired methods but does not change GitHub; tell the
     owner about any mismatch and never recommend a method GitHub has disabled. Open the pull request to `main` with
