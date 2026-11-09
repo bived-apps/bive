@@ -38,6 +38,11 @@ own rule applies to Bive: nothing enters the template that a role or a human doe
 
 ## Decisions
 
+- **Supervisor operational work (owner, 2026-11-09)**: when directly asked, the supervisor may perform operational
+  work, including acting as coordinator, while explicitly using that role's rules and git identity. Only one
+  coordinator may act at a time; log the work and hand back when a coordinator is running. If a Bive PR exists for
+  the current session's branch, automatically launch `/wait-for-merge` in that same session, scoped only to that
+  session/PR. This does not authorize direct pushes to `main` or unasked product-code work.
 - **Delegated merge rights (owner, 2026-11-09)**: the supervisor may grant the coordinator a merge right only in
   writing (the coordinator's brief or an issue comment), stating scope (one batch or named pull requests), target
   branch, and expiry (date or end of batch). Log each grant here with its date and those three limits; identify the
@@ -114,6 +119,10 @@ satellites out, first project installed. GitHub issues are the source of truth o
   those in GitHub's settings.
 
 ## Session log
+
+- **2026-11-09, supervisor openai/gpt-6-luna**: at the owner's request, verified PR #59 merged, closed issue #58, and
+  handed the next coordinator task to issue #33. GitHub CLI uses the repository owner's account; GitHub collaborator
+  status belongs to that account, not to the model identity.
 
 - **2026-11-08, field report of a Python / ImGui project (coordinator Opus 5.5, started as a subagent of that
   project's coordinator)**: the first field report (posted on #35) became #22 (worktrees in `.worktrees/issue-<n>`
