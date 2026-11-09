@@ -22,8 +22,8 @@ You are the coordinator of bive's milestone 0.1 (GitHub jcherfils/bive). Read AG
 then .bive/prompts/COORDINATOR.md: it is your prompt. Integration branch: bived (never push to main; the owner
 merges bived into main). Work epic by epic in ROADMAP order; split each into issues labelled delegate (goal, read
 first, steps, done-when, tests), and stop at gate 1 to show me the split before any delegate starts. Delegates run
-on the models of .bive/models.json, one worktree each under ../bive-<n>, with BIVE_ROLE=delegate, and open their PR
-against bived. Review each PR yourself (diff, bun test, a complete report.md); squash-merge as "#N: title". Bive's
+on the models of .bive/models.json, one worktree each under .worktrees/issue-<n>, with BIVE_ROLE=delegate, and open
+their PR against bived. Review each PR yourself (diff, node --test, a complete report.md); squash-merge as "#N: title". Bive's
 own rule applies to Bive: nothing enters the template that a role or a human does not read during a task.
 ```
 
@@ -66,12 +66,25 @@ satellites out, first project installed. GitHub issues are the source of truth o
 
 - A plugin OpenCode 2 refuses fails silently for the user: only the server log (`~/.local/share/opencode/log/`,
   "failed to load plugin") and `opencode plugin list` (ID `-`) show it. Check both after any change to a plugin.
+  `plugin list` shows a project's plugins only once a session has loaded them: in a fresh clone (or with
+  `--standalone`) it answers "No plugins found" although they load. Start a session there first.
 - token-ratio reads `session.step.ended` for agent tokens and asks the server for a session's agent and model once
   (cached, dropped when the session switches model or agent). If OpenCode renames an event, tokens stop silently:
   after an OpenCode upgrade, check that `.bive/state/tokens.jsonl` still grows.
 - The guard's shell check is a filter, not a sandbox: it refuses redirections and, for a delegate, any path outside
   the worktree but the system prefixes (`/usr`, `/tmp`, …). `external_directory: deny` in `opencode.jsonc` is the
-  belt; whether it treats a worktree of the same repository as outside is unverified.
+  belt; whether it treats a worktree of the same repository as outside is unverified. Seen 2026-11-08 from the
+  coordinator's session: it refuses `cd ../bive-15` and `cd <absolute path>` and a tool's `workdir` outside, but lets
+  `git worktree add ../bive-15` and `ls ../bive-none` through. So the coordinator can create a worktree but not start
+  a delegate in it (ROADMAP 0.1 › 4). The guard also refuses a non-delegate's `workdir` outside its checkout. Hence
+  the layout `.worktrees/issue-<n>` inside the checkout (#22), which a project ran a whole batch with.
+- The guard knows a delegate by `BIVE_ROLE=delegate`, a session directory `.worktrees/issue-<n>`, or the role file
+  `.bive/state/role` (#36). A delegate run as a child session or on the shared OpenCode server carries no variable
+  (#21); in the coordinator's session, writes and shell `workdir` under `.worktrees/issue-<n>/` are then checked as
+  that delegate's, but a command run from the checkout's root that only names such a path (`cd .worktrees/… && …`)
+  is not, and a delegate session elsewhere without the variable or the role file fails open.
+- Some Linux distributions build Node without TypeScript support (`node -p process.features.typescript` is
+  `false`, the tests fail with `ERR_UNKNOWN_FILE_EXTENSION`): use an official Node 22+ build.
 - `.bive/registry-id`, once committed, is public: the registry is a count, not a proof.
 - GitHub's squash button sets the pull request's GitHub author as commit author (the owner, for #4): use the rebase
   button (`gh pr merge --rebase`) for a one-commit pull request, which keeps the agent as author, until ROADMAP ›
@@ -79,10 +92,35 @@ satellites out, first project installed. GitHub issues are the source of truth o
   #N" acts on merges into `main` only: the coordinator closes the issue when it merges into `bived`.
 - The guard's shell check scans the whole command text: a heredoc or a message that quotes a redirect such as
   `echo x > ../f` is refused too. Put long bodies in a file under `.bive/state/` and pass `--body-file`.
+- A prompt that says "show me" or "ask me" without "stop and wait" is run through by a model, all the more under
+  `opencode run`: it assumes the answers. Any prompt with a human step must end its turn there, and must never let
+  the agent create a repository or a remote (README › Install, #17).
 - Branch deletion and branch protection through the API were refused from the review session's proxy; the owner does
   those in GitHub's settings.
 
 ## Session log
+
+- **2026-11-08, field report of a Python / ImGui project (coordinator Opus 5.5, started as a subagent of that
+  project's coordinator)**: the first field report (posted on #35) became #22 (worktrees in `.worktrees/issue-<n>`
+  inside the checkout, git-ignored), #28 (identity with `git config --worktree`, and after a model switch), #36
+  (the guard knows a delegate by its worktree path or `.bive/state/role`, also as a child session; closes #21), #37
+  (the review as a checklist in step 7, the core run once per batch in step 9, `docs/COORDINATING.md`) and #35 (field
+  reports: rule, template, prompt lines). All coordinator work (inviolable files), done by the coordinator itself on
+  one branch and one PR each (#38–#42), squash-merged locally into `bived` and the PRs closed with the commit. The
+  session had no subagent tool. Core run once at the end: 24 tests pass. The machine's distro Node 24 has no
+  TypeScript support (`ERR_UNKNOWN_FILE_EXTENSION`); the tests ran on an official Node 22 binary under
+  `.bive/state/`. Not verified live: the guard inside OpenCode (`opencode plugin list`, a subagent refused on
+  `.worktrees/issue-<n>/AGENTS.md`).
+
+- **2026-11-08, 0.1 › 1 and 2 (coordinator Opus 5.5)**: fresh-clone check passed (#13): 0.1 › 1 done. It showed
+  token-ratio counting every session on the server, not only its own: fixed by an exact directory match (#14, live
+  check in a clone). `plugin list` lists nothing before a session has loaded the plugins (AGENTS.md core check
+  reworded). The first delegate (#15, guard test cases) could not start: `external_directory: deny` refuses the
+  coordinator's `cd ../bive-15`; the owner chose to wait for bivedream › *Delegates as sessions* (#15 moved there, #16
+  waits on it). Install tested (#17) on two local repositories: the old prompt let a free model skip the diff and
+  the questions and create a private GitHub repository (`jcherfils/install-empty`, the owner decides its fate); the
+  two-turn prompt passed both cases. Test repositories nested under `.bive/state/` inherit this checkout's
+  `opencode.jsonc` and plugins: a truer install test needs a directory outside, which `external_directory` forbids.
 
 - **2026-11-08, 0.1 › 1 (coordinator Fable 5.1, supervisor Fable 5.1 in the same session at the owner's request)**:
   found both plugins refused by OpenCode 2.2.5 (V1 API, not the folder name); gate 1 split epic 1 into #4 (guard)

@@ -30,22 +30,26 @@ here is committed with the code it describes (an item started → `doing`, finis
 Done when the owner's first project runs with Bive installed and one of its issues has gone through the whole flow (brief, worktree,
 delegate, report, merge) with no manual step but the three gates.
 
-1. **Loading verified** (S) — doing. Verified 2026-11-08 on the owner's machine (OpenCode v2.2.5): both folders are
-   discovered, but both plugins were refused as V1 plugins ("Plugin must export a default definition with an id and
-   an effect or setup function"). Port each to `Plugin.define` under `.opencode/plugins/<name>/` with its decision
-   logic in a pure module, tests on `node --test` (#4 guard, #5 token-ratio; coordinator work, the files are
-   inviolable). The repository is already a GitHub template. #4 and #5 merged; `opencode plugin list` shows both
-   IDs. Left: in a fresh clone, a write to `../outside.txt` is refused and `.bive/state/tokens.jsonl` fills (the
-   owner, or the first delegate of 0.1 › 4). Done when that check passed.
-2. **Install tested** (S) — todo. The one-line prompt on an empty repository and on a clone of an existing project; the diff shown
-   before any write; nothing overwritten. Done when two install pull requests have been reviewed, one per case.
-3. **Guard hardened** (S) — todo. `external_directory: deny` against a worktree of the same repository; the `patch`
-   tool and here-docs; the coordinator's own commands checked for false positives. Done when `bun test` covers them
-   and the commands of `.bive/prompts/COORDINATOR.md` all pass.
-4. **First full flow on Bive itself** (M) — todo. One `delegate` issue, one brief, one worktree, one `delegate`
+1. **Loading verified** (S) — done in #13. Both plugins were refused by OpenCode v2.2.5 as V1 plugins and ported to
+   `Plugin.define` under `.opencode/plugins/<name>/` (#4 guard, #5 token-ratio). Fresh-clone check passed on
+   2026-11-08: a delegate session's write to `../outside.txt` was refused and `.bive/state/tokens.jsonl` filled. It
+   also showed token-ratio counting other projects' sessions (#14).
+2. **Install tested** (S) — done in #17. The install prompt on an empty repository and on an existing project, both
+   local `git init` repositories (owner, 2026-11-08), on `opencode/beam-free`. The first prompt failed both: no
+   diff, no questions, answers assumed, and on the empty repository the agent created a private GitHub repository to
+   open its pull request. README › Install now runs in two turns (read only and ask, then write on `install/bive`;
+   never create a repository or a remote), and both cases passed with it.
+3. **Guard hardened** (S) — todo (#16; its test cases are #15's). `external_directory: deny` against a worktree of
+   the same repository; the `patch` tool and here-docs; the coordinator's own commands checked for false positives.
+   Done when `node --test` covers them and the commands of `.bive/prompts/COORDINATOR.md` all pass.
+4. **First full flow on Bive itself** (M) — waiting. One `delegate` issue, one brief, one worktree, one `delegate`
    subagent, one pull request against `bived` with `report.md`. Bive joins its own registry (`BIVE_REGISTRY=on` once,
    `.bive/registry-id` committed): project #1 (owner, 2026-11-08). Done when HANDOFF.md tells the session and every
-   gap became an issue.
+   gap became an issue. Blocked on 2026-11-08: `external_directory: deny` refuses the coordinator's `cd ../bive-15`,
+   so it cannot start a delegate in its worktree; the owner chose to wait for bivedream › *Delegates as sessions*
+   (#15, its first delegate issue, moved to that milestone). #22 lifts that block: worktrees now live in
+   `.worktrees/issue-<n>` inside the checkout, where neither the guard nor `external_directory` refuses the
+   coordinator; whether to resume before bivedream is the owner's call.
 5. **Satellites out** (S) — todo. `help/` (WebLLM page) and the registry page move to a repository `bive-registry`;
    the template keeps only the client (`.opencode/plugins/token-ratio/`). Done when every file of the template is read by a role or a
    human during a task.
@@ -141,7 +145,8 @@ per epic. Nothing of it is a Bive program: prompts, rules, and existing tools wi
 - The registry and the reports feed the briefs, the prompts' project additions and the model order: failure reasons
   classified per model, brief templates compared per model, rules proposed as pull requests to `.bive/prompts/project/`
   (never the core prompts), accepted by the supervisor.
-- Projects report back what they changed in their additions; the common part moves into the template.
+- Projects report back what they changed in their additions, as field reports (`AGENTS.md` › Field reports,
+  `.bive/templates/field-report.md`, #35); the common part moves into the template.
 
 **Decisions of this plan's gate 1** (the owner left the choice to the coordinator, 2026-11-08; each is reversible):
 

@@ -3,7 +3,9 @@
 The plugin `.opencode/plugins/token-ratio/` measures how much the agents produce for what the humans write. **Human** tokens are the messages
 typed in a root session (a coordinator's prompt to its delegate counts as agent work), estimated at four characters
 a token; **agent** tokens are the providers' own output and reasoning counts. Each message adds one line of numbers
-(no text) to `.bive/state/tokens.jsonl` in the main checkout, shared by every worktree. Totals:
+(no text) to `.bive/state/tokens.jsonl` in the main checkout, shared by every worktree. Only the sessions whose
+directory is the checkout or worktree itself are counted there: OpenCode sends every session's events to every
+plugin instance, and OpenCode starts one instance per directory, so a session elsewhere is left to its own. Totals:
 
 ```bash
 jq -s 'group_by(.kind) | map({(.[0].kind): (map(.tokens) | add)}) | add' .bive/state/tokens.jsonl

@@ -40,6 +40,14 @@ export function mainCheckout(dir: string): string {
   }
 }
 
+// Whether a session belongs to this plugin instance: OpenCode loads one instance per location, and every instance
+// receives every session's events. Exact directory match: a sub-folder or a worktree has its own instance, and
+// counting it here too would count it twice in the shared tokens.jsonl. An unknown directory is not ours.
+export function ownSession(sessionDirectory: string | undefined, root: string): boolean {
+  if (!sessionDirectory) return false
+  return path.resolve(sessionDirectory) === path.resolve(root)
+}
+
 // Totals of a tokens.jsonl log: human and agent tokens and their ratio (null before the first human token).
 // A corrupt line is skipped: the file is appended by several processes and may be cut.
 export function totals(log: string): { human: number, agent: number, ratio: number | null } {

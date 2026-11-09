@@ -29,11 +29,14 @@ of `.bive/templates/`.
 Existing project: paste this into OpenCode (or Claude Code) at the root of your repository:
 
 ```text
-Install https://github.com/jcherfils/bive here: copy .bive/, .opencode/plugins/, .github/, docs/ and the .gitignore
-line without overwriting; create AGENTS.md, HANDOFF.md and ROADMAP.md from .bive/templates/ if missing, else merge
-(keep this project's rules); merge opencode.jsonc. Show me the diff before writing. Fill opencode.jsonc's private
-paths, ask me each role's models (.bive/models.json), then open a pull request (not main). Tell me about Bive's
-public registry (docs/REGISTRY.md, off unless I turn it on) and ask me whether to join it.
+Install https://github.com/jcherfils/bive here, in two turns. Turn 1, read only: write nothing. List what you would
+add (.bive/, .opencode/plugins/, .github/, docs/, the .gitignore line; opencode.jsonc, AGENTS.md, HANDOFF.md and
+ROADMAP.md when missing, the last two from .bive/templates/) and show the diff of every file that exists here and would change (AGENTS.md and
+opencode.jsonc merged, this project's rules and private paths kept). Then ask me, in one message: this project's
+private paths, each role's models (.bive/models.json), and whether to join Bive's public registry (docs/REGISTRY.md,
+off unless I turn it on). Stop there and wait for my answer. Turn 2, only after I say yes: write, commit on a branch
+install/bive, push it and open a pull request against the default branch if this repository has a remote; never
+create a repository or a remote.
 ```
 
 ## The flow
@@ -53,7 +56,8 @@ public registry (docs/REGISTRY.md, off unless I turn it on) and ask me whether t
 | `AGENTS.md` | The rules every agent reads first |
 | `HANDOFF.md`, `ROADMAP.md` | State and plan, kept true by the coordinator (here: Bive's own) |
 | `.bive/prompts/` | The three role prompts, inviolable; `project/` holds a project's additions |
-| `.bive/templates/` | `brief.md` in, `report.md` out; the skeletons of `README.md`, `HANDOFF.md`, `ROADMAP.md` |
+| `.bive/templates/` | `brief.md` in, `report.md` out, `field-report.md` back to Bive; the skeletons of `README.md`, `HANDOFF.md`, `ROADMAP.md` |
+| `docs/COORDINATING.md` | The coordinator's routine (start, review, merge, clean) as shell commands |
 | `.bive/models.json` | The model order per role, for the fallback rule ([docs/PROVIDERS.md](docs/PROVIDERS.md)) |
 | `opencode.jsonc` | Agents and permissions, written by hand and tight |
 | `.opencode/plugins/worktree-guard/` | Refuses writes outside the worktree, shell paths included; `check.ts` decides, `index.ts` plugs it into OpenCode 2 (`node --test tests/*.test.ts`) |

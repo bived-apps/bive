@@ -15,7 +15,9 @@ Read this file, then [`HANDOFF.md`](HANDOFF.md), before changing anything. Your 
   and what is left) and holds the delegate's report.
 - **Claim the issue** with a short comment before working on it; update it with the result.
 - **Stay in your worktree**: the guard plugin refuses writes outside it, including shell redirections; a delegate's
-  commands may not name any path outside it (absolute, `~`, `$HOME`, `..`) apart from the system folders.
+  commands may not name any path outside it (absolute, `~`, `$HOME`, `..`) apart from the system folders. A
+  delegate's worktree is `.worktrees/issue-<n>`, inside the checkout and git-ignored (never `../<repo>-<n>`: the
+  coordinator's session may not write there).
 - **Never**: force-push, rewrite pushed history, push to `main`, `rm -rf`, read SSH keys or the private paths listed
   in `opencode.jsonc`.
 - **Keep sessions and prompts short**: continue a stuck delegate with one short message rather than a new session;
@@ -36,11 +38,14 @@ Generic, whatever the language (owner, 2026-11-08, taken from the practice of th
   *core* (the coordinator, once per batch of merges, never after each merge), *full* (before a release).
 - **Docs change in the same commit** as the code they describe (README, reference pages, HANDOFF, ROADMAP).
 - **Commits are authored by the agent that made them, under an explicit name** (owner, 2026-11-08): in its working
-  copy an agent sets `git config user.name "<role> <provider/model>"`, the model's name **and version**, the same
-  name as in the registry's llm variable (e.g. `delegate anthropic/claude-sonnet-5-5`, never `delegate` or
-  `Claude`), and `user.email "<role>@bive.invalid"`, never the owner's identity. A squash merge keeps the delegate
-  as author; the coordinator is the committer. Anyone must be able to tell from `git log` who wrote each change,
-  human or model.
+  copy an agent sets `git config --worktree user.name "<role> <provider/model>"`, the model's name **and version**,
+  the same name as in the registry's llm variable (e.g. `delegate anthropic/claude-sonnet-5-5`, never `delegate` or
+  `Claude`), and `git config --worktree user.email "<role>@bive.invalid"`, never the owner's identity. `--worktree`
+  is required: plain `git config` writes the config every worktree shares, so one delegate's name becomes everyone's;
+  it needs `git config extensions.worktreeConfig true` once per clone. The name is that of the model running now:
+  when the session's model changes, set it again before the next commit and sign comments with the new name. A squash
+  merge keeps the delegate as author; the coordinator is the committer. Anyone must be able to tell from `git log` who
+  wrote each change, human or model.
 - **No Git hooks**: a delegate is started by the coordinator, never by a Git command.
 
 ## Inviolable prompts
@@ -53,6 +58,16 @@ Generic, whatever the language (owner, 2026-11-08, taken from the practice of th
   own pull requests, the only ones that may change these files (only the coordinator sets that label).
 - **Others complete, never edit, the role prompts**: the supervisor or the coordinator adds to a role in
   `.bive/prompts/project/<ROLE>.md`, which may narrow a rule but never loosen or contradict one; the core prompt wins.
+
+## Field reports
+
+- **When**: at the end of each milestone (with gate 3), and at once when a Bive rule, prompt, template or plugin had
+  to be worked around or overridden.
+- **How**: the coordinator (or the supervisor) fills `.bive/templates/field-report.md`: numbered remarks, each with
+  what happened (numbers), what worked, the proposed change and the Bive file it touches. The project's owner passes
+  it to Bive's supervisor, who files one issue per change in Bive's repository.
+- **No names**: no project, product, repository, person, host, path or private data; "a project", "machine A",
+  "the owner". Model ids stay canonical (Bive needs them per model).
 
 ## What goes into Bive
 
@@ -79,6 +94,6 @@ Nothing enters the template that is not read by one of the three roles, or by a 
 
 - fast (delegate): `node --test tests/<the test of the file touched>.test.ts`.
 - core (coordinator, once per batch): `node --test tests/*.test.ts`; `opencode plugin list` shows every Bive plugin with a
-  real ID (not `-`).
+  real ID (not `-`), run after a session has started in the checkout (before that it lists none).
 - full (release): the two above, then in a fresh clone an OpenCode session where a write to `../outside.txt` is
   refused by the guard and `.bive/state/tokens.jsonl` fills.
