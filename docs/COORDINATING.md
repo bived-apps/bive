@@ -57,7 +57,7 @@ gh pr checks <pr> --watch                      # returns when the checks finish;
 gh pr review <pr> --approve --body "Ready to merge: <the checks you ran>"
 ```
 
-The supervisor merges (`gh pr merge <pr> --merge`); its queue is
+The supervisor merges (`gh pr merge <pr> --merge --match-head-commit <sha>`, after the label); its queue is
 `gh pr list --base <base> --search "review:approved"`. The coordinator never merges, closes or pushes
 to `<base>`. To be told when a pull request is merged without a watcher plugin: `gh pr checks` for the checks, then
 `until [ "$(gh pr view <pr> --json state --jq .state)" != OPEN ]; do sleep 60; done` in the shell, when a session
