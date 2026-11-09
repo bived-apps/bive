@@ -120,6 +120,16 @@ satellites out, first project installed. GitHub issues are the source of truth o
 
 ## Session log
 
+- **2026-11-09, coordinator openai/gpt-6-luna — handoff #70**: branch `issue/70-merge-gate` is clean at
+  `38756ff` (Part B), based on `bived` at `f9abeb9`. Part A (`ebedba6`) adds the pure dated-label/check validator;
+  Part B adds the read-only `pull_request_target` workflow, CLI polling adapter, and tests. The 16 focused tests and
+  `git diff --check` pass. Gate 1 approved three sequential parts and one final coordinator PR; Parts A and B were
+  reviewed and approved. Next: Part C only — update `.bive/prompts/COORDINATOR.md`, `docs/COORDINATING.md`, and
+  `docs/REQUIRED-CHECKS.md`; then run `git diff --check` and `node --test tests/*.test.ts`. Do not open the PR until
+  Part C is reviewed. The final PR must carry `coordinator`; do not self-apply its dated authorization label or merge
+  it. The owner must apply `bive-merge-authorized-until-YYYY-MM-DD` after PR checks pass and configure GitHub branch
+  protection to require `bive-merge-gate / check` and `bive-tests / tests`. No commits from this task have been pushed.
+
 - **2026-11-09, coordinator openai/gpt-6-luna**: after gate-1 approval, created the seven follow-up issues #69–#75
   from anonymized field observations. Delegate issue #71 documents the actual CI checks and explicitly distinguishes
   them from GitHub branch-protection settings; PR #76 passed both CI checks and was integrated into `bived`. The
