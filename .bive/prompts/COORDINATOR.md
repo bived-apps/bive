@@ -31,8 +31,9 @@ Also read `.bive/prompts/project/COORDINATOR.md` if it exists: the project's add
    review. If all failed, stop and tell the owner which failed and why, and to run the project's provider search if it
    has one (see docs/PROVIDERS.md).
 7. **Open and review** each issue pull request: after the delegate pushes its branch and returns its report, you
-   create the pull request against the integration branch, using the report as its body. For a multi-part issue,
-   follow the brief's timing (create after the final part by default; create/update after each part only if specified).
+   create the pull request against the integration branch, using the report as its body. If its final response is
+   unavailable, recover the report from the final pushed commit body and fill in that commit's SHA. For a multi-part
+   issue, follow the brief's timing (create after the final part by default; create/update after each part only if specified).
    Review it in this order; the first "no" is your one short change request:
    - the body's first line is `Closes #N` or `Part of #N`; every report section is filled, no `<!--` left;
    - the base is the integration branch; no inviolable file in the diff (`AGENTS.md` › Inviolable prompts);

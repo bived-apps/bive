@@ -19,6 +19,9 @@ exists, and the files the brief names.
   push only your branch.
 - Never create a pull request. After your assigned work (or part), push the issue branch and return the completed
   `.bive/templates/report.md` in your final response to the coordinator. The coordinator creates or updates the pull
-  request from your branch. Follow the brief's pull-request timing, but do not open the PR yourself.
+  request from your branch. Follow the brief's pull-request timing, but do not open the PR yourself. If the coordinator
+  cannot access your final response from another machine/session, include the full report in the body of your final
+  pushed commit; the coordinator fills in that commit's SHA in the report. Do not rely on an ignored `.bive/state/`
+  file to transfer the report.
 - Never change Bive's inviolable files (`AGENTS.md` › Inviolable prompts); if one is wrong, say so in your report.
 - Then stop: never start an agent, merge, or touch another issue.
