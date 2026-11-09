@@ -6,7 +6,8 @@ const REQUIRED_CHECKS = [
   { workflow: "bive-inviolable", name: "check" },
 ]
 
-function authorization(labels, now) {
+export function validateMergeAuthorization({ labels = [], baseRef, now = Date.now() }) {
+  if (baseRef !== "bived") return { ok: false, reason: "merge gate only authorizes pull requests targeting bived" }
   const matches = labels.filter((label) => label.startsWith(AUTHORIZATION_LABEL_PREFIX))
   if (matches.length !== 1) return { ok: false, reason: "exactly one dated merge-authorization label is required" }
 
@@ -22,9 +23,8 @@ function authorization(labels, now) {
 }
 
 export function evaluateMergeGate({ labels = [], baseRef, checks = [], now = Date.now() }) {
-  const grant = authorization(labels, now)
+  const grant = validateMergeAuthorization({ labels, baseRef, now })
   if (!grant.ok) return grant
-  if (baseRef !== "bived") return { ok: false, reason: "merge gate only authorizes pull requests targeting bived" }
 
   const coordinator = labels.includes("coordinator")
   const actionableChecks = checks.filter((check) => identity(check) !== "bive-merge-gate / check")
