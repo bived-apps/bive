@@ -111,7 +111,8 @@ satellites out, first project installed. GitHub issues are the source of truth o
   preserve the delegate as commit author. "Closes #N" acts on merges into `main` only: the coordinator closes the
   issue when it merges into `bived`.
 - The guard's shell check scans the whole command text: a heredoc or a message that quotes a redirect such as
-  `echo x > ../f` is refused too. Put long bodies in a file under `.bive/state/` and pass `--body-file`.
+  `echo x > ../f` is refused too. Issue #15 now has an executable todo for a quoted heredoc body; #16 must fix it.
+  Until then, put long bodies in a file under `.bive/state/` and pass `--body-file`.
 - A prompt that says "show me" or "ask me" without "stop and wait" is run through by a model, all the more under
   `opencode run`: it assumes the answers. Any prompt with a human step must end its turn there, and must never let
   the agent create a repository or a remote (README › Install, #17).
@@ -119,6 +120,10 @@ satellites out, first project installed. GitHub issues are the source of truth o
   those in GitHub's settings.
 
 ## Session log
+
+- **2026-11-09, coordinator openai/gpt-6-luna**: resumed #15 using the in-repository `.worktrees/issue-15` layout;
+  PR #67 adds the requested patch, heredoc and coordinator-command tests. Its checks passed; the quoted-heredoc case
+  remains an executable todo for #16. Integrated into `bived`; the core suite passed (35 pass, 1 todo, 0 fail).
 
 - **2026-11-09, coordinator openai/gpt-6-luna**: PR #62 merged into `bived` at `5094c76`; the queued prompt to the
   running session was later visible as a user message and answered, completing #32's API verification. Closed stale

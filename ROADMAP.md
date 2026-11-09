@@ -39,9 +39,10 @@ delegate, report, merge) with no manual step but the three gates.
    diff, no questions, answers assumed, and on the empty repository the agent created a private GitHub repository to
    open its pull request. README › Install now runs in two turns (read only and ask, then write on `install/bive`;
    never create a repository or a remote), and both cases passed with it.
-3. **Guard hardened** (S) — todo (#16; its test cases are #15's). `external_directory: deny` against a worktree of
-   the same repository; the `patch` tool and here-docs; the coordinator's own commands checked for false positives.
-   Done when `node --test` covers them and the commands of `.bive/prompts/COORDINATOR.md` all pass.
+ 3. **Guard hardened** (S) — in progress (#15 test cases merged; #16 guard work). Remaining: fix the quoted-heredoc
+    false positive, verify `external_directory: deny` against same-repository worktrees and the coordinator's
+    `git worktree add` command, and complete the registry opt-in demonstration. Done when the tests cover the cases
+    and the commands of `.bive/prompts/COORDINATOR.md` all pass.
 4. **First full flow on Bive itself** (M) — waiting. One `delegate` issue, one brief, one worktree, one `delegate`
    subagent; the delegate pushes its branch and returns `report.md`, then the coordinator opens one pull request
    against `bived`. Bive joins its own registry (`BIVE_REGISTRY=on` once,
