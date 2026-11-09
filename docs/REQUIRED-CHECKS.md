@@ -38,6 +38,39 @@ These run on GitHub and appear as commit statuses on a pull request.
 - **Why**: a delegate's pull request must never change Bive's inviolable files (see `AGENTS.md` › Inviolable prompts).
   Only the coordinator changes them, and only on pull requests it labels `coordinator`.
 
+### `bive-merge-gate / check`
+
+- **Workflow file**: `.github/workflows/bive-merge-gate.yml`; script `.github/scripts/check-merge-gate.mjs`, decision
+  in `.github/scripts/merge-gate-lib.mjs`.
+- **Job**: `check`
+- **Triggers**: `pull_request_target` on pull requests targeting `bived`, types `opened`, `synchronize`, `reopened`,
+  `labeled`, `unlabeled`. It checks out the base commit only and never runs code from the pull request's head; its
+  permissions are read-only (`contents`, `pull-requests`, `checks`).
+- **Runs**: `ubuntu-latest`, Node 22, timeout 15 minutes. It waits (every 10 seconds, at most 12 minutes, each `gh`
+  call limited to 15 seconds) until the other checks have finished, then decides.
+- **Authorization**: exactly one label `bive-merge-authorized-until-YYYY-MM-DD` on the pull request, a real calendar
+  date, valid through 23:59:59 UTC of that date and only while the base is `bived`. Only the owner applies it; the
+  coordinator never does, also on its own pull requests. Adding or removing it re-runs the gate.
+- **What it checks**: the authorization above; exactly one `bive-tests / tests` and one `bive-inviolable / check`,
+  both `pass`; every other check except its own `pass` as well. The one accepted exception: `bive-inviolable / check`
+  may be `skipping` on a pull request labelled `coordinator` (its job condition skips it there). It re-reads the pull
+  request after reading the checks and fails if the head, base or labels changed.
+- **Fails on**: a missing, malformed, duplicate or expired label; any check pending past the deadline, missing,
+  skipped (other than the exception), failed or cancelled; a pull request whose head or base changed during the run.
+- **Not covered**: the gate runs only for `bived`. A project whose integration branch is another (for example
+  `milestone/<name>`) has no gate until the workflow's branch list and the script's base check name it.
+- **Expiry is not re-evaluated on its own**: a gate that passed stays green after its date. The coordinator re-runs
+  the script just before merging (`docs/COORDINATING.md` › Merge through the gate), which refuses an expired label.
+
+## Branch protection (owner, in GitHub's settings)
+
+The workflows report checks; they do not make GitHub enforce them. For the gate to block GitHub's merge button and
+direct pushes, the owner configures branch protection (or a ruleset) on `bived` in the repository's settings to
+require the status checks `bive-merge-gate / check` and `bive-tests / tests`; the gate itself judges
+`bive-inviolable / check`, including its skip on coordinator pull requests. Until
+that configuration exists, the gate is only as strong as the coordinator's procedure. No file in this repository
+proves that it exists; check the settings.
+
 ## Local and manual checks (not GitHub statuses)
 
 These are run by people or agents on their own machine. They are **not** GitHub required statuses and do not appear as
@@ -57,7 +90,6 @@ commit checks on a pull request.
 - It does not prove which checks GitHub branch protection currently requires, nor that any check is marked
   "required" in repository settings. Branch protection and rulesets are configured under the repository's settings;
   compare them against the checks listed here.
-- It does not cover the coordinator's local `git merge --squash` procedure, which is documented in
-  `docs/COORDINATING.md`.
+- It does not list the coordinator's merge commands, which are in `docs/COORDINATING.md` › Merge through the gate.
 - Workflow job names are part of the check identity. If a workflow or job is renamed, update this document and the
   repository's branch-protection configuration together so they keep matching.
