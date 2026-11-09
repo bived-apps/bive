@@ -167,12 +167,12 @@ per epic. Nothing of it is a Bive program: prompts, rules, and existing tools wi
 
 ### Waiting
 
-- **Integration safeguards (2026-11-09)**: follow-up batch #69–#75, approved at gate 1. #71 (required CI checks,
-  `docs/REQUIRED-CHECKS.md`) is integrated; #70's merge gate was merged by #81 and is kept by the owner as a check
-  before the supervisor's merge, extended to `milestone/*` with #88 (alignment in #85); #74 (merge waiter) is
-  superseded by the removal of `pr-merge-wait` and waits for the owner to close it. Unstarted: #72 conflict-aware
-  planning around shared files (the supervisor arbitrates at gate 1, #88), #73 fresh branches after squash merges
-  (moot once squash is off), #75 generated-doc regeneration, #69 headless plugin validation.
+- **Integration safeguards (2026-11-09)**: follow-up batch #69–#75, approved at gate 1; #70 (merge gate) and #74
+  (merge waiter) are superseded by the roles decision of 2026-11-09 (the coordinator never merges; `pr-merge-wait`
+  removed) and wait for the owner to close them. #71 records the required CI
+  checks in `docs/REQUIRED-CHECKS.md`; #70 covers a green-CI and dated-authorization merge gate; #72 conflict-aware
+  planning around shared files; #73 fresh branches after squash merges; #74 a repository-configurable merge waiter;
+  #75 generated-doc regeneration; #69 headless plugin validation. #71 is integrated; the other issues are unstarted.
 - Signed registry ids (a challenge, a proof of work, an HMAC token; patch kept in the owner's Claude project): only if noise
   appears on the public page.
 - Deploy the filtered Worker (`npx wrangler deploy`): the owner.

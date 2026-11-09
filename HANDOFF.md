@@ -39,8 +39,8 @@ the template that a role or a human does not read during a task.
 - The supervisor is the owner with their Claude project (`.bive/prompts/SUPERVISOR.md`).
 - The supervisor's session (the owner's Claude project) is started with: "You are the supervisor of bive. Read
   AGENTS.md, HANDOFF.md, ROADMAP.md, then .bive/prompts/SUPERVISOR.md: it is your prompt. You merge pull requests
-  into bived with `gh pr merge --merge` once the coordinator has approved them (or commented "Ready to merge",
-  #86) and CI is green; you never brief, review line by line, or write code."
+  into bived with `gh pr merge --merge` once the coordinator has approved them and CI is green; you never brief,
+  review line by line, or write code."
 
 ## Decisions
 
@@ -92,13 +92,12 @@ ROADMAP.md › 0.1: epic 4 (first full flow on Bive itself) is done (#79); next 
 2026-11-09). GitHub issues are the source of truth once the coordinator has split them. Open work at the handoff of
 2026-11-09, in order:
 
-1. **Align `bived` (#85) and allow several coordinators (#88)**: one coordinator PR, written in the owner's Claude
-   project, does both. #81 merged the #70 merge gate into `main` after #78, so `bived` carries contradictions:
-   steps 8 and 9 twice in `COORDINATOR.md`, texts where the coordinator still merges, `docs/COORDINATING.md` and
-   Watch out below still describe the gate run by the coordinator. The owner kept the gate as a check and settled
-   #88 on 2026-11-09: at most two coordinators, one per `milestone/<name>` branch, started by the supervisor at
-   gate 1, which also arbitrates shared files (#72); the gate extends to `milestone/*`. Until that PR is merged,
-   trust #78's roles over any text that has the coordinator merge.
+1. **Align `bived` (#85) and allow several coordinators (#88)**: PR #89 (label `coordinator`) does both and waits
+   for the owner's review, dated label and merge. #81 merged the #70 merge gate into `main` after #78, so `bived`
+   still carries contradictions: steps 8 and 9 twice in `COORDINATOR.md`, texts where the coordinator merges. The
+   owner settled #88 on 2026-11-09: at most two coordinators, one per `milestone/<name>` branch, started by the
+   supervisor at gate 1, which also arbitrates shared files (#72); the gate extends to `milestone/*`. Until #89 is
+   merged, trust #78's roles over any text that has the coordinator merge.
 2. **Owner decisions and settings**: #86 (one GitHub account for coordinator and owner: keep the "Ready to merge"
    comment and a queue on it, or a second account / GitHub App); untick *Allow squash merging* in Settings → General
    → Pull Requests (still allowed on 2026-11-09, `allow_squash_merge: true`); `bived` has no branch protection
@@ -149,11 +148,6 @@ ROADMAP.md › 0.1: epic 4 (first full flow on Bive itself) is done (#79); next 
   those in GitHub's settings.
 
 ## Session log
-
-- **2026-11-09, handoff to Opus (owner's Claude project)**: state read on GitHub before writing: #78, #81, #83
-  merged; #87 (pilot log) open, this branch builds on it; #79 closed; open #84, #85, #86, #88 (settled by the owner,
-  rules being written), #80, #70, #74; `bived` unprotected, squash still allowed. Running it, Tasks and ROADMAP
-  brought to that state; the launch prompt for an Opus coordinator is in the PR body.
 
 - **2026-11-09, coordinator anthropic/claude-opus-5-5 (owner's Claude project) — pilot #79, first full flow**: brief
   `.bive/state/briefs/79.md` written on the owner's Mac; worktree `.worktrees/issue-79` from `bived`, branch
