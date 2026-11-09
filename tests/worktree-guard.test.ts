@@ -75,6 +75,7 @@ describe("shell, every role", () => {
   test("a quoted here-document whose body only contains '> ../x' is allowed", () => {
     // Quoted here-document body text is data, not a live shell redirection.
     passes(shell(coordinator, "cat <<'EOF'\n> ../x\nEOF"))
+    passes(shell(coordinator, "cat <<FIRST <<'SECOND'\n> ../x\nFIRST\n> ../y\nSECOND"))
   })
   test("a working directory outside the worktree is refused", () => {
     refused(shell(coordinator, "ls", main), /outside/)
