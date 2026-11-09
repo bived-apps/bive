@@ -13,7 +13,8 @@ and its first example.
 
 - Repository `https://github.com/jcherfils/bive`. Integration branch **`bived`** (agents' pull requests go there);
   `main` is the template people copy and is protected: the owner merges `bived` into it by pull request.
-- No build. Tests: `node --test tests/*.test.ts` (Node 22; no bun). Worker: `registry/` (deployed by the owner with
+- No build. Tests: `node --test tests/*.test.ts` (Node 22; no bun). `.github/workflows/bive-tests.yml` runs them on
+  pull requests and pushes to `main` and `bived`. Worker: `registry/` (deployed by the owner with
   `npx wrangler deploy`).
 - The coordinator of Bive is started in a clone with this prompt (OpenCode, model Opus 5.5 or Fable 5.1):
 
@@ -22,19 +23,37 @@ You are the coordinator of bive's milestone 0.1 (GitHub jcherfils/bive). Read AG
 then .bive/prompts/COORDINATOR.md: it is your prompt. Integration branch: bived (never push to main; the owner
 merges bived into main). Work epic by epic in ROADMAP order; split each into issues labelled delegate (goal, read
 first, steps, done-when, tests), and stop at gate 1 to show me the split before any delegate starts. Delegates run
-on the models of .bive/models.json, one worktree each under .worktrees/issue-<n>, with BIVE_ROLE=delegate, and open
-their PR against bived. Review each PR yourself (diff, node --test, a complete report.md); squash-merge as "#N: title". Bive's
+on the models of .bive/models.json, one worktree each under .worktrees/issue-<n>, with BIVE_ROLE=delegate; they push
+their branches and return reports. You alone create and review each PR (diff, node --test, a complete report.md);
+squash-merge as "#N: title". Bive's
 own rule applies to Bive: nothing enters the template that a role or a human does not read during a task.
 ```
 
 - Delegates get no prompt to paste: the coordinator hands them `.bive/state/briefs/<n>.md`, and
   `.bive/prompts/DELEGATE.md` is their system prompt through the `delegate` agent of `opencode.jsonc`.
 - The supervisor is the owner with their Claude project (`.bive/prompts/SUPERVISOR.md`).
+- In Bive's coordinator session, `/wait-for-merge` watches the PR for the current branch and submits a follow-up prompt
+  to that same session when it merges, closes, or reaches its eight-hour limit. It uses local `gh` authentication,
+  works only in `jcherfils/bive`, and requires the local OpenCode server to remain available while waiting.
 
 ## Decisions
 
-- **No machinery (owner, 2026-11-08)**: no delegation tools, no provider probe, no package; a template and two
-  plugins. Reviewed and confirmed by an independent read ("Bive — avis critique", Fable, 2026-11-08).
+- **Supervisor operational work (owner, 2026-11-09)**: when directly asked, the supervisor may perform operational
+  work, including acting as coordinator, while explicitly using that role's rules and git identity. Only one
+  coordinator may act at a time; log the work and hand back when a coordinator is running. If a Bive PR exists for
+  the current session's branch, automatically launch `/wait-for-merge` in that same session, scoped only to that
+  session/PR. This does not authorize direct pushes to `main` or unasked product-code work.
+- **Delegated merge rights (owner, 2026-11-09)**: the supervisor may grant the coordinator a merge right only in
+  writing (the coordinator's brief or an issue comment), stating scope (one batch or named pull requests), target
+  branch, and expiry (date or end of batch). Log each grant here with its date and those three limits; identify the
+  grant in every merge made under it. It authorizes no work outside those limits and never permits direct pushes to
+  `main`. No standing grant is in effect.
+- **No general machinery (owner, 2026-11-08)**: no delegation tools, automatic provider probe/search tool, or package.
+  A one-model manual availability check is documented in `docs/PROVIDERS.md`; it is not a probe tool. Reviewed and
+  confirmed by an independent read ("Bive — avis critique", Fable, 2026-11-08).
+- **Local PR wait command (owner, 2026-11-09)**: the Bive-only `/wait-for-merge` coordinator command is a narrow
+  exception to general automation. It polls the current branch's PR read-only through the local `gh` login, queues a
+  result in the invoking session, and stops after merge, closure, or eight hours; it is not a background service.
 - **Nothing in the template that a role or a human does not read during a task (owner, 2026-11-08)**: satellites
   (registry page, browser help) go to their own repository (ROADMAP 0.1 › 5).
 - **Registry opt-in (owner, 2026-11-08)**: off unless `BIVE_REGISTRY=on` or a committed `.bive/registry-id`; the
@@ -86,10 +105,11 @@ satellites out, first project installed. GitHub issues are the source of truth o
 - Some Linux distributions build Node without TypeScript support (`node -p process.features.typescript` is
   `false`, the tests fail with `ERR_UNKNOWN_FILE_EXTENSION`): use an official Node 22+ build.
 - `.bive/registry-id`, once committed, is public: the registry is a count, not a proof.
-- GitHub's squash button sets the pull request's GitHub author as commit author (the owner, for #4): use the rebase
-  button (`gh pr merge --rebase`) for a one-commit pull request, which keeps the agent as author, until ROADMAP ›
-  bivedream › Authorship lands. "Closes
-  #N" acts on merges into `main` only: the coordinator closes the issue when it merges into `bived`.
+- GitHub's PR merge buttons are configured at repository level under Settings → General → Pull Requests; the desired
+  methods are recorded in `AGENTS.md` › Project rules. Bive allows `merge` and `squash`, not `rebase`. For issue PRs
+  into `bived`, the coordinator uses the local squash procedure in `docs/COORDINATING.md` and supplies `--author` to
+  preserve the delegate as commit author. "Closes #N" acts on merges into `main` only: the coordinator closes the
+  issue when it merges into `bived`.
 - The guard's shell check scans the whole command text: a heredoc or a message that quotes a redirect such as
   `echo x > ../f` is refused too. Put long bodies in a file under `.bive/state/` and pass `--body-file`.
 - A prompt that says "show me" or "ask me" without "stop and wait" is run through by a model, all the more under
@@ -99,6 +119,10 @@ satellites out, first project installed. GitHub issues are the source of truth o
   those in GitHub's settings.
 
 ## Session log
+
+- **2026-11-09, supervisor openai/gpt-6-luna**: at the owner's request, verified PR #59 merged, closed issue #58, and
+  handed the next coordinator task to issue #33. GitHub CLI uses the repository owner's account; GitHub collaborator
+  status belongs to that account, not to the model identity.
 
 - **2026-11-08, field report of a Python / ImGui project (coordinator Opus 5.5, started as a subagent of that
   project's coordinator)**: the first field report (posted on #35) became #22 (worktrees in `.worktrees/issue-<n>`

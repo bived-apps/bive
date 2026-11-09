@@ -43,7 +43,8 @@ delegate, report, merge) with no manual step but the three gates.
    the same repository; the `patch` tool and here-docs; the coordinator's own commands checked for false positives.
    Done when `node --test` covers them and the commands of `.bive/prompts/COORDINATOR.md` all pass.
 4. **First full flow on Bive itself** (M) — waiting. One `delegate` issue, one brief, one worktree, one `delegate`
-   subagent, one pull request against `bived` with `report.md`. Bive joins its own registry (`BIVE_REGISTRY=on` once,
+   subagent; the delegate pushes its branch and returns `report.md`, then the coordinator opens one pull request
+   against `bived`. Bive joins its own registry (`BIVE_REGISTRY=on` once,
    `.bive/registry-id` committed): project #1 (owner, 2026-11-08). Done when HANDOFF.md tells the session and every
    gap became an issue. Blocked on 2026-11-08: `external_directory: deny` refuses the coordinator's `cd ../bive-15`,
    so it cannot start a delegate in its worktree; the owner chose to wait for bivedream › *Delegates as sessions*
@@ -78,7 +79,12 @@ per epic. Nothing of it is a Bive program: prompts, rules, and existing tools wi
   session's agent (`Session.Info.agent`): an API-created session carries no environment variable. Adds the `delegate`
   and `coordinator` agents to `opencode.jsonc` (HANDOFF mentions them; the file has none) with their permissions,
   including `external_directory` for the coordinator's worktrees (today the global `deny` stops the coordinator at
-  `cd ..`). Decision for the owner: move the role prompts into `.opencode/agents/<role>.md`, where OpenCode reads the
+  `cd ..`). Busy-session API check (2026-11-09, OpenCode 2): `POST /api/session/{sessionID}/prompt` with
+  `delivery: "queue"` accepted a prompt to a session reported `running` and returned a durable queued input
+  (`type: "user"`, message ID and session ID). This confirms API admission/queueing, not that a separate follow-up
+  agent turn completed; do not replace the PID-wait fallback with this behavior until the latter is verified.
+  Decision for the owner: move the role prompts into
+  `.opencode/agents/<role>.md`, where OpenCode reads the
   permissions from the front matter and the body as the system prompt (recommended; the inviolable list follows).
   Done when a delegate issue runs end to end with no OpenCode process started by hand and no `cd` by the coordinator.
 - **Guard shrinks onto OpenCode's permissions** (S). OpenCode's permission engine already infers directories from

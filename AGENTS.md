@@ -6,20 +6,28 @@ Read this file, then [`HANDOFF.md`](HANDOFF.md), before changing anything. Your 
 ## Roles
 
 - **Supervisor**: the owner (with their Claude project). Agrees the plan and each epic's split, merges to `main`.
-- **Coordinator**: splits, briefs, starts delegates, reviews, merges into the integration branch. Never pushes to `main`.
-- **Delegate**: one issue, one worktree, one pull request, then stops. Never starts another agent.
+  The supervisor may grant the coordinator a merge right in writing, in the coordinator's brief or an issue comment;
+  it must state the scope (one batch or named pull requests), target branch, and expiry (date or end of batch), and
+  be logged with its date in `HANDOFF.md` › Decisions. The grant authorizes only merges within those limits; it never
+  authorizes direct pushes to `main`.
+- **Coordinator**: one coordinator at a time splits, briefs, starts delegates, creates and reviews issue pull requests,
+  and merges into the integration branch. Never pushes to `main`.
+- **Delegate**: one issue and one worktree; pushes its branch, returns its report to the coordinator, then stops.
+  Never creates a pull request or starts another agent.
 
 ## Rules
 
-- **One branch and one pull request per issue**: `issue/<n>-<slug>`. The body starts with `Closes #N` (or `Part of #N`
-  and what is left) and holds the delegate's report.
+- **One branch and one pull request per issue**: `issue/<n>-<slug>`. Only the coordinator creates pull requests for
+  issue work, after receiving the pushed branch and delegate's report. The body starts with `Closes #N` (or `Part of
+  #N` and what is left) and holds the delegate's report.
 - **Claim the issue** with a short comment before working on it; update it with the result.
 - **Stay in your worktree**: the guard plugin refuses writes outside it, including shell redirections; a delegate's
   commands may not name any path outside it (absolute, `~`, `$HOME`, `..`) apart from the system folders. A
   delegate's worktree is `.worktrees/issue-<n>`, inside the checkout and git-ignored (never `../<repo>-<n>`: the
   coordinator's session may not write there).
-- **Never**: force-push, rewrite pushed history, push to `main`, `rm -rf`, read SSH keys or the private paths listed
-  in `opencode.jsonc`.
+- **Never**: force-push, rewrite pushed history, push to `main`, `rm -rf`, kill processes by pattern (`pkill -f`,
+  `killall`); record the PID of each process you start and target that PID when stopping it. Never read SSH keys or the
+  private paths listed in `opencode.jsonc`.
 - **Keep sessions and prompts short**: continue a stuck delegate with one short message rather than a new session;
   a brief names files to read instead of pasting them. Delegate in small tasks with their own done-when and tests.
 - **Keep `HANDOFF.md` and `ROADMAP.md` true**: the coordinator updates them once per batch of merges, in the same
@@ -34,8 +42,11 @@ Generic, whatever the language (owner, 2026-11-08, taken from the practice of th
 - **Fail-safe**: no exception swallowed in silence (catch the precise one, or log once and say why); a timeout on
   every subprocess and every network call; a file the program reads may be missing or corrupt without a crash.
 - **A linter in the fast checks**; never reformat a whole file; every suppressed warning says why, in parentheses.
-- **Tests in three tiers**: *fast* (the delegate, before its pull request: lint and the tests of the files touched),
+- **Tests in three tiers**: *fast* (the delegate, before handing its branch and report to the coordinator: lint and
+  the tests of the files touched),
   *core* (the coordinator, once per batch of merges, never after each merge), *full* (before a release).
+  CI is separate: run automated checks on pull requests and pushes to the default and integration branches, so a red
+  base is visible quickly; this does not replace the coordinator's once-per-batch local core run.
 - **Docs change in the same commit** as the code they describe (README, reference pages, HANDOFF, ROADMAP).
 - **Commits are authored by the agent that made them, under an explicit name** (owner, 2026-11-08): in its working
   copy an agent sets `git config --worktree user.name "<role> <provider/model>"`, the model's name **and version**,
@@ -43,9 +54,10 @@ Generic, whatever the language (owner, 2026-11-08, taken from the practice of th
   `Claude`), and `git config --worktree user.email "<role>@bive.invalid"`, never the owner's identity. `--worktree`
   is required: plain `git config` writes the config every worktree shares, so one delegate's name becomes everyone's;
   it needs `git config extensions.worktreeConfig true` once per clone. The name is that of the model running now:
-  when the session's model changes, set it again before the next commit and sign comments with the new name. A squash
-  merge keeps the delegate as author; the coordinator is the committer. Anyone must be able to tell from `git log` who
-  wrote each change, human or model.
+  when the session's model changes, set it again before the next commit and sign comments with the new name. The
+  coordinator's local squash workflow with an explicit `--author` keeps the delegate as author; GitHub's squash button
+  may attribute the squashed commit to the PR author. Follow `docs/COORDINATING.md` for the local procedure. Anyone
+  must be able to tell from `git log` who wrote each change, human or model.
 - **No Git hooks**: a delegate is started by the coordinator, never by a Git command.
 
 ## Inviolable prompts
@@ -80,10 +92,14 @@ Nothing enters the template that is not read by one of the three roles, or by a 
 - Data: where the program writes (caches, settings, user data) and what never leaves the machine.
 - Licences: where a third-party model, asset or dataset is registered (file + table), checked by which test.
 - Runtime and versions the owner's machine imposes.
+- GitHub PR merge methods (for example `merge, squash`); keep this list aligned with the repository's GitHub settings.
 - Anything the owner decided, dated: "**Topic (owner, YYYY-MM-DD)**: …". -->
 
 - **Runtime (owner, 2026-11-08)**: Node 22 on the owner's machine; it runs the TypeScript tests directly
   (`node --test`), no bun. The plugins run inside OpenCode 2 (v2.2.5 verified), which supplies `@opencode/plugin`.
+- **GitHub PR merge methods (owner, 2026-11-09)**: `merge, squash`. This is the desired repo setting, not an
+  automatic GitHub configuration; the owner keeps it aligned in Settings → General → Pull Requests. Omit `rebase`
+  from the list and disable **Allow rebase merging** there to remove that option from PRs.
 
 ## Before committing
 

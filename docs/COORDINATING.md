@@ -20,7 +20,27 @@ gh issue comment <n> --body "Started: branch issue/<n>-<slug>, delegate <model>"
 A project whose checks need a local environment links it into the worktree (for example
 `ln -s "$PWD/.venv" .worktrees/issue-<n>/.venv`).
 
-## Review a pull request (step 7)
+## Open and review a pull request (step 7)
+
+The delegate pushes its branch and returns the filled report; it never opens a pull request. The coordinator creates
+the PR from the pushed branch and uses the report as the PR body. For a multi-part issue, open/update it according to
+the brief's timing. If the delegate's final response is not accessible from the coordinator's machine, recover the
+report from the final pushed commit body (do not expect the delegate's ignored `.bive/state/` file to travel):
+
+```bash
+git fetch origin issue/<n>-<slug>
+git show -s --format=%H FETCH_HEAD
+git log -1 --format=%b FETCH_HEAD
+```
+
+The report's Log section should name the commit SHA; the coordinator fills it in if the report was carried in that
+commit body. Save the report on the coordinator's machine in `.bive/state/briefs/<n>-report.md`, then run:
+
+```bash
+gh pr create --base <base> --head issue/<n>-<slug> --title "#<n>: <title>" --body-file .bive/state/briefs/<n>-report.md
+```
+
+The report body starts with `Closes #<n>` when complete, or `Part of #<n>` and what remains.
 
 ```bash
 gh pr view <pr> --json body,baseRefName,files,commits \
@@ -44,6 +64,13 @@ gh issue close <n> --comment "Done in <base> $(git rev-parse --short HEAD)"
 
 The core checks once, after the last merge, then `HANDOFF.md` and `ROADMAP.md` in one commit. Clean up:
 `git worktree list`, then `git worktree remove .worktrees/issue-<n>` for each merged issue (never forced).
+
+## GitHub pull-request merge methods
+
+These options are controlled by the repository, not by `AGENTS.md`. The project records its desired list in
+`AGENTS.md` › Project rules; the owner must match it in GitHub **Settings → General → Pull Requests**. To remove the
+**Rebase and merge** button, omit `rebase` from the project list and turn off **Allow rebase merging** in GitHub.
+This is separate from the coordinator's local `git merge --squash` procedure above.
 
 ## Scripting it
 

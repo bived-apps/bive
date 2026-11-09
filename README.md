@@ -10,7 +10,8 @@ flowchart LR
   D2["delegate<br/>issue 13, its own worktree"]
   S -- "plan · gate 1: the split" --> C
   C -- "brief" --> D1 & D2
-  D1 & D2 -- "report.md + pull request, then stops" --> C
+  D1 & D2 -- "push + report, then stop" --> C
+  C -- "opens PR to integration branch" --> C
   C -. "gate 2: failed twice" .-> S
   C == "gate 3: pull request to main" ==> S
 ```
@@ -35,18 +36,21 @@ ROADMAP.md when missing, the last two from .bive/templates/) and show the diff o
 opencode.jsonc merged, this project's rules and private paths kept). Then ask me, in one message: this project's
 private paths, each role's models (.bive/models.json), and whether to join Bive's public registry (docs/REGISTRY.md,
 off unless I turn it on). Stop there and wait for my answer. Turn 2, only after I say yes: write, commit on a branch
-install/bive, push it and open a pull request against the default branch if this repository has a remote; never
-create a repository or a remote.
+install/bive, and push it. The coordinator opens a pull request against the default branch if this repository has a
+remote; never create a repository or a remote.
 ```
+
+For projects using Bive, configure the project's own CI checks to run on pull requests and pushes to both the default
+and integration branches. This makes a red base visible promptly; adapt the workflow to the project's test command.
 
 ## The flow
 
 1. You agree the plan in `ROADMAP.md` and the split of an epic into issues (gate 1).
 2. The coordinator writes one brief per issue (`.bive/templates/brief.md`), creates a worktree `issue/<n>-<slug>`
    and starts a delegate in it.
-3. The delegate works only in its worktree, runs the fast checks, opens a pull request whose body is its report
-   (`.bive/templates/report.md`), and stops.
-4. The coordinator reviews and merges into the integration branch; it asks you when a delegate fails twice (gate 2)
+3. The delegate works only in its worktree, runs the fast checks, pushes its branch, returns its report, and stops.
+4. Only the coordinator creates the pull request, using the delegate's report as its body; the coordinator reviews
+   and merges into the integration branch. It asks you when a delegate fails twice (gate 2)
    and before the pull request to `main` (gate 3). You merge.
 
 ## Files
