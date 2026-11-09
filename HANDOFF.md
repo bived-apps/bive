@@ -27,7 +27,7 @@ on the models of .bive/models.json, one worktree each under .worktrees/issue-<n>
 their branches and return reports. You alone create and review each PR (diff, node --test, a complete report.md,
 gh pr checks --watch), approve it and comment "Ready to merge" (gh runs as my account, so GitHub refuses the
 approval: the comment is the hand-over, #86); I merge, you never merge, close or push to bived. A red
-bive-merge-gate / check only waits for my dated label: it is not yours to fix. Never write product code
+bive-merge-gate / merge-gate only waits for my dated label: it is not yours to fix. Never write product code
 yourself: a delegate that failed twice is split again or raised to me. Bive's own rule applies to Bive: nothing enters
 the template that a role or a human does not read during a task.
 ```
@@ -40,7 +40,7 @@ the template that a role or a human does not read during a task.
 - The supervisor's session (the owner's Claude project) is started with: "You are the supervisor of bive. Read
   AGENTS.md, HANDOFF.md, ROADMAP.md, then .bive/prompts/SUPERVISOR.md: it is your prompt. You merge pull requests
   into bived with `gh pr merge --merge --match-head-commit <sha>` once the coordinator has approved them, I have
-  applied the dated label and `bive-merge-gate / check` is green; you start the coordinators (at most two, one per
+  applied the dated label and `bive-merge-gate / merge-gate` is green; you start the coordinators (at most two, one per
   milestone) and arbitrate shared files; you never brief, review line by line, or write code."
 
 ## Decisions
@@ -49,7 +49,7 @@ the template that a role or a human does not read during a task.
   and `main`), with a merge commit; the coordinator reviews and approves, never merges, closes, pushes to the
   integration branch, or writes product code; the delegate writes. One role per session: whoever merges did not
   write. This replaces the decisions of 2026-11-09 on supervisor operational work and delegated merge rights.
-- **Merge gate kept as a check (owner, 2026-11-09)**: #70's `bive-merge-gate / check` stays, on the supervisor's
+- **Merge gate kept as a check (owner, 2026-11-09)**: #70's `bive-merge-gate / merge-gate` stays, on the supervisor's
   merge: the owner applies `bive-merge-authorized-until-YYYY-MM-DD` to one approved pull request, and the supervisor
   merges it once the gate is green, pinned to its head (`--match-head-commit`). Red before the label means waiting
   for the owner. Branch protection requiring the gate and `bive-tests / tests` is the owner's, in GitHub (#85).
@@ -100,19 +100,24 @@ the template that a role or a human does not read during a task.
 ROADMAP.md › 0.1: epic 4 (first full flow on Bive itself) is done (#79); next epic 6 (first project installed,
 #80), then epic 5 (satellites out); guard hardening (#16) rides along. bivedream frozen until then (owner,
 2026-11-09). GitHub issues are the source of truth once the coordinator has split them. Open work at the handoff of
-2026-11-09, in order (#78, #85, #88 and #89 merged; `bived` aligned on the roles):
+2026-11-09 (late), in order:
 
-1. **Owner settings and decisions**: branch protection on `bived` and `milestone/*` requiring
-   `bive-merge-gate / check` and `bive-tests / tests` (`docs/REQUIRED-CHECKS.md`; on 2026-11-09 the `main` ruleset covers both with merge commits only and pull
-   requests required, the two checks not yet required); untick
-   *Allow squash merging* in Settings → General → Pull Requests (`allow_squash_merge: true` on 2026-11-09); #86 (one
-   GitHub account for coordinator and owner: keep the "Ready to merge" comment, or a second account / GitHub App);
-   close #74 (superseded by #78).
-2. **#80, 0.1's criterion**: the owner's first project still runs the old model (its coordinator squash-merges
+1. **Merge PR #93 (#84), then this PR (#94)**: both coordinator PRs, one at a time (#88). Each waits for the owner's
+   dated label and the supervisor's merge; the coordinator closes #84 and #94 after each merge.
+2. **Right after #94 merges, the owner's ruleset** (#94): the gate's job is now `merge-gate`. GitHub's rulesets name a
+   required check by its job (check-run) name, and `bive-merge-gate` and `bive-inviolable` both had a job `check`, so
+   the required context did not name the gate. In ruleset `integration` replace the required `check` with
+   `merge-gate` (GitHub Actions) and keep `tests`. Until then, only `bive-inviolable` answers the required `check`,
+   so GitHub no longer enforces the gate: the supervisor still merges only on a green gate.
+3. **Owner decisions still open**: untick *Allow squash merging* in Settings → General → Pull Requests
+   (`allow_squash_merge: true` on 2026-11-09; the rulesets already allow `merge` only); #86 (one GitHub account for
+   coordinator and owner: keep the "Ready to merge" comment, or a second account / GitHub App); close #74 (superseded
+   by #78).
+4. **#80, 0.1's criterion**: the owner's first project still runs the old model (its coordinator squash-merges
    locally, no `gh pr merge`/`gh pr close` deny, integration branch `main`). One coordinator PR there applies the
-   roles of `bived`, the owner allows merge commits only on it, then one of its issues runs through the whole flow.
-   The owner chooses when.
-3. **Two coordinators at once (#88)**: written, not yet run; the first time two milestones run in parallel, log it
+   roles of `bived`, the owner allows merge commits only on it, then one of its issues runs through the whole flow
+   with `--agent delegate` (#84's first live run). The owner chooses when.
+5. **Two coordinators at once (#88)**: written, not yet run; the first time two milestones run in parallel, log it
    here.
 
 ## Watch out
@@ -157,6 +162,13 @@ ROADMAP.md › 0.1: epic 4 (first full flow on Bive itself) is done (#79); next 
 
 ## Session log
 
+- **2026-11-09, coordinator anthropic/claude-opus-5-5 — rulesets and #94**: at the owner's explicit request (once),
+  the coordinator configured GitHub's rulesets from the owner's Mac with `gh` (the cloud session's proxy refuses
+  ruleset writes): `integration` (bived and `milestone/*`: no deletion, no force-push, pull requests merged with
+  `merge` only, required checks `check` and `tests`, not enforced on branch creation) and `main` narrowed to the
+  default branch with `tests` required; a duplicate ruleset `bive` deleted at the owner's request. The required
+  context `check` matched both the gate and `bive-inviolable`: #94 renames the gate's job to `merge-gate`. A pilot
+  probe on the Mac found OpenCode 2.2.5 has no `opencode agent` subcommand (`opencode debug agents` instead).
 - **2026-11-09, coordinator anthropic/claude-opus-5-5 — #84**: `opencode.jsonc` defines a `delegate` agent
   (`agents.delegate`, `mode: primary`, `system: {file:./.bive/prompts/DELEGATE.md}`), the format of OpenCode 2.2.5's
   schema (`agents` plural; `agent` is deprecated; no `prompt` field). Checked on the owner's Mac in a fresh clone of

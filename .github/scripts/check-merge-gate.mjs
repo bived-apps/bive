@@ -7,7 +7,7 @@ import { evaluateMergeGate, isIntegrationBranch, validateMergeAuthorization } fr
 const GH_TIMEOUT_MS = 15_000
 const MAX_WAIT_MS = 12 * 60_000
 const POLL_INTERVAL_MS = 10_000
-const OWN_CHECK = "bive-merge-gate / check"
+const OWN_CHECK = "bive-merge-gate / merge-gate"
 const REQUIRED_CHECKS = ["bive-tests / tests", "bive-inviolable / check"]
 
 function runGh(args, timeoutMs = GH_TIMEOUT_MS) {

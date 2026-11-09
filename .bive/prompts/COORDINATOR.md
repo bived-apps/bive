@@ -52,12 +52,12 @@ Also read `.bive/prompts/project/COORDINATOR.md` if it exists: the project's add
      failure except another identified baseline issue; recheck after each and block all other merges until green;
    - then the diff itself: does it do the brief, nothing more?
    Wait for CI with `gh pr checks <pr> --watch` (blocks until the checks finish; no plugin, no poller; not
-   `--fail-fast`, which the gate's expected red would stop): a red check other than `bive-merge-gate / check` is yours
-   to read and brief again. When every point holds and every other check is green: approve
+   `--fail-fast`, which the gate's expected red would stop): a red check other than `bive-merge-gate / merge-gate` is
+   yours to read and brief again. When every point holds and every other check is green: approve
    (`gh pr review <pr> --approve`) and comment `Ready to merge` with the checks you ran; the supervisor merges (with a
    merge commit, which keeps each commit's author). You never merge, close, or push to the integration branch.
-   `bive-merge-gate / check` stays red until the owner applies the dated label `bive-merge-authorized-until-YYYY-MM-DD`:
-   that red means "waiting for the owner", not a failure for you to fix, and you never apply that label nor ask anyone
+   `bive-merge-gate / merge-gate` stays red until the owner applies the dated label
+   `bive-merge-authorized-until-YYYY-MM-DD`: that red means "waiting for the owner", not a failure for you to fix, and you never apply that label nor ask anyone
    but the owner to (`docs/REQUIRED-CHECKS.md`). After the merge, close the issue with a comment if GitHub did not
    (`Closes #N` acts on the default branch only). The routine as commands: `docs/COORDINATING.md`.
 8. **Failed twice**: ask the owner (gate 2): split it again, re-brief it on another model, or drop it. Never do the
