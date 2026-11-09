@@ -2,7 +2,7 @@ import { execFile } from "node:child_process"
 import { readFileSync } from "node:fs"
 import path from "node:path"
 import { fileURLToPath } from "node:url"
-import { evaluateMergeGate, validateMergeAuthorization } from "./merge-gate-lib.mjs"
+import { evaluateMergeGate, isIntegrationBranch, validateMergeAuthorization } from "./merge-gate-lib.mjs"
 
 const GH_TIMEOUT_MS = 15_000
 const MAX_WAIT_MS = 12 * 60_000
@@ -94,12 +94,14 @@ export async function runMergeGate({
       || typeof request?.base?.ref !== "string") {
     throw new Error("event does not contain a pull request number, head SHA, and base branch")
   }
-  if (request.base.ref !== "bived") throw new Error("merge gate only runs for pull requests targeting bived")
+  if (!isIntegrationBranch(request.base.ref)) {
+    throw new Error("merge gate only runs for pull requests targeting bived or milestone/<name>")
+  }
 
   const deadline = now() + maxWaitMs
   while (true) {
     const pr = await readPullRequest({ number: request.number, repository })
-    if (pr.baseRefName !== "bived") throw new Error("pull request base changed; refusing stale merge-gate run")
+    if (pr.baseRefName !== request.base.ref) throw new Error("pull request base changed; refusing stale merge-gate run")
     if (pr.headRefOid !== request.head.sha) throw new Error("pull request head changed; refusing stale merge-gate run")
 
     const authorization = validateMergeAuthorization({ labels: pr.labels, baseRef: pr.baseRefName, now: now() })

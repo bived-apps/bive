@@ -53,12 +53,12 @@ list as `bive-inviolable`); every author `delegate <provider/model> <delegate@bi
 in the worktree if the head changed since the report, and the diff. Then wait for CI and hand over:
 
 ```bash
-gh pr checks <pr> --watch --fail-fast          # returns when the checks finish; non-zero if one failed
+gh pr checks <pr> --watch                      # returns when the checks finish; every one but bive-merge-gate green
 gh pr review <pr> --approve --body "Ready to merge: <the checks you ran>"
 ```
 
-The supervisor merges (`gh pr merge <pr> --merge`); its queue is
-`gh pr list --base <base> --search "review:approved status:success"`. The coordinator never merges, closes or pushes
+The supervisor merges (`gh pr merge <pr> --merge --match-head-commit <sha>`, after the label); its queue is
+`gh pr list --base <base> --search "review:approved"`. The coordinator never merges, closes or pushes
 to `<base>`. To be told when a pull request is merged without a watcher plugin: `gh pr checks` for the checks, then
 `until [ "$(gh pr view <pr> --json state --jq .state)" != OPEN ]; do sleep 60; done` in the shell, when a session
 really needs to wait; most of the time the next session reads `gh pr list` instead.
@@ -68,18 +68,30 @@ Once merged, if the issue is still open (GitHub closes on the default branch onl
 gh issue close <n> --comment "Done in <base> (PR #<pr>)"
 ```
 
-The local run re-reads the label, its expiry and every check at that moment, so an authorization that expired or was
-removed since the gate's last run refuses the merge; `--match-head-commit` makes GitHub refuse it if the head moved
-after the run. If any command fails or prints something else, stop and tell the owner; there is no other way to
-merge. The merge method (`--merge`) keeps each delegate commit under its author, as `AGENTS.md` › Coding rules
-require; the merge commit itself is attributed to the `gh` account. Never `git merge` or `git push` to `<base>` from
-the checkout: once the owner's branch protection requires the gate, GitHub refuses such pushes anyway.
+`bive-merge-gate / check` stays red on every pull request until the owner applies the dated label
+`bive-merge-authorized-until-YYYY-MM-DD` (`docs/REQUIRED-CHECKS.md`): read that red as "waiting for the owner's label",
+not as a failure to brief again. The coordinator never applies the label.
 
 ## After the batch (step 9)
 
 The core checks once, after the last merge, then `HANDOFF.md` and `ROADMAP.md` in one commit on a coordinator branch,
-opened as a pull request labelled `coordinator` and merged through the gate like any other. Clean up:
+opened as a pull request labelled `coordinator` and merged by the supervisor like any other. Clean up:
 `git worktree list`, then `git worktree remove .worktrees/issue-<n>` for each merged issue (never forced).
+
+## Two coordinators at once
+
+The supervisor may run one coordinator per milestone, at most two at once (`AGENTS.md` › Roles). Each works in its own
+clone, because `.worktrees/`, `.bive/state/` and the guard belong to one checkout:
+
+```bash
+git clone <repository> <dir> && cd <dir> && git switch milestone/<name>
+gh pr list --base milestone/<name>                    # the pull requests this coordinator reviews, and no others
+gh pr list --label coordinator --state open           # before opening a coordinator PR on an inviolable file: empty
+```
+
+At gate 1 each milestone lists the files it will touch; where the two lists overlap, the supervisor names one writer
+or the order, and the brief says so. Each coordinator writes only its milestone's section of `HANDOFF.md` and
+`ROADMAP.md`.
 
 ## GitHub pull-request merge methods
 
