@@ -15,7 +15,13 @@ mkdir -p .worktrees/issue-<n>/.bive/state
 echo delegate > .worktrees/issue-<n>/.bive/state/role          # the guard's sign
 # the brief: .bive/templates/brief.md filled into .bive/state/briefs/<n>.md
 gh issue comment <n> --body "Started: branch issue/<n>-<slug>, delegate <model>"
+brief="$(cat .bive/state/briefs/<n>.md)"                        # read here: outside the delegate's worktree
+(cd .worktrees/issue-<n> && BIVE_ROLE=delegate opencode run --agent delegate --model <model> "$brief") &
+echo $!                                                         # record the PID (AGENTS.md › Never)
 ```
+
+The `delegate` agent of `opencode.jsonc` gives the session `.bive/prompts/DELEGATE.md` as its system prompt.
+`opencode debug agents` lists the agents OpenCode resolved (OpenCode 2.2.5 has no `opencode agent` subcommand).
 
 A project whose checks need a local environment links it into the worktree (for example
 `ln -s "$PWD/.venv" .worktrees/issue-<n>/.venv`).
@@ -68,7 +74,7 @@ Once merged, if the issue is still open (GitHub closes on the default branch onl
 gh issue close <n> --comment "Done in <base> (PR #<pr>)"
 ```
 
-`bive-merge-gate / check` stays red on every pull request until the owner applies the dated label
+`bive-merge-gate / merge-gate` stays red on every pull request until the owner applies the dated label
 `bive-merge-authorized-until-YYYY-MM-DD` (`docs/REQUIRED-CHECKS.md`): read that red as "waiting for the owner's label",
 not as a failure to brief again. The coordinator never applies the label.
 

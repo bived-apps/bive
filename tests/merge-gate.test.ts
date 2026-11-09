@@ -55,7 +55,7 @@ test("allows only the expected inviolable-check skip for coordinator PRs", () =>
 })
 
 test("ignores its own check but refuses other pending or failed checks", () => {
-  const own = { workflow: "bive-merge-gate", name: "check", bucket: "pending" }
+  const own = { workflow: "bive-merge-gate", name: "merge-gate", bucket: "pending" }
   assert.equal(evaluate({ checks: [...greenChecks, own] }).ok, true)
   assert.equal(evaluate({ checks: [...greenChecks, { workflow: "other", name: "lint", bucket: "fail" }] }).ok, false)
   assert.equal(evaluate({ checks: [...greenChecks, { workflow: "other", name: "lint", bucket: "pending" }] }).ok, false)

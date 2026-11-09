@@ -12,6 +12,16 @@
   //           "~/app/.venv/bin/python", "-m", "app.mcp_server"]}
   // },
 
+  // The delegate's agent (#84): DELEGATE.md is its system prompt, which replaces the provider's base prompt; a missing
+  // file becomes an empty prompt without an error. Started with `opencode run --agent delegate` (docs/COORDINATING.md).
+  "agents": {
+    "delegate": {
+      "description": "Bive delegate: one issue, one worktree; pushes its branch and reports to the coordinator.",
+      "mode": "primary",
+      "system": "{file:./.bive/prompts/DELEGATE.md}"
+    }
+  },
+
   "policies": [
     {"action": "tool.use", "resource": "shell:rm -rf *", "effect": "deny"},
     {"action": "tool.use", "resource": "shell:git reset --hard *", "effect": "deny"},

@@ -34,7 +34,7 @@ export function evaluateMergeGate({ labels = [], baseRef, checks = [], now = Dat
   if (!grant.ok) return grant
 
   const coordinator = labels.includes("coordinator")
-  const actionableChecks = checks.filter((check) => identity(check) !== "bive-merge-gate / check")
+  const actionableChecks = checks.filter((check) => identity(check) !== "bive-merge-gate / merge-gate")
   for (const required of REQUIRED_CHECKS) {
     const found = actionableChecks.filter((check) => identity(check) === identity(required))
     if (found.length !== 1) return { ok: false, reason: `expected exactly one ${identity(required)} check` }

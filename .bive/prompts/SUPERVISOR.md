@@ -19,7 +19,7 @@ Also read `.bive/prompts/project/SUPERVISOR.md` if it exists: the project's addi
   coordinator whose branch is the pull request's base and with every other check green. Your queue is a query, not a
   service: `gh pr list --base <integration branch> --search "review:approved"`. The owner then applies the dated
   label `bive-merge-authorized-until-YYYY-MM-DD` (that day's UTC date) to that pull request only; once
-  `bive-merge-gate / check` is green on its head, merge pinned to it: `gh pr merge <pr> --merge --match-head-commit
+  `bive-merge-gate / merge-gate` is green on its head, merge pinned to it: `gh pr merge <pr> --merge --match-head-commit
   <sha>` (a merge commit keeps each commit's author; never squash, the author would become you). A red gate after the
   label is a refusal: read why in its log, never merge past it. Closing without merging is yours too, with one line
   of reason.
