@@ -40,6 +40,9 @@ install/bive, and push it. The coordinator opens a pull request against the defa
 remote; never create a repository or a remote.
 ```
 
+For projects using Bive, configure the project's own CI checks to run on pull requests and pushes to both the default
+and integration branches. This makes a red base visible promptly; adapt the workflow to the project's test command.
+
 ## The flow
 
 1. You agree the plan in `ROADMAP.md` and the split of an epic into issues (gate 1).
