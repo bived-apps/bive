@@ -22,5 +22,11 @@ Bive asks in return; the licence (MIT) does not require it.
 - **What is shown**: only projects that reported at least three sessions on two different days, and the server
   accepts at most fifty new projects a day. The id is public (it is committed), so the registry is a count, not a
   proof: an invented or copied id can only add noise within those bounds.
+- **API**: `POST /v1/session` accepts one JSON report with a body of at most 8,192 bytes and returns `204` on
+  success, `413 { "error": "too large" }` when the body exceeds that limit, and `400` for malformed JSON or an
+  invalid report (for example `{ "error": "not JSON" }`). It also returns `429` when a project exceeds its daily
+  report cap or the daily new-project cap. `GET /v1/stats` returns the public totals and per-project aggregates;
+  `GET /` returns the public page.
+
 - **Run a registry**: `registry/` holds the Cloudflare Worker (`worker.js`, D1 `schema.sql`, `wrangler.toml`) and
   its page; the deploy steps are at the top of `wrangler.toml`.

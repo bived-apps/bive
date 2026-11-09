@@ -120,6 +120,13 @@ satellites out, first project installed. GitHub issues are the source of truth o
 
 ## Session log
 
+- **2026-11-09, coordinator openai/gpt-6-luna**: PR #62 merged into `bived` at `5094c76`; the queued prompt to the
+  running session was later visible as a user message and answered, completing #32's API verification. Closed stale
+  issues #29 and #25 after confirming their merged PRs. Ran issue #64 as the live multipart pilot for #23: Part A
+  and Part B were completed sequentially on one branch/worktree, with Part A reviewed before Part B; PR #65 was
+  reviewed and integrated. PR checks passed and the coordinator core suite passed (32 tests). This demonstrates the
+  multipart flow and completes #23's pilot requirement.
+
 - **2026-11-09, supervisor openai/gpt-6-luna**: at the owner's request, verified PR #59 merged, closed issue #58, and
   handed the next coordinator task to issue #33. GitHub CLI uses the repository owner's account; GitHub collaborator
   status belongs to that account, not to the model identity.
