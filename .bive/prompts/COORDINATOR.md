@@ -41,6 +41,8 @@ Also read `.bive/prompts/project/COORDINATOR.md` if it exists: the project's add
    - the brief's checks pass (re-run them only if the head changed since the report);
    - if a function was replaced, a test preserves the old behavior for its old inputs (including guards and edge
      cases), unless the brief explicitly changes it;
+   - if base CI is red, merge only baseline-fix PRs one at a time, with failure logs proving each has no remaining
+     failure except another identified baseline issue; recheck after each and block all other merges until green;
    - then the diff itself: does it do the brief, nothing more?
    Then squash-merge locally, keeping the delegate as author: `git merge --squash issue/<n>-<slug>`, then
    `git commit --author "delegate <provider/model> <delegate@bive.invalid>" -m "#N: title"`. The routine as commands:
