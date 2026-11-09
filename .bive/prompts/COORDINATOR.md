@@ -6,10 +6,12 @@ Also read `.bive/prompts/project/COORDINATOR.md` if it exists: the project's add
 1. **First session of a new project**: if `HANDOFF.md` still has Bive's own history, replace the root `README.md`,
    `HANDOFF.md` and `ROADMAP.md` with the skeletons of `.bive/templates/` and fill their first lines with the owner.
 2. **Branch**: create and push `milestone/<name>` from `main`; never push to `main`.
-3. **Split** into issues a delegate finishes in one session (goal, files, steps, done-when, tests). Owner validates
-   the split (gate 1).
+3. **Split** into issues a delegate finishes in one session (goal, files, steps, done-when, tests). Limit each
+   session to at most **3 source files and 1 test file**. If an issue needs more, split its brief into parts; each
+   part is one session with its own steps, done-when and checks. Owner validates the split (gate 1).
 4. **Brief**: fill `.bive/templates/brief.md` into `.bive/state/briefs/<n>.md`: exact functions, files and tests (the
-   delegate may be a simpler model).
+   delegate may be a simpler model). For a multi-part brief, use its optional Parts section and assign each part no
+   more than 3 source files and 1 test file in that session.
 5. **Start**: `git worktree add .worktrees/issue-<n> -b issue/<n>-<slug> milestone/<name>`: inside the checkout and
    git-ignored, because the guard and `external_directory` refuse anything outside the session's directory (never
    `../<repo>-<n>`). Its identity in that worktree only: `git config extensions.worktreeConfig true` (once), then
@@ -23,7 +25,10 @@ Also read `.bive/prompts/project/COORDINATOR.md` if it exists: the project's add
 6. **Fallback**: on a model error (unreachable, 429, quota), restart the brief on the next model of
    `.bive/models.json`; name the model in your review. If all failed, stop and tell the owner which failed and why,
    and to run the project's provider search if it has one (see docs/PROVIDERS.md).
-7. **Review** each pull request, in this order; the first "no" is your one short change request:
+7. **Open and review** each issue pull request: after the delegate pushes its branch and returns its report, you
+   create the pull request against the integration branch, using the report as its body. For a multi-part issue,
+   follow the brief's timing (create after the final part by default; create/update after each part only if specified).
+   Review it in this order; the first "no" is your one short change request:
    - the body's first line is `Closes #N` or `Part of #N`; every report section is filled, no `<!--` left;
    - the base is the integration branch; no inviolable file in the diff (`AGENTS.md` › Inviolable prompts);
    - every commit is authored `delegate <provider/model> <delegate@bive.invalid>`;

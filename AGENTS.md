@@ -6,13 +6,16 @@ Read this file, then [`HANDOFF.md`](HANDOFF.md), before changing anything. Your 
 ## Roles
 
 - **Supervisor**: the owner (with their Claude project). Agrees the plan and each epic's split, merges to `main`.
-- **Coordinator**: splits, briefs, starts delegates, reviews, merges into the integration branch. Never pushes to `main`.
-- **Delegate**: one issue, one worktree, one pull request, then stops. Never starts another agent.
+- **Coordinator**: splits, briefs, starts delegates, creates and reviews issue pull requests, and merges into the
+  integration branch. Never pushes to `main`.
+- **Delegate**: one issue and one worktree; pushes its branch, returns its report to the coordinator, then stops.
+  Never creates a pull request or starts another agent.
 
 ## Rules
 
-- **One branch and one pull request per issue**: `issue/<n>-<slug>`. The body starts with `Closes #N` (or `Part of #N`
-  and what is left) and holds the delegate's report.
+- **One branch and one pull request per issue**: `issue/<n>-<slug>`. Only the coordinator creates pull requests for
+  issue work, after receiving the pushed branch and delegate's report. The body starts with `Closes #N` (or `Part of
+  #N` and what is left) and holds the delegate's report.
 - **Claim the issue** with a short comment before working on it; update it with the result.
 - **Stay in your worktree**: the guard plugin refuses writes outside it, including shell redirections; a delegate's
   commands may not name any path outside it (absolute, `~`, `$HOME`, `..`) apart from the system folders. A
@@ -34,7 +37,8 @@ Generic, whatever the language (owner, 2026-11-08, taken from the practice of th
 - **Fail-safe**: no exception swallowed in silence (catch the precise one, or log once and say why); a timeout on
   every subprocess and every network call; a file the program reads may be missing or corrupt without a crash.
 - **A linter in the fast checks**; never reformat a whole file; every suppressed warning says why, in parentheses.
-- **Tests in three tiers**: *fast* (the delegate, before its pull request: lint and the tests of the files touched),
+- **Tests in three tiers**: *fast* (the delegate, before handing its branch and report to the coordinator: lint and
+  the tests of the files touched),
   *core* (the coordinator, once per batch of merges, never after each merge), *full* (before a release).
 - **Docs change in the same commit** as the code they describe (README, reference pages, HANDOFF, ROADMAP).
 - **Commits are authored by the agent that made them, under an explicit name** (owner, 2026-11-08): in its working

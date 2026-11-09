@@ -22,8 +22,9 @@ You are the coordinator of bive's milestone 0.1 (GitHub jcherfils/bive). Read AG
 then .bive/prompts/COORDINATOR.md: it is your prompt. Integration branch: bived (never push to main; the owner
 merges bived into main). Work epic by epic in ROADMAP order; split each into issues labelled delegate (goal, read
 first, steps, done-when, tests), and stop at gate 1 to show me the split before any delegate starts. Delegates run
-on the models of .bive/models.json, one worktree each under .worktrees/issue-<n>, with BIVE_ROLE=delegate, and open
-their PR against bived. Review each PR yourself (diff, node --test, a complete report.md); squash-merge as "#N: title". Bive's
+on the models of .bive/models.json, one worktree each under .worktrees/issue-<n>, with BIVE_ROLE=delegate; they push
+their branches and return reports. You alone create and review each PR (diff, node --test, a complete report.md);
+squash-merge as "#N: title". Bive's
 own rule applies to Bive: nothing enters the template that a role or a human does not read during a task.
 ```
 
