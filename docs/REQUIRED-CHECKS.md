@@ -43,33 +43,37 @@ These run on GitHub and appear as commit statuses on a pull request.
 - **Workflow file**: `.github/workflows/bive-merge-gate.yml`; script `.github/scripts/check-merge-gate.mjs`, decision
   in `.github/scripts/merge-gate-lib.mjs`.
 - **Job**: `check`
-- **Triggers**: `pull_request_target` on pull requests targeting `bived`, types `opened`, `synchronize`, `reopened`,
-  `labeled`, `unlabeled`. It checks out the base commit only and never runs code from the pull request's head; its
-  permissions are read-only (`contents`, `pull-requests`, `checks`).
+- **Triggers**: `pull_request_target` on pull requests targeting `bived` or `milestone/**`, types `opened`,
+  `synchronize`, `reopened`, `labeled`, `unlabeled`. It checks out the base commit only and never runs code from the
+  pull request's head; its permissions are read-only (`contents`, `pull-requests`, `checks`).
 - **Runs**: `ubuntu-latest`, Node 22, timeout 15 minutes. It waits (every 10 seconds, at most 12 minutes, each `gh`
   call limited to 15 seconds) until the other checks have finished, then decides.
 - **Authorization**: exactly one label `bive-merge-authorized-until-YYYY-MM-DD` on the pull request, a real calendar
-  date, valid through 23:59:59 UTC of that date and only while the base is `bived`. Only the owner applies it; the
-  coordinator never does, also on its own pull requests. Adding or removing it re-runs the gate.
+  date, valid through 23:59:59 UTC of that date and only while the base is `bived` or `milestone/<name>` (one path
+  segment). Only the owner applies it, after the coordinator's approval and when the supervisor is about to merge;
+  the coordinator never does, also on its own pull requests. Adding or removing it re-runs the gate.
+- **Red before the label is expected**: on every pull request without the label the gate fails with "exactly one
+  dated merge-authorization label is required". It means "waiting for the owner", not a failure to fix.
 - **What it checks**: the authorization above; exactly one `bive-tests / tests` and one `bive-inviolable / check`,
   both `pass`; every other check except its own `pass` as well. The one accepted exception: `bive-inviolable / check`
   may be `skipping` on a pull request labelled `coordinator` (its job condition skips it there). It re-reads the pull
   request after reading the checks and fails if the head, base or labels changed.
 - **Fails on**: a missing, malformed, duplicate or expired label; any check pending past the deadline, missing,
   skipped (other than the exception), failed or cancelled; a pull request whose head or base changed during the run.
-- **Not covered**: the gate runs only for `bived`. A project whose integration branch is another (for example
-  `milestone/<name>`) has no gate until the workflow's branch list and the script's base check name it.
-- **Expiry is not re-evaluated on its own**: a gate that passed stays green after its date. The coordinator re-runs
-  the script just before merging (`docs/COORDINATING.md` › Merge through the gate), which refuses an expired label.
+- **Several coordinators**: each approves only pull requests based on its own milestone branch; the gate does not
+  check which coordinator approved, the supervisor does (`AGENTS.md` › Roles).
+- **Expiry is not re-evaluated on its own**: a gate that passed stays green after its date. The owner applies the
+  label dated the day of the merge, and the supervisor merges that day with `gh pr merge --merge
+  --match-head-commit <sha>`, so a push after the gate's run refuses the merge.
 
 ## Branch protection (owner, in GitHub's settings)
 
 The workflows report checks; they do not make GitHub enforce them. For the gate to block GitHub's merge button and
-direct pushes, the owner configures branch protection (or a ruleset) on `bived` in the repository's settings to
+direct pushes, the owner configures branch protection (or a ruleset) on `bived` and `milestone/*` to
 require the status checks `bive-merge-gate / check` and `bive-tests / tests`; the gate itself judges
-`bive-inviolable / check`, including its skip on coordinator pull requests. Until
-that configuration exists, the gate is only as strong as the coordinator's procedure. No file in this repository
-proves that it exists; check the settings.
+`bive-inviolable / check`, including its skip on coordinator pull requests. Until that configuration exists, the
+gate is only as strong as the supervisor's procedure. No file in this repository proves that it exists; check the
+settings.
 
 ## Local and manual checks (not GitHub statuses)
 

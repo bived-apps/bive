@@ -1,5 +1,10 @@
 export const AUTHORIZATION_LABEL_PREFIX = "bive-merge-authorized-until-"
 
+// Integration branches the gate covers: Bive's own `bived`, and one `milestone/<name>` per coordinator (#88).
+export function isIntegrationBranch(ref) {
+  return ref === "bived" || (typeof ref === "string" && /^milestone\/[A-Za-z0-9._-]+$/.test(ref))
+}
+
 const identity = (check) => `${check.workflow} / ${check.name}`
 const REQUIRED_CHECKS = [
   { workflow: "bive-tests", name: "tests" },
@@ -7,7 +12,9 @@ const REQUIRED_CHECKS = [
 ]
 
 export function validateMergeAuthorization({ labels = [], baseRef, now = Date.now() }) {
-  if (baseRef !== "bived") return { ok: false, reason: "merge gate only authorizes pull requests targeting bived" }
+  if (!isIntegrationBranch(baseRef)) {
+    return { ok: false, reason: "merge gate only authorizes pull requests targeting bived or milestone/<name>" }
+  }
   const matches = labels.filter((label) => label.startsWith(AUTHORIZATION_LABEL_PREFIX))
   if (matches.length !== 1) return { ok: false, reason: "exactly one dated merge-authorization label is required" }
 
