@@ -46,6 +46,11 @@ describe("patch", () => {
     refused(() => delegate("patch", { patchText: "*** Begin Patch\n*** Update File: opencode.jsonc\n-a\n+b\n*** End Patch" }),
             /inviolable/)
   })
+  test("a delegate patch inside the worktree passes, outside is refused", () => {
+    // Delegate patches are subject to the same boundary as writes: inside passes, outside is refused.
+    passes(() => delegate("patch", { patchText: "*** Begin Patch\n*** Update File: src/a.py\n-a\n+b\n*** End Patch" }))
+    refused(() => delegate("patch", { patchText: `*** Begin Patch\n*** Add File: ${main}/b.py\n+x\n*** End Patch` }), /outside/)
+  })
 })
 
 describe("shell, every role", () => {
@@ -58,12 +63,29 @@ describe("shell, every role", () => {
     passes(shell(coordinator, "cmd >/dev/null 2>&1; echo >&2 oops"))
     passes(shell(coordinator, "cat <<EOF > notes.md\nhi\nEOF"))
   })
+  test("a here-document that redirects outside the worktree is refused", () => {
+    // The redirect in 'cat <<EOF > ../x' lands outside the worktree, so it is refused for every role.
+    refused(shell(coordinator, "cat <<EOF > ../x"), /outside/)
+  })
+  test.todo("a quoted here-document whose body only contains '> ../x' is allowed", () => {
+    // The guard's REDIRECT regex scans the whole command text, including heredoc bodies, so the
+    // literal '> ../x' inside the body is treated as a redirection and refused: a false positive.
+    // Current guard refuses this (false positive); desired is allowed. Body intentionally has no
+    // assertion so this todo stays green until the guard learns heredoc syntax.
+    // refused(shell(coordinator, "cat <<'EOF'\n> ../x\nEOF"), /outside/)  // current behavior
+  })
   test("a working directory outside the worktree is refused", () => {
     refused(shell(coordinator, "ls", main), /outside/)
     passes(shell(coordinator, "ls", path.join(wt, "src")))
   })
   test("a coordinator may name paths outside (it creates worktrees)", () => {
     passes(shell(coordinator, "git worktree add ../repo-4 -b issue/4-x dev"))
+  })
+  test("a coordinator may push, open and merge pull requests", () => {
+    // These commands name no path outside the worktree, so the coordinator (not a delegate) may run them.
+    passes(shell(coordinator, "git push origin issue/15-guard-tests"))
+    passes(shell(coordinator, "gh pr create --base bived --head issue/15-guard-tests --body-file .bive/state/briefs/15.md"))
+    passes(shell(coordinator, "gh pr merge 15"))
   })
 })
 
@@ -130,6 +152,6 @@ describe("delegate detection (child sessions inherit the coordinator's environme
 
 describe("violations", () => {
   test("every refusal above was counted", () => {
-    assert.equal(violations(), 27)      // the `refused(...)` calls above, one violation each
+    assert.equal(violations(), 29)      // the `refused(...)` calls above, one violation each
   })
 })
