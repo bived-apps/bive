@@ -111,8 +111,9 @@ ROADMAP.md › 0.1, in order: first full flow on Bive itself (epic 4), first pro
 - `.bive/registry-id`, once committed, is public: the registry is a count, not a proof.
 - GitHub's PR merge buttons are configured at repository level under Settings → General → Pull Requests; the desired
   methods are recorded in `AGENTS.md` › Project rules. Bive allows `merge` and `squash`, not `rebase`. For issue PRs
-  into `bived`, the coordinator uses the local squash procedure in `docs/COORDINATING.md` and supplies `--author` to
-  preserve the delegate as commit author. "Closes #N" acts on merges into `main` only: the coordinator closes the
+  into `bived`, the coordinator merges through the gate (`docs/COORDINATING.md` › Merge through the gate) with
+  `gh pr merge --merge --match-head-commit`, which keeps each delegate commit under its author; no local squash and
+  push any more (#70). "Closes #N" acts on merges into `main` only: the coordinator closes the
   issue when it merges into `bived`.
 - The guard removes shell here-document bodies before looking for redirections and outside paths. It allows a quoted
   heredoc body containing `> ../x` while still refusing a live redirect; heredoc-like text inside quotes/comments does
@@ -131,6 +132,25 @@ ROADMAP.md › 0.1, in order: first full flow on Bive itself (epic 4), first pro
   kept), `pr-merge-wait` removed, bivedream frozen until 0.1 is done. `AGENTS.md`, the three prompts, `opencode.jsonc`
   (`gh pr merge` and `gh pr close` denied to agents), `docs/COORDINATING.md`, `docs/REQUIRED-CHECKS.md`, `ROADMAP.md`
   updated; the merge-gate branch `issue/70-merge-gate` is superseded and left to the owner to close.
+- **2026-11-09, coordinator anthropic/claude-opus-5-5 — #70 Part C**: resumed `issue/70-merge-gate` from the local
+  handoff. Part C rewrites the merge step of `.bive/prompts/COORDINATOR.md` and `docs/COORDINATING.md` around the
+  gate (owner-applied dated label, green gate on the pinned head, the gate script re-run locally just before
+  `gh pr merge --merge --match-head-commit`; no local merge or push) and documents `bive-merge-gate / check` and the
+  branch protection the owner must configure in `docs/REQUIRED-CHECKS.md`. `git diff --check` is clean and
+  `node --test tests/*.test.ts` passes 53/53. Left: `AGENTS.md` › Coding rules still describes the local squash
+  (inviolable, coordinator follow-up); the gate covers `bived` only. The owner applies the dated label and configures
+  branch protection; the coordinator does neither.
+
+- **2026-11-09, coordinator openai/gpt-6-luna — handoff #70**: branch `issue/70-merge-gate` is clean at
+  `38756ff` (Part B), based on `bived` at `f9abeb9`. Part A (`ebedba6`) adds the pure dated-label/check validator;
+  Part B adds the read-only `pull_request_target` workflow, CLI polling adapter, and tests. The 16 focused tests and
+  `git diff --check` pass. Gate 1 approved three sequential parts and one final coordinator PR; Parts A and B were
+  reviewed and approved. Next: Part C only — update `.bive/prompts/COORDINATOR.md`, `docs/COORDINATING.md`, and
+  `docs/REQUIRED-CHECKS.md`; then run `git diff --check` and `node --test tests/*.test.ts`. Do not open the PR until
+  Part C is reviewed. The final PR must carry `coordinator`; do not self-apply its dated authorization label or merge
+  it. The owner must apply `bive-merge-authorized-until-YYYY-MM-DD` after PR checks pass and configure GitHub branch
+  protection to require `bive-merge-gate / check` and `bive-tests / tests`. No commits from this task have been pushed.
+
 - **2026-11-09, coordinator openai/gpt-6-luna**: after gate-1 approval, created the seven follow-up issues #69–#75
   from anonymized field observations. Delegate issue #71 documents the actual CI checks and explicitly distinguishes
   them from GitHub branch-protection settings; PR #76 passed both CI checks and was integrated into `bived`. The

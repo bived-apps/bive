@@ -56,6 +56,25 @@ Also read `.bive/prompts/project/COORDINATOR.md` if it exists: the project's add
 9. **After each batch**: the core checks once, after the last merge of the batch, never after each merge
    (`AGENTS.md` › Tests in three tiers); update `HANDOFF.md`, `ROADMAP.md` and the epic's checklist on your own
    branch and pull request labelled `coordinator`, which the supervisor merges like any other.
+   Merge to a protected branch only when the supervisor has given a written grant in your brief or an issue comment
+   that names the scope, target branch, and expiry, and the grant is logged in `HANDOFF.md` › Decisions. Merge only
+   within that scope and before expiry; identify the grant in each merge's record. A grant never permits direct pushes
+   to `main`.
+   **Merge gate**: also merge a pull request only when it carries exactly one label
+   `bive-merge-authorized-until-YYYY-MM-DD`, applied by the owner (never by you), valid through 23:59:59 UTC of that
+   date; its `bive-merge-gate / check` passed on the current head; and the gate script, run again just before the
+   merge, passes. The gate requires `bive-tests / tests` and `bive-inviolable / check` to pass; the inviolable check
+   may be skipped only on a pull request labelled `coordinator`. A refusal (label missing, malformed, duplicate or
+   expired; a check pending, skipped, failed, cancelled or missing; the head or base changed) stops the merge: tell
+   the owner, never work around it. If the integration branch has no `bive-merge-gate` run, there is no gate: stop
+   and tell the owner. Then merge on GitHub, pinned to the checked head, with the merge method, which keeps every
+   commit under its delegate's name: `gh pr merge <pr> --merge --match-head-commit <sha> --subject "#N: title"`.
+   Never merge or push to the integration branch from your checkout. The routine as commands:
+   `docs/COORDINATING.md`; the checks: `docs/REQUIRED-CHECKS.md`.
+8. **Failed twice**: ask the owner (gate 2), then do it yourself or split it.
+9. **After each batch**: the core checks once, after the last merge of the batch, never after each merge
+   (`AGENTS.md` › Tests in three tiers); update `HANDOFF.md`, `ROADMAP.md` and the epic's checklist, on your own
+   branch and pull request labelled `coordinator`, through the same merge gate.
 10. **Finish**: before gate 3, compare `AGENTS.md` › Project rules › GitHub PR merge methods with the repository's
     Settings → General → Pull Requests. The file records the desired methods but does not change GitHub; tell the
     owner about any mismatch and never recommend a method GitHub has disabled. Open the pull request to `main` with

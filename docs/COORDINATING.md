@@ -68,9 +68,17 @@ Once merged, if the issue is still open (GitHub closes on the default branch onl
 gh issue close <n> --comment "Done in <base> (PR #<pr>)"
 ```
 
+The local run re-reads the label, its expiry and every check at that moment, so an authorization that expired or was
+removed since the gate's last run refuses the merge; `--match-head-commit` makes GitHub refuse it if the head moved
+after the run. If any command fails or prints something else, stop and tell the owner; there is no other way to
+merge. The merge method (`--merge`) keeps each delegate commit under its author, as `AGENTS.md` › Coding rules
+require; the merge commit itself is attributed to the `gh` account. Never `git merge` or `git push` to `<base>` from
+the checkout: once the owner's branch protection requires the gate, GitHub refuses such pushes anyway.
+
 ## After the batch (step 9)
 
-The core checks once, after the last merge, then `HANDOFF.md` and `ROADMAP.md` in one commit. Clean up:
+The core checks once, after the last merge, then `HANDOFF.md` and `ROADMAP.md` in one commit on a coordinator branch,
+opened as a pull request labelled `coordinator` and merged through the gate like any other. Clean up:
 `git worktree list`, then `git worktree remove .worktrees/issue-<n>` for each merged issue (never forced).
 
 ## GitHub pull-request merge methods
