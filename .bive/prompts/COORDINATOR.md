@@ -15,16 +15,21 @@ Also read `.bive/prompts/project/COORDINATOR.md` if it exists: the project's add
 5. **Start**: `git worktree add .worktrees/issue-<n> -b issue/<n>-<slug> milestone/<name>`: inside the checkout and
    git-ignored, because the guard and `external_directory` refuse anything outside the session's directory (never
    `../<repo>-<n>`). Its identity in that worktree only: `git config extensions.worktreeConfig true` (once), then
-   `git -C .worktrees/issue-<n> config --worktree user.name "delegate <provider/model>"` and `user.email`
-   `delegate@bive.invalid` the same way; yours too, with `--worktree`, in your checkout. Write `delegate` into
+   `git -C .worktrees/issue-<n> config --worktree user.name "delegate <canonical provider/model>"` and `user.email`
+   `delegate@bive.invalid` the same way; use the canonical ID from `.bive/models.json`, not its local alias. Set
+   your own identity with `--worktree` too. Write `delegate` into
    `.worktrees/issue-<n>/.bive/state/role` (the guard's sign, also for a child session that inherits your
    environment). One delegate in it: a subagent, or its own OpenCode process with `BIVE_ROLE=delegate`. Your own
    work (inviolable files) goes on a branch in your checkout, never under `.worktrees/issue-*`, which the guard
    treats as a delegate's.
    At most three at once, never two on overlapping files.
-6. **Fallback**: on a model error (unreachable, 429, quota), restart the brief on the next model of
-   `.bive/models.json`; name the model in your review. If all failed, stop and tell the owner which failed and why,
-   and to run the project's provider search if it has one (see docs/PROVIDERS.md).
+6. **Model and fallback**: before starting a delegate, resolve its canonical model from `.bive/models.json` through
+   `.bive/state/models.local.json` if that optional machine-local alias map exists; use the resolved ID to invoke
+   OpenCode, but keep the canonical ID for the Git author identity. A missing or unreadable alias file means use the
+   canonical ID and tell the owner. On a model error (unreachable, unavailable, insufficient funds, 429, quota),
+   restart the brief on the next canonical model, resolving its alias the same way; name the canonical model in your
+   review. If all failed, stop and tell the owner which failed and why, and to run the project's provider search if it
+   has one (see docs/PROVIDERS.md).
 7. **Open and review** each issue pull request: after the delegate pushes its branch and returns its report, you
    create the pull request against the integration branch, using the report as its body. For a multi-part issue,
    follow the brief's timing (create after the final part by default; create/update after each part only if specified).
