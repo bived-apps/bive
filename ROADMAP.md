@@ -44,19 +44,16 @@ delegate, report, merge) with no manual step but the three gates.
     verify a delegate session in an outside same-repository worktree cannot write into the main checkout, and confirm
     the registry opt-in report reaches the Worker (this machine could not resolve its hostname). Done when the tests
     cover the guard cases, the coordinator commands pass, and the remaining live checks are recorded.
-4. **First full flow on Bive itself** (M) — next (owner, 2026-11-09: before anything of bivedream). One `delegate` issue, one brief, one worktree, one `delegate`
-   subagent; the delegate pushes its branch and returns `report.md`, then the coordinator opens one pull request
-   against `bived`, approves it, and the supervisor merges. Bive joins its own registry (`BIVE_REGISTRY=on` once,
-   `.bive/registry-id` committed): project #1 (owner, 2026-11-08). Done when HANDOFF.md tells the session and every
-   gap became an issue. Blocked on 2026-11-08: `external_directory: deny` refuses the coordinator's `cd ../bive-15`,
-   so it cannot start a delegate in its worktree; the owner chose to wait for bivedream › *Delegates as sessions*
-   (#15, its first delegate issue, moved to that milestone). #22 lifts that block: worktrees now live in
-   `.worktrees/issue-<n>` inside the checkout, where neither the guard nor `external_directory` refuses the
-   coordinator; whether to resume before bivedream is the owner's call.
+4. **First full flow on Bive itself** (M) — done in #79 (PR #83, merge commit `7549dec`, log in #87). One
+   `delegate` issue, one brief, one worktree `.worktrees/issue-79`, a delegate on `opencode/beam-free` that pushed
+   its branch with its report; the coordinator opened and reviewed PR #83, the supervisor merged it with a merge
+   commit. The steps that still needed a hand became issues: no `delegate` agent in `opencode.jsonc` (#84), #70's
+   gate text next to #78's roles on `bived` (#85), no approval possible when coordinator and owner share one GitHub
+   account (#86). Bive is project #1 of its own registry (`.bive/registry-id` committed).
 5. **Satellites out** (S) — todo. `help/` (WebLLM page) and the registry page move to a repository `bive-registry`;
    the template keeps only the client (`.opencode/plugins/token-ratio/`). Done when every file of the template is read by a role or a
    human during a task.
-6. **First project installed** (M) — todo. The owner's first project: its `opencode.jsonc` replaced, its private paths declared, its role additions
+6. **First project installed** (M) — next (#80), once #85 is merged. The owner's first project: its `opencode.jsonc` replaced, its private paths declared, its role additions
    in `.bive/prompts/project/`, its first issue through the flow. Done when 0.1's criterion holds.
 
 ### bivedream — the limit (GitHub milestone `bivedream`)

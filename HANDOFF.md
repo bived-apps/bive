@@ -24,14 +24,18 @@ then .bive/prompts/COORDINATOR.md: it is your prompt. Integration branch: bived 
 merges bived into main). Work epic by epic in ROADMAP order; split each into issues labelled delegate (goal, read
 first, steps, done-when, tests), and stop at gate 1 to show me the split before any delegate starts. Delegates run
 on the models of .bive/models.json, one worktree each under .worktrees/issue-<n>, with BIVE_ROLE=delegate; they push
-their branches and return reports. You alone create and review each PR (diff, node --test, a complete report.md),
-approve it and comment "Ready to merge"; I merge, you never merge, close or push to bived. Never write product code
+their branches and return reports. You alone create and review each PR (diff, node --test, a complete report.md,
+gh pr checks --watch), approve it and comment "Ready to merge" (gh runs as my account, so GitHub refuses the
+approval: the comment is the hand-over, #86); I merge, you never merge, close or push to bived. A red
+bive-merge-gate / check only waits for my dated label: it is not yours to fix. Never write product code
 yourself: a delegate that failed twice is split again or raised to me. Bive's own rule applies to Bive: nothing enters
 the template that a role or a human does not read during a task.
 ```
 
-- Delegates get no prompt to paste: the coordinator hands them `.bive/state/briefs/<n>.md`, and
-  `.bive/prompts/DELEGATE.md` is their system prompt through the `delegate` agent of `opencode.jsonc`.
+- Delegates get no prompt to paste: the coordinator hands them `.bive/state/briefs/<n>.md`. `opencode.jsonc`
+  defines no `delegate` agent yet (#84: `--agent delegate` fails with "Agent not found"), so the pilot of #79 ran
+  `BIVE_ROLE=delegate opencode run --model <model> "<read .bive/prompts/DELEGATE.md and AGENTS.md, then the brief>"`
+  from `.worktrees/issue-<n>` on the default agent.
 - The supervisor is the owner with their Claude project (`.bive/prompts/SUPERVISOR.md`).
 - The supervisor's session (the owner's Claude project) is started with: "You are the supervisor of bive. Read
   AGENTS.md, HANDOFF.md, ROADMAP.md, then .bive/prompts/SUPERVISOR.md: it is your prompt. You merge pull requests
@@ -83,8 +87,27 @@ the template that a role or a human does not read during a task.
 
 ## Tasks
 
-ROADMAP.md › 0.1, in order: first full flow on Bive itself (epic 4), first project installed (epic 6), satellites out
-(epic 5); guard hardening (#16) rides along. bivedream frozen until then (owner, 2026-11-09). GitHub issues are the source of truth once the coordinator has split them.
+ROADMAP.md › 0.1: epic 4 (first full flow on Bive itself) is done (#79); next epic 6 (first project installed,
+#80), then epic 5 (satellites out); guard hardening (#16) rides along. bivedream frozen until then (owner,
+2026-11-09). GitHub issues are the source of truth once the coordinator has split them. Open work at the handoff of
+2026-11-09, in order:
+
+1. **Align `bived` (#85) and allow several coordinators (#88)**: PR #89 (label `coordinator`) does both and waits
+   for the owner's review, dated label and merge. #81 merged the #70 merge gate into `main` after #78, so `bived`
+   still carries contradictions: steps 8 and 9 twice in `COORDINATOR.md`, texts where the coordinator merges. The
+   owner settled #88 on 2026-11-09: at most two coordinators, one per `milestone/<name>` branch, started by the
+   supervisor at gate 1, which also arbitrates shared files (#72); the gate extends to `milestone/*`. Until #89 is
+   merged, trust #78's roles over any text that has the coordinator merge.
+2. **Owner decisions and settings**: #86 (one GitHub account for coordinator and owner: keep the "Ready to merge"
+   comment and a queue on it, or a second account / GitHub App); untick *Allow squash merging* in Settings → General
+   → Pull Requests (still allowed on 2026-11-09, `allow_squash_merge: true`); `bived` has no branch protection
+   (`docs/REQUIRED-CHECKS.md` says which checks to require); close #74 (superseded by #78).
+3. **#84**: a `delegate` agent in `opencode.jsonc` whose prompt is `.bive/prompts/DELEGATE.md` (inviolable file:
+   coordinator work), checked with `opencode agent list` in a fresh clone.
+4. **#80, 0.1's criterion**: the owner's first project still runs the old model (its coordinator squash-merges
+   locally, no `gh pr merge`/`gh pr close` deny, integration branch `main`). Once `bived` is aligned, one coordinator
+   PR there applies #78, the owner allows merge commits only on it, then one of its issues runs through the whole
+   flow. The owner chooses when.
 
 ## Watch out
 
