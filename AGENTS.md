@@ -25,8 +25,9 @@ Read this file, then [`HANDOFF.md`](HANDOFF.md), before changing anything. Your 
   commands may not name any path outside it (absolute, `~`, `$HOME`, `..`) apart from the system folders. A
   delegate's worktree is `.worktrees/issue-<n>`, inside the checkout and git-ignored (never `../<repo>-<n>`: the
   coordinator's session may not write there).
-- **Never**: force-push, rewrite pushed history, push to `main`, `rm -rf`, read SSH keys or the private paths listed
-  in `opencode.jsonc`.
+- **Never**: force-push, rewrite pushed history, push to `main`, `rm -rf`, kill processes by pattern (`pkill -f`,
+  `killall`); record the PID of each process you start and target that PID when stopping it. Never read SSH keys or the
+  private paths listed in `opencode.jsonc`.
 - **Keep sessions and prompts short**: continue a stuck delegate with one short message rather than a new session;
   a brief names files to read instead of pasting them. Delegate in small tasks with their own done-when and tests.
 - **Keep `HANDOFF.md` and `ROADMAP.md` true**: the coordinator updates them once per batch of merges, in the same
