@@ -5,13 +5,17 @@ Read this file, then [`HANDOFF.md`](HANDOFF.md), before changing anything. Your 
 
 ## Roles
 
-- **Supervisor**: the owner (with their Claude project). Agrees the plan and each epic's split, merges to `main`.
-  The supervisor may grant the coordinator a merge right in writing, in the coordinator's brief or an issue comment;
-  it must state the scope (one batch or named pull requests), target branch, and expiry (date or end of batch), and
-  be logged with its date in `HANDOFF.md` › Decisions. The grant authorizes only merges within those limits; it never
-  authorizes direct pushes to `main`.
-- **Coordinator**: one coordinator at a time splits, briefs, starts delegates, creates and reviews issue pull requests,
-  and merges into the integration branch. Never pushes to `main`.
+- **Supervisor**: the owner (with their Claude project), another person with theirs, or an agent the owner has
+  qualified with the test of `.bive/templates/supervisor-test.md` (logged in `HANDOFF.md` › Decisions, per model
+  and version; a model that did not pass never merges). Agrees the plan and each epic's split, answers the three
+  gates, and is **the only one who merges or closes a pull request**, on the integration branch as on `main`, with
+  GitHub's merge commit (`gh pr merge --merge`), never squash (it would make the owner the author). Never acts as
+  coordinator or delegate: whoever merges did not write (owner, 2026-11-09).
+- **Coordinator**: one at a time. Splits, briefs, starts delegates, creates and reviews issue pull requests, approves
+  them and asks the supervisor to merge. Never merges, never closes a pull request, never pushes to the integration
+  branch or `main`, never writes product code: a delegate's work that failed twice is split again or raised at gate 2,
+  not taken over (owner, 2026-11-09). Its own pull requests (the inviolable files, `HANDOFF.md`, `ROADMAP.md`) go
+  the same way: a branch, a pull request labelled `coordinator`, the supervisor's merge.
 - **Delegate**: one issue and one worktree; pushes its branch, returns its report to the coordinator, then stops.
   Never creates a pull request or starts another agent.
 
@@ -54,10 +58,10 @@ Generic, whatever the language (owner, 2026-11-08, taken from the practice of th
   `Claude`), and `git config --worktree user.email "<role>@bive.invalid"`, never the owner's identity. `--worktree`
   is required: plain `git config` writes the config every worktree shares, so one delegate's name becomes everyone's;
   it needs `git config extensions.worktreeConfig true` once per clone. The name is that of the model running now:
-  when the session's model changes, set it again before the next commit and sign comments with the new name. The
-  coordinator's local squash workflow with an explicit `--author` keeps the delegate as author; GitHub's squash button
-  may attribute the squashed commit to the PR author. Follow `docs/COORDINATING.md` for the local procedure. Anyone
-  must be able to tell from `git log` who wrote each change, human or model.
+  when the session's model changes, set it again before the next commit and sign comments with the new name. Merges
+  are merge commits made by the supervisor, so every commit keeps its author; GitHub's squash button would attribute
+  the result to the account that pressed it and is disabled in the repository's settings. Anyone must be able to tell
+  from `git log` who wrote each change, human or model.
 - **No Git hooks**: a delegate is started by the coordinator, never by a Git command.
 
 ## Inviolable prompts
@@ -97,9 +101,9 @@ Nothing enters the template that is not read by one of the three roles, or by a 
 
 - **Runtime (owner, 2026-11-08)**: Node 22 on the owner's machine; it runs the TypeScript tests directly
   (`node --test`), no bun. The plugins run inside OpenCode 2 (v2.2.5 verified), which supplies `@opencode/plugin`.
-- **GitHub PR merge methods (owner, 2026-11-09)**: `merge, squash`. This is the desired repo setting, not an
-  automatic GitHub configuration; the owner keeps it aligned in Settings → General → Pull Requests. Omit `rebase`
-  from the list and disable **Allow rebase merging** there to remove that option from PRs.
+- **GitHub PR merge methods (owner, 2026-11-09)**: `merge` only. The desired repository setting, not an automatic
+  one: the owner keeps Settings → General → Pull Requests aligned (squash and rebase off), so that a merge keeps
+  each delegate's commits under its name.
 
 ## Before committing
 

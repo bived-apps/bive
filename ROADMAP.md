@@ -10,7 +10,7 @@ here is committed with the code it describes (an item started → `doing`, finis
 - Nothing enters the template that a role or a human does not read during a task. Anything else lives in its own
   repository.
 - Bive develops itself with its own flow: coordinator and delegates on the integration branch `bived`, pull requests
-  only, the owner merges `bived` into `main`.
+  only; the supervisor (the owner) alone merges, with a merge commit, into `bived` and from `bived` into `main`.
 - **Versions tend to 1.0 and never reach it (owner, 2026-11-08)**: 1.0 is the dream, written down in *bivedream*
   below. Milestones count 0.1 … 0.9, then 0.91 … 0.99, then 0.991 …: when the last digit is 9, the next milestone
   appends a digit instead of carrying over. Each run of digits is an *order* with its own theme, and the number of
@@ -44,9 +44,9 @@ delegate, report, merge) with no manual step but the three gates.
     verify a delegate session in an outside same-repository worktree cannot write into the main checkout, and confirm
     the registry opt-in report reaches the Worker (this machine could not resolve its hostname). Done when the tests
     cover the guard cases, the coordinator commands pass, and the remaining live checks are recorded.
-4. **First full flow on Bive itself** (M) — waiting. One `delegate` issue, one brief, one worktree, one `delegate`
+4. **First full flow on Bive itself** (M) — next (owner, 2026-11-09: before anything of bivedream). One `delegate` issue, one brief, one worktree, one `delegate`
    subagent; the delegate pushes its branch and returns `report.md`, then the coordinator opens one pull request
-   against `bived`. Bive joins its own registry (`BIVE_REGISTRY=on` once,
+   against `bived`, approves it, and the supervisor merges. Bive joins its own registry (`BIVE_REGISTRY=on` once,
    `.bive/registry-id` committed): project #1 (owner, 2026-11-08). Done when HANDOFF.md tells the session and every
    gap became an issue. Blocked on 2026-11-08: `external_directory: deny` refuses the coordinator's `cd ../bive-15`,
    so it cannot start a delegate in its worktree; the owner chose to wait for bivedream › *Delegates as sessions*
@@ -60,6 +60,9 @@ delegate, report, merge) with no manual step but the three gates.
    in `.bive/prompts/project/`, its first issue through the flow. Done when 0.1's criterion holds.
 
 ### bivedream — the limit (GitHub milestone `bivedream`)
+
+**Frozen (owner, 2026-11-09)** until 0.1's criterion holds: no bivedream issue is briefed before a first project
+issue has gone through the whole flow. *Authorship kept through merges* is settled: merge commits by the supervisor.
 
 The owner's request (2026-11-08): a detailed plan for Bive that is modular, optional and light, built on what exists
 and is compatible (OpenCode 2 and other tools), that fills Bive's gaps and defects, cares for the migration of the
@@ -167,11 +170,12 @@ per epic. Nothing of it is a Bive program: prompts, rules, and existing tools wi
 
 ### Waiting
 
-- **Integration safeguards (2026-11-09)**: follow-up batch #69–#75, approved at gate 1. #71 records the required CI
-  checks in `docs/REQUIRED-CHECKS.md`; #70 is in review on `issue/70-merge-gate` (Parts A, B and C done; the owner
-  applies the dated label and configures branch protection); #72 covers conflict-aware planning around shared
-  files; #73 fresh branches after squash merges; #74 a repository-configurable merge waiter; #75 generated-doc
-  regeneration; #69 headless plugin validation. #71 is integrated; #70 is the only other issue started.
+- **Integration safeguards (2026-11-09)**: follow-up batch #69–#75, approved at gate 1; #70 (merge gate) and #74
+  (merge waiter) are superseded by the roles decision of 2026-11-09 (the coordinator never merges; `pr-merge-wait`
+  removed) and wait for the owner to close them. #71 records the required CI
+  checks in `docs/REQUIRED-CHECKS.md`; #70 covers a green-CI and dated-authorization merge gate; #72 conflict-aware
+  planning around shared files; #73 fresh branches after squash merges; #74 a repository-configurable merge waiter;
+  #75 generated-doc regeneration; #69 headless plugin validation. #71 is integrated; the other issues are unstarted.
 - Signed registry ids (a challenge, a proof of work, an HMAC token; patch kept in the owner's Claude project): only if noise
   appears on the public page.
 - Deploy the filtered Worker (`npx wrangler deploy`): the owner.

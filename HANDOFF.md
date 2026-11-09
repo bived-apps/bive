@@ -24,36 +24,41 @@ then .bive/prompts/COORDINATOR.md: it is your prompt. Integration branch: bived 
 merges bived into main). Work epic by epic in ROADMAP order; split each into issues labelled delegate (goal, read
 first, steps, done-when, tests), and stop at gate 1 to show me the split before any delegate starts. Delegates run
 on the models of .bive/models.json, one worktree each under .worktrees/issue-<n>, with BIVE_ROLE=delegate; they push
-their branches and return reports. You alone create and review each PR (diff, node --test, a complete report.md);
-merge only through the merge gate (docs/COORDINATING.md), as "#N: title". Bive's
-own rule applies to Bive: nothing enters the template that a role or a human does not read during a task.
+their branches and return reports. You alone create and review each PR (diff, node --test, a complete report.md),
+approve it and comment "Ready to merge"; I merge, you never merge, close or push to bived. Never write product code
+yourself: a delegate that failed twice is split again or raised to me. Bive's own rule applies to Bive: nothing enters
+the template that a role or a human does not read during a task.
 ```
 
 - Delegates get no prompt to paste: the coordinator hands them `.bive/state/briefs/<n>.md`, and
   `.bive/prompts/DELEGATE.md` is their system prompt through the `delegate` agent of `opencode.jsonc`.
 - The supervisor is the owner with their Claude project (`.bive/prompts/SUPERVISOR.md`).
-- In Bive's coordinator session, `/wait-for-merge` watches the PR for the current branch and submits a follow-up prompt
-  to that same session when it merges, closes, or reaches its eight-hour limit. It uses local `gh` authentication,
-  works only in `jcherfils/bive`, and requires the local OpenCode server to remain available while waiting.
+- The supervisor's session (the owner's Claude project) is started with: "You are the supervisor of bive. Read
+  AGENTS.md, HANDOFF.md, ROADMAP.md, then .bive/prompts/SUPERVISOR.md: it is your prompt. You merge pull requests
+  into bived with `gh pr merge --merge` once the coordinator has approved them and CI is green; you never brief,
+  review line by line, or write code."
 
 ## Decisions
 
-- **Supervisor operational work (owner, 2026-11-09)**: when directly asked, the supervisor may perform operational
-  work, including acting as coordinator, while explicitly using that role's rules and git identity. Only one
-  coordinator may act at a time; log the work and hand back when a coordinator is running. If a Bive PR exists for
-  the current session's branch, automatically launch `/wait-for-merge` in that same session, scoped only to that
-  session/PR. This does not authorize direct pushes to `main` or unasked product-code work.
-- **Delegated merge rights (owner, 2026-11-09)**: the supervisor may grant the coordinator a merge right only in
-  writing (the coordinator's brief or an issue comment), stating scope (one batch or named pull requests), target
-  branch, and expiry (date or end of batch). Log each grant here with its date and those three limits; identify the
-  grant in every merge made under it. It authorizes no work outside those limits and never permits direct pushes to
-  `main`. No standing grant is in effect.
+- **Roles separated (owner, 2026-11-09)**: the supervisor alone merges or closes a pull request (integration branch
+  and `main`), with a merge commit; the coordinator reviews and approves, never merges, closes, pushes to the
+  integration branch, or writes product code; the delegate writes. One role per session: whoever merges did not
+  write. This replaces the decisions of 2026-11-09 on supervisor operational work and delegated merge rights, and
+  supersedes the merge gate of #70 (a coordinator that never merges needs no merge authorization).
+- **A supervisor may be an agent (owner, 2026-11-09)**: a person with their own Claude project, or an agent that passed
+  the owner-administered test of `.bive/templates/supervisor-test.md` (every trap refused, the right pull request
+  merged); the pass is logged here per model and version. None is qualified yet.
+- **Checks watched with `gh`, not a plugin (owner, 2026-11-09)**: `gh pr checks --watch --fail-fast` for the
+  coordinator, `gh pr list --search "review:approved status:success"` for the supervisor's queue.
+- **Merge method `merge` only (owner, 2026-11-09)**: a merge commit keeps each delegate's commit under its author;
+  GitHub's squash button would attribute it to the owner. Replaces the coordinator's local squash procedure.
+- **`pr-merge-wait` removed (owner, 2026-11-09)**: an eight-hour poller is machinery; Bive is back to two plugins.
+  Whoever wants it keeps it in a repository of their own. Supersedes #74.
+- **0.1 before bivedream (owner, 2026-11-09)**: bivedream is frozen until 0.1's criterion holds (a first project
+  issue through the whole flow with no manual step but the three gates); the order of 0.1 is 4, 6, 5.
 - **No general machinery (owner, 2026-11-08)**: no delegation tools, automatic provider probe/search tool, or package.
   A one-model manual availability check is documented in `docs/PROVIDERS.md`; it is not a probe tool. Reviewed and
   confirmed by an independent read ("Bive — avis critique", Fable, 2026-11-08).
-- **Local PR wait command (owner, 2026-11-09)**: the Bive-only `/wait-for-merge` coordinator command is a narrow
-  exception to general automation. It polls the current branch's PR read-only through the local `gh` login, queues a
-  result in the invoking session, and stops after merge, closure, or eight hours; it is not a background service.
 - **Nothing in the template that a role or a human does not read during a task (owner, 2026-11-08)**: satellites
   (registry page, browser help) go to their own repository (ROADMAP 0.1 › 5).
 - **Registry opt-in (owner, 2026-11-08)**: off unless `BIVE_REGISTRY=on` or a committed `.bive/registry-id`; the
@@ -78,8 +83,8 @@ own rule applies to Bive: nothing enters the template that a role or a human doe
 
 ## Tasks
 
-ROADMAP.md › 0.1, in order: loading verified, install tested, guard hardened, first full flow on Bive itself,
-satellites out, first project installed. GitHub issues are the source of truth once the coordinator has split them.
+ROADMAP.md › 0.1, in order: first full flow on Bive itself (epic 4), first project installed (epic 6), satellites out
+(epic 5); guard hardening (#16) rides along. bivedream frozen until then (owner, 2026-11-09). GitHub issues are the source of truth once the coordinator has split them.
 
 ## Watch out
 
@@ -121,6 +126,12 @@ satellites out, first project installed. GitHub issues are the source of truth o
 
 ## Session log
 
+- **2026-11-09, Fable (review thread, supervisor's Claude project), roles separated**: after the review of the day
+  ("bonne idée, à condition de rester petite"), the owner decided: the supervisor alone merges or closes pull
+  requests, the coordinator reviews and approves and never writes product code, merge commits only (authorship
+  kept), `pr-merge-wait` removed, bivedream frozen until 0.1 is done. `AGENTS.md`, the three prompts, `opencode.jsonc`
+  (`gh pr merge` and `gh pr close` denied to agents), `docs/COORDINATING.md`, `docs/REQUIRED-CHECKS.md`, `ROADMAP.md`
+  updated; the merge-gate branch `issue/70-merge-gate` is superseded and left to the owner to close.
 - **2026-11-09, coordinator anthropic/claude-opus-5-5 — #70 Part C**: resumed `issue/70-merge-gate` from the local
   handoff. Part C rewrites the merge step of `.bive/prompts/COORDINATOR.md` and `docs/COORDINATING.md` around the
   gate (owner-applied dated label, green gate on the pinned head, the gate script re-run locally just before

@@ -90,6 +90,6 @@ commit checks on a pull request.
 - It does not prove which checks GitHub branch protection currently requires, nor that any check is marked
   "required" in repository settings. Branch protection and rulesets are configured under the repository's settings;
   compare them against the checks listed here.
-- It does not list the coordinator's merge commands, which are in `docs/COORDINATING.md` › Merge through the gate.
+- It does not say who merges: the supervisor alone, after the coordinator's approval (`AGENTS.md` › Roles).
 - Workflow job names are part of the check identity. If a workflow or job is renamed, update this document and the
   repository's branch-protection configuration together so they keep matching.

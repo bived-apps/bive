@@ -19,7 +19,10 @@
     {"action": "tool.use", "resource": "shell:git push --force*", "effect": "deny"},
     {"action": "tool.use", "resource": "shell:git push -f *", "effect": "deny"},
     {"action": "tool.use", "resource": "shell:git push * main", "effect": "deny"},
-    {"action": "tool.use", "resource": "shell:git push * HEAD:main", "effect": "deny"}
+    {"action": "tool.use", "resource": "shell:git push * HEAD:main", "effect": "deny"},
+    // Only the supervisor merges or closes a pull request (AGENTS.md › Roles); agents may review and approve.
+    {"action": "tool.use", "resource": "shell:gh pr merge *", "effect": "deny"},
+    {"action": "tool.use", "resource": "shell:gh pr close *", "effect": "deny"}
   ],
   "permissions": [
     {"action": "shell", "resource": "*", "effect": "allow"},
@@ -30,6 +33,8 @@
     {"action": "shell", "resource": "git push -f *", "effect": "deny"},
     {"action": "shell", "resource": "git push * main", "effect": "deny"},
     {"action": "shell", "resource": "git push * HEAD:main", "effect": "deny"},
+    {"action": "shell", "resource": "gh pr merge *", "effect": "deny"},
+    {"action": "shell", "resource": "gh pr close *", "effect": "deny"},
     {"action": "read", "resource": "*", "effect": "allow"},
     {"action": "read", "resource": "~/.ssh/*", "effect": "deny"},
     {"action": "read", "resource": "*/.ssh/*", "effect": "deny"},
