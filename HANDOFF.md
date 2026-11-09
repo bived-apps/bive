@@ -25,7 +25,7 @@ merges bived into main). Work epic by epic in ROADMAP order; split each into iss
 first, steps, done-when, tests), and stop at gate 1 to show me the split before any delegate starts. Delegates run
 on the models of .bive/models.json, one worktree each under .worktrees/issue-<n>, with BIVE_ROLE=delegate; they push
 their branches and return reports. You alone create and review each PR (diff, node --test, a complete report.md);
-squash-merge as "#N: title". Bive's
+merge only through the merge gate (docs/COORDINATING.md), as "#N: title". Bive's
 own rule applies to Bive: nothing enters the template that a role or a human does not read during a task.
 ```
 
@@ -106,8 +106,9 @@ satellites out, first project installed. GitHub issues are the source of truth o
 - `.bive/registry-id`, once committed, is public: the registry is a count, not a proof.
 - GitHub's PR merge buttons are configured at repository level under Settings → General → Pull Requests; the desired
   methods are recorded in `AGENTS.md` › Project rules. Bive allows `merge` and `squash`, not `rebase`. For issue PRs
-  into `bived`, the coordinator uses the local squash procedure in `docs/COORDINATING.md` and supplies `--author` to
-  preserve the delegate as commit author. "Closes #N" acts on merges into `main` only: the coordinator closes the
+  into `bived`, the coordinator merges through the gate (`docs/COORDINATING.md` › Merge through the gate) with
+  `gh pr merge --merge --match-head-commit`, which keeps each delegate commit under its author; no local squash and
+  push any more (#70). "Closes #N" acts on merges into `main` only: the coordinator closes the
   issue when it merges into `bived`.
 - The guard removes shell here-document bodies before looking for redirections and outside paths. It allows a quoted
   heredoc body containing `> ../x` while still refusing a live redirect; heredoc-like text inside quotes/comments does
@@ -119,6 +120,15 @@ satellites out, first project installed. GitHub issues are the source of truth o
   those in GitHub's settings.
 
 ## Session log
+
+- **2026-11-09, coordinator anthropic/claude-opus-5-5 — #70 Part C**: resumed `issue/70-merge-gate` from the local
+  handoff. Part C rewrites the merge step of `.bive/prompts/COORDINATOR.md` and `docs/COORDINATING.md` around the
+  gate (owner-applied dated label, green gate on the pinned head, the gate script re-run locally just before
+  `gh pr merge --merge --match-head-commit`; no local merge or push) and documents `bive-merge-gate / check` and the
+  branch protection the owner must configure in `docs/REQUIRED-CHECKS.md`. `git diff --check` is clean and
+  `node --test tests/*.test.ts` passes 53/53. Left: `AGENTS.md` › Coding rules still describes the local squash
+  (inviolable, coordinator follow-up); the gate covers `bived` only. The owner applies the dated label and configures
+  branch protection; the coordinator does neither.
 
 - **2026-11-09, coordinator openai/gpt-6-luna — handoff #70**: branch `issue/70-merge-gate` is clean at
   `38756ff` (Part B), based on `bived` at `f9abeb9`. Part A (`ebedba6`) adds the pure dated-label/check validator;
