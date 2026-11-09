@@ -141,6 +141,18 @@ ROADMAP.md › 0.1, in order: first full flow on Bive itself (epic 4), first pro
   and `AGENTS.md`, the coordinator and supervisor prompts, `docs/COORDINATING.md`, `docs/REQUIRED-CHECKS.md` and this
   file now agree: the coordinator approves, the owner labels, the supervisor merges once the gate is green. Gate
   script and tests accept `milestone/<name>`. Not yet run: two coordinators on two milestones at once.
+- **2026-11-09, coordinator anthropic/claude-opus-5-5 (owner's Claude project) — pilot #79, first full flow**: brief
+  `.bive/state/briefs/79.md` written on the owner's Mac; worktree `.worktrees/issue-79` from `bived`, branch
+  `issue/79-readme-supervisor-test`, identity `delegate opencode/beam-free` with `--worktree`, role file set; delegate
+  run with `BIVE_ROLE=delegate opencode run` (OpenCode 2.2.5) on `opencode/beam-free`, no model error. It committed
+  and pushed `84c7458` (one line of README, report in the commit body); the coordinator opened PR #83 from the report,
+  filled the Log SHA, re-ran `node --test tests/*.test.ts` (50 pass) and read CI (`bive-tests`, `bive-inviolable`
+  green; `bive-merge-gate` red, waiting for the owner's dated label), then commented `Ready to merge`; the supervisor
+  merged it with a merge commit (`7549dec`) and the coordinator closed #79. Manual steps still needed, each an issue:
+  `--agent delegate` fails because `opencode.jsonc` defines no such agent, so the delegate ran on the default agent
+  told to read DELEGATE.md (#84); `bived` carries #70's merge-gate text next to #78's roles (steps 8 and 9 twice in
+  COORDINATOR.md) (#85); the coordinator cannot approve a PR opened from the owner's own GitHub account, so the
+  approval was a comment (#86). The repository still allowed squash merges at the time (owner's setting).
 
 - **2026-11-09, Fable (review thread, supervisor's Claude project), roles separated**: after the review of the day
   ("bonne idée, à condition de rester petite"), the owner decided: the supervisor alone merges or closes pull
