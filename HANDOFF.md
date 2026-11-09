@@ -35,6 +35,11 @@ own rule applies to Bive: nothing enters the template that a role or a human doe
 
 ## Decisions
 
+- **Delegated merge rights (owner, 2026-11-09)**: the supervisor may grant the coordinator a merge right only in
+  writing (the coordinator's brief or an issue comment), stating scope (one batch or named pull requests), target
+  branch, and expiry (date or end of batch). Log each grant here with its date and those three limits; identify the
+  grant in every merge made under it. It authorizes no work outside those limits and never permits direct pushes to
+  `main`. No standing grant is in effect.
 - **No machinery (owner, 2026-11-08)**: no delegation tools, automatic provider probe/search tool, or package; a
   template and two plugins. A one-model manual availability check is documented in `docs/PROVIDERS.md`; it is not a
   probe tool. Reviewed and confirmed by an independent read ("Bive — avis critique", Fable, 2026-11-08).

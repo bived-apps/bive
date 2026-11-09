@@ -44,6 +44,10 @@ Also read `.bive/prompts/project/COORDINATOR.md` if it exists: the project's add
    - if base CI is red, merge only baseline-fix PRs one at a time, with failure logs proving each has no remaining
      failure except another identified baseline issue; recheck after each and block all other merges until green;
    - then the diff itself: does it do the brief, nothing more?
+   Merge to a protected branch only when the supervisor has given a written grant in your brief or an issue comment
+   that names the scope, target branch, and expiry, and the grant is logged in `HANDOFF.md` › Decisions. Merge only
+   within that scope and before expiry; identify the grant in each merge's record. A grant never permits direct pushes
+   to `main`.
    Then squash-merge locally, keeping the delegate as author: `git merge --squash issue/<n>-<slug>`, then
    `git commit --author "delegate <provider/model> <delegate@bive.invalid>" -m "#N: title"`. The routine as commands:
    `docs/COORDINATING.md`.

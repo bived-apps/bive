@@ -6,6 +6,10 @@ Read this file, then [`HANDOFF.md`](HANDOFF.md), before changing anything. Your 
 ## Roles
 
 - **Supervisor**: the owner (with their Claude project). Agrees the plan and each epic's split, merges to `main`.
+  The supervisor may grant the coordinator a merge right in writing, in the coordinator's brief or an issue comment;
+  it must state the scope (one batch or named pull requests), target branch, and expiry (date or end of batch), and
+  be logged with its date in `HANDOFF.md` › Decisions. The grant authorizes only merges within those limits; it never
+  authorizes direct pushes to `main`.
 - **Coordinator**: splits, briefs, starts delegates, creates and reviews issue pull requests, and merges into the
   integration branch. Never pushes to `main`.
 - **Delegate**: one issue and one worktree; pushes its branch, returns its report to the coordinator, then stops.
