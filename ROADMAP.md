@@ -39,9 +39,11 @@ delegate, report, merge) with no manual step but the three gates.
    diff, no questions, answers assumed, and on the empty repository the agent created a private GitHub repository to
    open its pull request. README › Install now runs in two turns (read only and ask, then write on `install/bive`;
    never create a repository or a remote), and both cases passed with it.
-3. **Guard hardened** (S) — todo (#16; its test cases are #15's). `external_directory: deny` against a worktree of
-   the same repository; the `patch` tool and here-docs; the coordinator's own commands checked for false positives.
-   Done when `node --test` covers them and the commands of `.bive/prompts/COORDINATOR.md` all pass.
+ 3. **Guard hardened** (S) — in progress (#15 tests and #16 heredoc fix complete). OpenCode 2.2.5 allowed an outside
+    `ls` and `git worktree add` from the coordinator's checkout; the disposable worktree was removed. Still needed:
+    verify a delegate session in an outside same-repository worktree cannot write into the main checkout, and confirm
+    the registry opt-in report reaches the Worker (this machine could not resolve its hostname). Done when the tests
+    cover the guard cases, the coordinator commands pass, and the remaining live checks are recorded.
 4. **First full flow on Bive itself** (M) — waiting. One `delegate` issue, one brief, one worktree, one `delegate`
    subagent; the delegate pushes its branch and returns `report.md`, then the coordinator opens one pull request
    against `bived`. Bive joins its own registry (`BIVE_REGISTRY=on` once,
@@ -165,6 +167,10 @@ per epic. Nothing of it is a Bive program: prompts, rules, and existing tools wi
 
 ### Waiting
 
+- **Integration safeguards (2026-11-09)**: follow-up batch #69–#75, approved at gate 1. #71 records the required CI
+  checks in `docs/REQUIRED-CHECKS.md`; #70 covers a green-CI and dated-authorization merge gate; #72 conflict-aware
+  planning around shared files; #73 fresh branches after squash merges; #74 a repository-configurable merge waiter;
+  #75 generated-doc regeneration; #69 headless plugin validation. #71 is integrated; the other issues are unstarted.
 - Signed registry ids (a challenge, a proof of work, an HMAC token; patch kept in the owner's Claude project): only if noise
   appears on the public page.
 - Deploy the filtered Worker (`npx wrangler deploy`): the owner.

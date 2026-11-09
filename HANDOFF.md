@@ -91,12 +91,11 @@ satellites out, first project installed. GitHub issues are the source of truth o
   (cached, dropped when the session switches model or agent). If OpenCode renames an event, tokens stop silently:
   after an OpenCode upgrade, check that `.bive/state/tokens.jsonl` still grows.
 - The guard's shell check is a filter, not a sandbox: it refuses redirections and, for a delegate, any path outside
-  the worktree but the system prefixes (`/usr`, `/tmp`, …). `external_directory: deny` in `opencode.jsonc` is the
-  belt; whether it treats a worktree of the same repository as outside is unverified. Seen 2026-11-08 from the
-  coordinator's session: it refuses `cd ../bive-15` and `cd <absolute path>` and a tool's `workdir` outside, but lets
-  `git worktree add ../bive-15` and `ls ../bive-none` through. So the coordinator can create a worktree but not start
-  a delegate in it (ROADMAP 0.1 › 4). The guard also refuses a non-delegate's `workdir` outside its checkout. Hence
-  the layout `.worktrees/issue-<n>` inside the checkout (#22), which a project ran a whole batch with.
+  the worktree but the system prefixes (`/usr`, `/tmp`, …). In OpenCode 2.2.5, `external_directory: deny` did not stop
+  `ls ../bive-external-directory-probe-does-not-exist` or `git worktree add --detach ../bive-external-directory-probe
+  677eb38`; both ran from the coordinator's checkout. The temporary worktree was removed. Still unverified: a delegate
+  session rooted in such an external worktree attempting to write into the main checkout; the nested
+  `.worktrees/issue-<n>` layout remains the supported workflow.
 - The guard knows a delegate by `BIVE_ROLE=delegate`, a session directory `.worktrees/issue-<n>`, or the role file
   `.bive/state/role` (#36). A delegate run as a child session or on the shared OpenCode server carries no variable
   (#21); in the coordinator's session, writes and shell `workdir` under `.worktrees/issue-<n>/` are then checked as
@@ -110,8 +109,9 @@ satellites out, first project installed. GitHub issues are the source of truth o
   into `bived`, the coordinator uses the local squash procedure in `docs/COORDINATING.md` and supplies `--author` to
   preserve the delegate as commit author. "Closes #N" acts on merges into `main` only: the coordinator closes the
   issue when it merges into `bived`.
-- The guard's shell check scans the whole command text: a heredoc or a message that quotes a redirect such as
-  `echo x > ../f` is refused too. Put long bodies in a file under `.bive/state/` and pass `--body-file`.
+- The guard removes shell here-document bodies before looking for redirections and outside paths. It allows a quoted
+  heredoc body containing `> ../x` while still refusing a live redirect; heredoc-like text inside quotes/comments does
+  not hide a later redirect. This remains a conservative command-text filter, not a shell parser.
 - A prompt that says "show me" or "ask me" without "stop and wait" is run through by a model, all the more under
   `opencode run`: it assumes the answers. Any prompt with a human step must end its turn there, and must never let
   the agent create a repository or a remote (README › Install, #17).
@@ -119,6 +119,21 @@ satellites out, first project installed. GitHub issues are the source of truth o
   those in GitHub's settings.
 
 ## Session log
+
+- **2026-11-09, coordinator openai/gpt-6-luna**: after gate-1 approval, created the seven follow-up issues #69–#75
+  from anonymized field observations. Delegate issue #71 documents the actual CI checks and explicitly distinguishes
+  them from GitHub branch-protection settings; PR #76 passed both CI checks and was integrated into `bived`. The
+  corrected trigger wording lists GitHub's default `pull_request` activity types.
+
+- **2026-11-09, coordinator openai/gpt-6-luna**: #16 heredoc fix passes `tests/worktree-guard.test.ts` and the full
+  core suite (37 tests). OpenCode 2.2.5 allowed an outside `ls` and a disposable outside `git worktree add`; the latter
+  worktree was removed. `BIVE_REGISTRY=on opencode run` created `.bive/registry-id`, but DNS resolution for
+  `bive-registry.jcherfils.workers.dev` failed from this machine, so delivery was not verified. A live delegate write
+  from an external same-repository worktree into the main checkout remains unverified.
+
+- **2026-11-09, coordinator openai/gpt-6-luna**: resumed #15 using the in-repository `.worktrees/issue-15` layout;
+  PR #67 adds the requested patch, heredoc and coordinator-command tests. Its checks passed; the quoted-heredoc case
+  remains an executable todo for #16. Integrated into `bived`; the core suite passed (35 pass, 1 todo, 0 fail).
 
 - **2026-11-09, coordinator openai/gpt-6-luna**: PR #62 merged into `bived` at `5094c76`; the queued prompt to the
   running session was later visible as a user message and answered, completing #32's API verification. Closed stale
