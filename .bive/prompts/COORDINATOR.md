@@ -33,6 +33,8 @@ Also read `.bive/prompts/project/COORDINATOR.md` if it exists: the project's add
    - the base is the integration branch; no inviolable file in the diff (`AGENTS.md` › Inviolable prompts);
    - every commit is authored `delegate <provider/model> <delegate@bive.invalid>`;
    - the brief's checks pass (re-run them only if the head changed since the report);
+   - if a function was replaced, a test preserves the old behavior for its old inputs (including guards and edge
+     cases), unless the brief explicitly changes it;
    - then the diff itself: does it do the brief, nothing more?
    Then squash-merge locally, keeping the delegate as author: `git merge --squash issue/<n>-<slug>`, then
    `git commit --author "delegate <provider/model> <delegate@bive.invalid>" -m "#N: title"`. The routine as commands:
