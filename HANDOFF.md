@@ -38,6 +38,11 @@ own rule applies to Bive: nothing enters the template that a role or a human doe
 
 ## Decisions
 
+- **Supervisor operational work (owner, 2026-11-09)**: when directly asked, the supervisor may perform operational
+  work, including acting as coordinator, while explicitly using that role's rules and git identity. Only one
+  coordinator may act at a time; log the work and hand back when a coordinator is running. If a Bive PR exists for
+  the current session's branch, automatically launch `/wait-for-merge` in that same session, scoped only to that
+  session/PR. This does not authorize direct pushes to `main` or unasked product-code work.
 - **Delegated merge rights (owner, 2026-11-09)**: the supervisor may grant the coordinator a merge right only in
   writing (the coordinator's brief or an issue comment), stating scope (one batch or named pull requests), target
   branch, and expiry (date or end of batch). Log each grant here with its date and those three limits; identify the
