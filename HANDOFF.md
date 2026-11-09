@@ -32,6 +32,9 @@ own rule applies to Bive: nothing enters the template that a role or a human doe
 - Delegates get no prompt to paste: the coordinator hands them `.bive/state/briefs/<n>.md`, and
   `.bive/prompts/DELEGATE.md` is their system prompt through the `delegate` agent of `opencode.jsonc`.
 - The supervisor is the owner with their Claude project (`.bive/prompts/SUPERVISOR.md`).
+- In Bive's coordinator session, `/wait-for-merge` watches the PR for the current branch and submits a follow-up prompt
+  to that same session when it merges, closes, or reaches its eight-hour limit. It uses local `gh` authentication,
+  works only in `jcherfils/bive`, and requires the local OpenCode server to remain available while waiting.
 
 ## Decisions
 
@@ -40,9 +43,12 @@ own rule applies to Bive: nothing enters the template that a role or a human doe
   branch, and expiry (date or end of batch). Log each grant here with its date and those three limits; identify the
   grant in every merge made under it. It authorizes no work outside those limits and never permits direct pushes to
   `main`. No standing grant is in effect.
-- **No machinery (owner, 2026-11-08)**: no delegation tools, automatic provider probe/search tool, or package; a
-  template and two plugins. A one-model manual availability check is documented in `docs/PROVIDERS.md`; it is not a
-  probe tool. Reviewed and confirmed by an independent read ("Bive — avis critique", Fable, 2026-11-08).
+- **No general machinery (owner, 2026-11-08)**: no delegation tools, automatic provider probe/search tool, or package.
+  A one-model manual availability check is documented in `docs/PROVIDERS.md`; it is not a probe tool. Reviewed and
+  confirmed by an independent read ("Bive — avis critique", Fable, 2026-11-08).
+- **Local PR wait command (owner, 2026-11-09)**: the Bive-only `/wait-for-merge` coordinator command is a narrow
+  exception to general automation. It polls the current branch's PR read-only through the local `gh` login, queues a
+  result in the invoking session, and stops after merge, closure, or eight hours; it is not a background service.
 - **Nothing in the template that a role or a human does not read during a task (owner, 2026-11-08)**: satellites
   (registry page, browser help) go to their own repository (ROADMAP 0.1 › 5).
 - **Registry opt-in (owner, 2026-11-08)**: off unless `BIVE_REGISTRY=on` or a committed `.bive/registry-id`; the
