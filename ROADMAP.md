@@ -79,7 +79,12 @@ per epic. Nothing of it is a Bive program: prompts, rules, and existing tools wi
   session's agent (`Session.Info.agent`): an API-created session carries no environment variable. Adds the `delegate`
   and `coordinator` agents to `opencode.jsonc` (HANDOFF mentions them; the file has none) with their permissions,
   including `external_directory` for the coordinator's worktrees (today the global `deny` stops the coordinator at
-  `cd ..`). Decision for the owner: move the role prompts into `.opencode/agents/<role>.md`, where OpenCode reads the
+  `cd ..`). Busy-session API check (2026-11-09, OpenCode 2): `POST /api/session/{sessionID}/prompt` with
+  `delivery: "queue"` accepted a prompt to a session reported `running` and returned a durable queued input
+  (`type: "user"`, message ID and session ID). This confirms API admission/queueing, not that a separate follow-up
+  agent turn completed; do not replace the PID-wait fallback with this behavior until the latter is verified.
+  Decision for the owner: move the role prompts into
+  `.opencode/agents/<role>.md`, where OpenCode reads the
   permissions from the front matter and the body as the system prompt (recommended; the inviolable list follows).
   Done when a delegate issue runs end to end with no OpenCode process started by hand and no `cd` by the coordinator.
 - **Guard shrinks onto OpenCode's permissions** (S). OpenCode's permission engine already infers directories from
