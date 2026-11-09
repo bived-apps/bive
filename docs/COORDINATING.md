@@ -65,6 +65,13 @@ gh issue close <n> --comment "Done in <base> $(git rev-parse --short HEAD)"
 The core checks once, after the last merge, then `HANDOFF.md` and `ROADMAP.md` in one commit. Clean up:
 `git worktree list`, then `git worktree remove .worktrees/issue-<n>` for each merged issue (never forced).
 
+## GitHub pull-request merge methods
+
+These options are controlled by the repository, not by `AGENTS.md`. The project records its desired list in
+`AGENTS.md` › Project rules; the owner must match it in GitHub **Settings → General → Pull Requests**. To remove the
+**Rebase and merge** button, omit `rebase` from the project list and turn off **Allow rebase merging** in GitHub.
+This is separate from the coordinator's local `git merge --squash` procedure above.
+
 ## Scripting it
 
 A project may script this routine in its own repository (start, review, status, clean): one Python / ImGui project

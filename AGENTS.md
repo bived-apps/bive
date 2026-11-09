@@ -47,9 +47,10 @@ Generic, whatever the language (owner, 2026-11-08, taken from the practice of th
   `Claude`), and `git config --worktree user.email "<role>@bive.invalid"`, never the owner's identity. `--worktree`
   is required: plain `git config` writes the config every worktree shares, so one delegate's name becomes everyone's;
   it needs `git config extensions.worktreeConfig true` once per clone. The name is that of the model running now:
-  when the session's model changes, set it again before the next commit and sign comments with the new name. A squash
-  merge keeps the delegate as author; the coordinator is the committer. Anyone must be able to tell from `git log` who
-  wrote each change, human or model.
+  when the session's model changes, set it again before the next commit and sign comments with the new name. The
+  coordinator's local squash workflow with an explicit `--author` keeps the delegate as author; GitHub's squash button
+  may attribute the squashed commit to the PR author. Follow `docs/COORDINATING.md` for the local procedure. Anyone
+  must be able to tell from `git log` who wrote each change, human or model.
 - **No Git hooks**: a delegate is started by the coordinator, never by a Git command.
 
 ## Inviolable prompts
@@ -84,10 +85,14 @@ Nothing enters the template that is not read by one of the three roles, or by a 
 - Data: where the program writes (caches, settings, user data) and what never leaves the machine.
 - Licences: where a third-party model, asset or dataset is registered (file + table), checked by which test.
 - Runtime and versions the owner's machine imposes.
+- GitHub PR merge methods (for example `merge, squash`); keep this list aligned with the repository's GitHub settings.
 - Anything the owner decided, dated: "**Topic (owner, YYYY-MM-DD)**: …". -->
 
 - **Runtime (owner, 2026-11-08)**: Node 22 on the owner's machine; it runs the TypeScript tests directly
   (`node --test`), no bun. The plugins run inside OpenCode 2 (v2.2.5 verified), which supplies `@opencode/plugin`.
+- **GitHub PR merge methods (owner, 2026-11-09)**: `merge, squash`. This is the desired repo setting, not an
+  automatic GitHub configuration; the owner keeps it aligned in Settings → General → Pull Requests. Omit `rebase`
+  from the list and disable **Allow rebase merging** there to remove that option from PRs.
 
 ## Before committing
 
