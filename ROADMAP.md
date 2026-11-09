@@ -81,8 +81,9 @@ per epic. Nothing of it is a Bive program: prompts, rules, and existing tools wi
   including `external_directory` for the coordinator's worktrees (today the global `deny` stops the coordinator at
   `cd ..`). Busy-session API check (2026-11-09, OpenCode 2): `POST /api/session/{sessionID}/prompt` with
   `delivery: "queue"` accepted a prompt to a session reported `running` and returned a durable queued input
-  (`type: "user"`, message ID and session ID). This confirms API admission/queueing, not that a separate follow-up
-  agent turn completed; do not replace the PID-wait fallback with this behavior until the latter is verified.
+  (`type: "user"`, message ID and session ID). The queued input later appeared in the same session as a user message
+  and received the requested assistant response, verifying both admission and subsequent processing. Use this API
+  path for busy API-created delegates; the PID-wait fallback remains for process-based delegates.
   Decision for the owner: move the role prompts into
   `.opencode/agents/<role>.md`, where OpenCode reads the
   permissions from the front matter and the body as the system prompt (recommended; the inviolable list follows).

@@ -2,6 +2,7 @@
 // POST /v1/session {v: 1, project: uuid, human, agent, violations, llm: [{agent, model, tokens, input, ms, replies}], loc} -> 204 (a registered project only: docs/REGISTRY.md). GET /v1/stats -> totals. GET / -> the page.
 // The client's IP is never read or stored; the day is the server's, so no client clock is kept either.
 import page from "./index.html";
+import { readReportBody, ReportBodyTooLargeError } from "./report-body.js";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 const MAX_TOKENS = 10_000_000;            // per report
@@ -23,8 +24,12 @@ const json = (data, status = 200, extra = {}) => new Response(JSON.stringify(dat
 const int = (x, max) => Number.isInteger(x) && x >= 0 && x <= max;
 
 async function report(request, env) {
-  const text = await request.text();
-  if (text.length > 8192) return json({ error: "too large" }, 413);
+  let text;
+  try { text = await readReportBody(request); }
+  catch (err) {
+    if (err instanceof ReportBodyTooLargeError) return json({ error: "too large" }, 413);
+    throw err;
+  }
   let b;
   try { b = JSON.parse(text); } catch { return json({ error: "not JSON" }, 400); }
   if (b?.v !== 1 || !UUID.test(b.project ?? "") || !int(b.human, MAX_TOKENS) || !int(b.agent, MAX_TOKENS)
