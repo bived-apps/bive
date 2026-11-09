@@ -24,7 +24,17 @@ A project whose checks need a local environment links it into the worktree (for 
 
 The delegate pushes its branch and returns the filled report; it never opens a pull request. The coordinator creates
 the PR from the pushed branch and uses the report as the PR body. For a multi-part issue, open/update it according to
-the brief's timing. For example, save the report in `.bive/state/briefs/<n>-report.md`, then run:
+the brief's timing. If the delegate's final response is not accessible from the coordinator's machine, recover the
+report from the final pushed commit body (do not expect the delegate's ignored `.bive/state/` file to travel):
+
+```bash
+git fetch origin issue/<n>-<slug>
+git show -s --format=%H FETCH_HEAD
+git log -1 --format=%b FETCH_HEAD
+```
+
+The report's Log section should name the commit SHA; the coordinator fills it in if the report was carried in that
+commit body. Save the report on the coordinator's machine in `.bive/state/briefs/<n>-report.md`, then run:
 
 ```bash
 gh pr create --base <base> --head issue/<n>-<slug> --title "#<n>: <title>" --body-file .bive/state/briefs/<n>-report.md

@@ -42,6 +42,8 @@ Branch `issue/<N>-<slug>` from `<integration branch>` · worktree `.worktrees/is
 
 Follow the pull request timing above. After your assigned part, push the issue branch and return the filled
 `.bive/templates/report.md` to the coordinator in your final response. The coordinator creates or updates the PR;
-its body starts with `Closes #<N>` when complete, or `Part of #<N>` and what remains.
+its body starts with `Closes #<N>` when complete, or `Part of #<N>` and what remains. If the coordinator must read
+the report from another machine/session, include it in the body of the final pushed commit; the coordinator fills in
+that commit's SHA. Do not rely on an ignored `.bive/state/` file for cross-machine transfer.
 
 **Issue**: <!-- pasted -->
