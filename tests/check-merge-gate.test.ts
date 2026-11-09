@@ -62,6 +62,14 @@ test("rejects missing authorization before querying checks", async () => {
   assert.equal(checkReads, 0)
 })
 
+test("runs for a milestone branch and refuses a base that changed to another branch", async () => {
+  const milestoneEvent = { pull_request: { ...event.pull_request, base: { ref: "milestone/0.2" } } }
+  const milestonePR = { ...pr, baseRefName: "milestone/0.2" }
+  assert.equal((await run({ event: milestoneEvent, readPullRequest: async () => milestonePR })).ok, true)
+  await assert.rejects(run({ event: milestoneEvent }), /base changed/)
+  await assert.rejects(run({ event: { pull_request: { ...event.pull_request, base: { ref: "main" } } } }), /only runs/)
+})
+
 test("rejects failed checks and a changed PR head", async () => {
   await assert.rejects(run({ readChecks: async () => [{ ...green[0], bucket: "fail" }, green[1]] }), /bive-tests \/ tests is fail/)
   await assert.rejects(run({ readPullRequest: async () => ({ ...pr, headRefOid: "head-2" }) }), /head changed/)

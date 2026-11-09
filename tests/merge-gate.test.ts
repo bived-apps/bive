@@ -31,8 +31,11 @@ test("rejects missing, malformed, duplicate, expired, or invalid-date labels", (
   assert.equal(evaluate({ labels: ["bive-merge-authorized-until-2026-11-08"] }).ok, false)
 })
 
-test("authorization is scoped to the bived target branch", () => {
-  assert.equal(evaluate({ baseRef: "main" }).ok, false)
+test("authorization is scoped to bived and milestone/<name> branches", () => {
+  assert.equal(evaluate({ baseRef: "milestone/0.2" }).ok, true)
+  for (const baseRef of ["main", "milestone/", "milestone/a/b", "milestones/x", "issue/70-merge-gate", undefined]) {
+    assert.equal(evaluate({ baseRef }).ok, false)
+  }
 })
 
 test("requires exactly one passing instance of each required check", () => {

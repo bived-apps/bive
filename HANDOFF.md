@@ -35,21 +35,31 @@ the template that a role or a human does not read during a task.
 - The supervisor is the owner with their Claude project (`.bive/prompts/SUPERVISOR.md`).
 - The supervisor's session (the owner's Claude project) is started with: "You are the supervisor of bive. Read
   AGENTS.md, HANDOFF.md, ROADMAP.md, then .bive/prompts/SUPERVISOR.md: it is your prompt. You merge pull requests
-  into bived with `gh pr merge --merge` once the coordinator has approved them and CI is green; you never brief,
-  review line by line, or write code."
+  into bived with `gh pr merge --merge --match-head-commit <sha>` once the coordinator has approved them, I have
+  applied the dated label and `bive-merge-gate / check` is green; you start the coordinators (at most two, one per
+  milestone) and arbitrate shared files; you never brief, review line by line, or write code."
 
 ## Decisions
 
 - **Roles separated (owner, 2026-11-09)**: the supervisor alone merges or closes a pull request (integration branch
   and `main`), with a merge commit; the coordinator reviews and approves, never merges, closes, pushes to the
   integration branch, or writes product code; the delegate writes. One role per session: whoever merges did not
-  write. This replaces the decisions of 2026-11-09 on supervisor operational work and delegated merge rights, and
-  supersedes the merge gate of #70 (a coordinator that never merges needs no merge authorization).
+  write. This replaces the decisions of 2026-11-09 on supervisor operational work and delegated merge rights.
+- **Merge gate kept as a check (owner, 2026-11-09)**: #70's `bive-merge-gate / check` stays, on the supervisor's
+  merge: the owner applies `bive-merge-authorized-until-YYYY-MM-DD` to one approved pull request, and the supervisor
+  merges it once the gate is green, pinned to its head (`--match-head-commit`). Red before the label means waiting
+  for the owner. Branch protection requiring the gate and `bive-tests / tests` is the owner's, in GitHub (#85).
+- **Several coordinators (owner, 2026-11-09)**: one coordinator per milestone branch, at most two at once, each in its
+  own clone, started by the supervisor with the launch prompt below (milestone, branch and model filled in) and logged
+  here. Each approves only pull requests based on its branch; the gate covers `bived` and `milestone/<name>`. At gate 1
+  each milestone lists its files and the supervisor arbitrates overlaps (one writer or an order, see #72); at most one
+  open `coordinator` pull request on the inviolable files at a time (#88).
 - **A supervisor may be an agent (owner, 2026-11-09)**: a person with their own Claude project, or an agent that passed
   the owner-administered test of `.bive/templates/supervisor-test.md` (every trap refused, the right pull request
   merged); the pass is logged here per model and version. None is qualified yet.
-- **Checks watched with `gh`, not a plugin (owner, 2026-11-09)**: `gh pr checks --watch --fail-fast` for the
-  coordinator, `gh pr list --search "review:approved status:success"` for the supervisor's queue.
+- **Checks watched with `gh`, not a plugin (owner, 2026-11-09)**: `gh pr checks --watch` for the coordinator (not
+  `--fail-fast`: the gate is red until the owner's label), `gh pr list --search "review:approved"` for the
+  supervisor's queue (not `status:success`, for the same reason).
 - **Merge method `merge` only (owner, 2026-11-09)**: a merge commit keeps each delegate's commit under its author;
   GitHub's squash button would attribute it to the owner. Replaces the coordinator's local squash procedure.
 - **`pr-merge-wait` removed (owner, 2026-11-09)**: an eight-hour poller is machinery; Bive is back to two plugins.
@@ -110,11 +120,10 @@ ROADMAP.md › 0.1, in order: first full flow on Bive itself (epic 4), first pro
   `false`, the tests fail with `ERR_UNKNOWN_FILE_EXTENSION`): use an official Node 22+ build.
 - `.bive/registry-id`, once committed, is public: the registry is a count, not a proof.
 - GitHub's PR merge buttons are configured at repository level under Settings → General → Pull Requests; the desired
-  methods are recorded in `AGENTS.md` › Project rules. Bive allows `merge` and `squash`, not `rebase`. For issue PRs
-  into `bived`, the coordinator merges through the gate (`docs/COORDINATING.md` › Merge through the gate) with
-  `gh pr merge --merge --match-head-commit`, which keeps each delegate commit under its author; no local squash and
-  push any more (#70). "Closes #N" acts on merges into `main` only: the coordinator closes the
-  issue when it merges into `bived`.
+  methods are recorded in `AGENTS.md` › Project rules: `merge` only. The supervisor merges with
+  `gh pr merge --merge --match-head-commit` once the owner's dated label has turned the gate green, which keeps each
+  delegate commit under its author. "Closes #N" acts on merges into `main` only: the coordinator closes the issue
+  after the supervisor merges into `bived`.
 - The guard removes shell here-document bodies before looking for redirections and outside paths. It allows a quoted
   heredoc body containing `> ../x` while still refusing a live redirect; heredoc-like text inside quotes/comments does
   not hide a later redirect. This remains a conservative command-text filter, not a shell parser.
@@ -125,6 +134,13 @@ ROADMAP.md › 0.1, in order: first full flow on Bive itself (epic 4), first pro
   those in GitHub's settings.
 
 ## Session log
+
+- **2026-11-09, coordinator anthropic/claude-opus-5-5 — #88 and #85**: the owner settled #88 (two coordinators at
+  most, started by the supervisor, who arbitrates shared files; the gate extended to `milestone/<name>`). PR #81 had
+  merged #70 after #78 and left COORDINATOR.md with steps 8 and 9 twice and a coordinator-merges paragraph; removed,
+  and `AGENTS.md`, the coordinator and supervisor prompts, `docs/COORDINATING.md`, `docs/REQUIRED-CHECKS.md` and this
+  file now agree: the coordinator approves, the owner labels, the supervisor merges once the gate is green. Gate
+  script and tests accept `milestone/<name>`. Not yet run: two coordinators on two milestones at once.
 
 - **2026-11-09, Fable (review thread, supervisor's Claude project), roles separated**: after the review of the day
   ("bonne idée, à condition de rester petite"), the owner decided: the supervisor alone merges or closes pull

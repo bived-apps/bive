@@ -2,7 +2,7 @@ name: bive-merge-gate
 
 on:
   pull_request_target:
-    branches: [bived]
+    branches: [bived, "milestone/**"]
     types: [opened, synchronize, reopened, labeled, unlabeled]
 
 permissions:
