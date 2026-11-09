@@ -40,6 +40,8 @@ Generic, whatever the language (owner, 2026-11-08, taken from the practice of th
 - **Tests in three tiers**: *fast* (the delegate, before handing its branch and report to the coordinator: lint and
   the tests of the files touched),
   *core* (the coordinator, once per batch of merges, never after each merge), *full* (before a release).
+  CI is separate: run automated checks on pull requests and pushes to the default and integration branches, so a red
+  base is visible quickly; this does not replace the coordinator's once-per-batch local core run.
 - **Docs change in the same commit** as the code they describe (README, reference pages, HANDOFF, ROADMAP).
 - **Commits are authored by the agent that made them, under an explicit name** (owner, 2026-11-08): in its working
   copy an agent sets `git config --worktree user.name "<role> <provider/model>"`, the model's name **and version**,
