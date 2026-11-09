@@ -120,6 +120,11 @@ satellites out, first project installed. GitHub issues are the source of truth o
 
 ## Session log
 
+- **2026-11-09, coordinator openai/gpt-6-luna**: after gate-1 approval, created the seven follow-up issues #69–#75
+  from anonymized field observations. Delegate issue #71 documents the actual CI checks and explicitly distinguishes
+  them from GitHub branch-protection settings; PR #76 passed both CI checks and was integrated into `bived`. The
+  corrected trigger wording lists GitHub's default `pull_request` activity types.
+
 - **2026-11-09, coordinator openai/gpt-6-luna**: #16 heredoc fix passes `tests/worktree-guard.test.ts` and the full
   core suite (37 tests). OpenCode 2.2.5 allowed an outside `ls` and a disposable outside `git worktree add`; the latter
   worktree was removed. `BIVE_REGISTRY=on opencode run` created `.bive/registry-id`, but DNS resolution for
