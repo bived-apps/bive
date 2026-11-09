@@ -53,7 +53,7 @@ delegate, report, merge) with no manual step but the three gates.
 5. **Satellites out** (S) — todo. `help/` (WebLLM page) and the registry page move to a repository `bive-registry`;
    the template keeps only the client (`.opencode/plugins/token-ratio/`). Done when every file of the template is read by a role or a
    human during a task.
-6. **First project installed** (M) — next (#80), once #85 is merged. The owner's first project: its `opencode.jsonc` replaced, its private paths declared, its role additions
+6. **First project installed** (M) — next (#80); `bived` is aligned (#89), the owner chooses when. The owner's first project: its `opencode.jsonc` replaced, its private paths declared, its role additions
    in `.bive/prompts/project/`, its first issue through the flow. Done when 0.1's criterion holds.
 
 ### bivedream — the limit (GitHub milestone `bivedream`)

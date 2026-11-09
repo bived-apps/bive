@@ -100,24 +100,21 @@ the template that a role or a human does not read during a task.
 ROADMAP.md › 0.1: epic 4 (first full flow on Bive itself) is done (#79); next epic 6 (first project installed,
 #80), then epic 5 (satellites out); guard hardening (#16) rides along. bivedream frozen until then (owner,
 2026-11-09). GitHub issues are the source of truth once the coordinator has split them. Open work at the handoff of
-2026-11-09, in order:
+2026-11-09, in order (#78, #85, #88 and #89 merged; `bived` aligned on the roles):
 
-1. **Align `bived` (#85) and allow several coordinators (#88)**: PR #89 (label `coordinator`) does both and waits
-   for the owner's review, dated label and merge. #81 merged the #70 merge gate into `main` after #78, so `bived`
-   still carries contradictions: steps 8 and 9 twice in `COORDINATOR.md`, texts where the coordinator merges. The
-   owner settled #88 on 2026-11-09: at most two coordinators, one per `milestone/<name>` branch, started by the
-   supervisor at gate 1, which also arbitrates shared files (#72); the gate extends to `milestone/*`. Until #89 is
-   merged, trust #78's roles over any text that has the coordinator merge.
-2. **Owner decisions and settings**: #86 (one GitHub account for coordinator and owner: keep the "Ready to merge"
-   comment and a queue on it, or a second account / GitHub App); untick *Allow squash merging* in Settings → General
-   → Pull Requests (still allowed on 2026-11-09, `allow_squash_merge: true`); `bived` has no branch protection
-   (`docs/REQUIRED-CHECKS.md` says which checks to require); close #74 (superseded by #78).
-3. **#84**: a `delegate` agent in `opencode.jsonc` whose prompt is `.bive/prompts/DELEGATE.md` (inviolable file:
+1. **Owner settings and decisions**: branch protection on `bived` and `milestone/*` requiring
+   `bive-merge-gate / check` and `bive-tests / tests` (`docs/REQUIRED-CHECKS.md`; none on 2026-11-09); untick
+   *Allow squash merging* in Settings → General → Pull Requests (`allow_squash_merge: true` on 2026-11-09); #86 (one
+   GitHub account for coordinator and owner: keep the "Ready to merge" comment, or a second account / GitHub App);
+   close #74 (superseded by #78).
+2. **#84**: a `delegate` agent in `opencode.jsonc` whose prompt is `.bive/prompts/DELEGATE.md` (inviolable file:
    coordinator work), checked with `opencode agent list` in a fresh clone.
-4. **#80, 0.1's criterion**: the owner's first project still runs the old model (its coordinator squash-merges
-   locally, no `gh pr merge`/`gh pr close` deny, integration branch `main`). Once `bived` is aligned, one coordinator
-   PR there applies #78, the owner allows merge commits only on it, then one of its issues runs through the whole
-   flow. The owner chooses when.
+3. **#80, 0.1's criterion**: the owner's first project still runs the old model (its coordinator squash-merges
+   locally, no `gh pr merge`/`gh pr close` deny, integration branch `main`). One coordinator PR there applies the
+   roles of `bived`, the owner allows merge commits only on it, then one of its issues runs through the whole flow.
+   The owner chooses when.
+4. **Two coordinators at once (#88)**: written, not yet run; the first time two milestones run in parallel, log it
+   here.
 
 ## Watch out
 
