@@ -67,12 +67,11 @@ describe("shell, every role", () => {
     // The redirect in 'cat <<EOF > ../x' lands outside the worktree, so it is refused for every role.
     refused(shell(coordinator, "cat <<EOF > ../x"), /outside/)
   })
-  test.todo("a quoted here-document whose body only contains '> ../x' is allowed", () => {
-    // The guard's REDIRECT regex scans the whole command text, including heredoc bodies, so the
-    // literal '> ../x' inside the body is treated as a redirection and refused: a false positive.
-    // Current guard refuses this (false positive); desired is allowed. Body intentionally has no
-    // assertion so this todo stays green until the guard learns heredoc syntax.
-    // refused(shell(coordinator, "cat <<'EOF'\n> ../x\nEOF"), /outside/)  // current behavior
+  test.todo("a quoted here-document whose body only contains '> ../x' is allowed (current guard false positive: the REDIRECT regex scans the whole command text, including heredoc bodies, and treats the literal '> ../x' as a redirection)", () => {
+    // Desired behavior: the '>' only appears inside a quoted heredoc body, so it is not a
+    // redirection and the command should pass. The current guard refuses it (false positive)
+    // because REDIRECT scans the entire command text. Retained as a todo; the guard is unchanged.
+    passes(shell(coordinator, "cat <<'EOF'\n> ../x\nEOF"))
   })
   test("a working directory outside the worktree is refused", () => {
     refused(shell(coordinator, "ls", main), /outside/)
@@ -152,6 +151,6 @@ describe("delegate detection (child sessions inherit the coordinator's environme
 
 describe("violations", () => {
   test("every refusal above was counted", () => {
-    assert.equal(violations(), 29)      // the `refused(...)` calls above, one violation each
+    assert.equal(violations(), 30)      // the `refused(...)` calls above, plus the todo's current false-positive refusal, one violation each
   })
 })
