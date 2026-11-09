@@ -14,10 +14,10 @@ These run on GitHub and appear as commit statuses on a pull request.
 
 - **Workflow file**: `.github/workflows/bive-tests.yml`
 - **Job**: `tests`
-- **Triggers**: `push` to `main` and `bived`; `pull_request` (all types).
+- **Triggers**: `push` to `main` and `bived`; `pull_request` (default activity types: `opened`, `synchronize`, `reopened`).
 - **Runs**: `ubuntu-latest`, Node 22, `node --test tests/*.test.ts`, timeout 10 minutes.
 - **What it checks**: the repository's test suite (`tests/*.test.ts`).
-- **Expected on PRs**: yes — the `pull_request` trigger runs it for every pull request.
+- **Expected on PRs**: yes — the `pull_request` trigger runs it on pull requests (default activity types).
 
 ### `bive-inviolable / check`
 
