@@ -45,6 +45,9 @@ the template that a role or a human does not read during a task.
 
 ## Decisions
 
+- **Inspect before delegating (owner, 2026-11-10)**: the supervisor reads (or has read and reported) the open issues,
+  rules and existing files of the repository concerned before delegating, cites them in the brief, and announces work
+  as ready only after checking it against them (`.bive/prompts/SUPERVISOR.md`).
 - **Roles separated (owner, 2026-11-09)**: the supervisor alone merges or closes a pull request (integration branch
   and `main`), with a merge commit; the coordinator reviews and approves, never merges, closes, pushes to the
   integration branch, or writes product code; the delegate writes. One role per session: whoever merges did not
