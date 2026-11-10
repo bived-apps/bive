@@ -147,9 +147,17 @@ ROADMAP.md › 0.1: epic 4 (first full flow on Bive itself) is done (#79); next 
 - The guard's shell check is a filter, not a sandbox: it refuses redirections and, for a delegate, any path outside
   the worktree but the system prefixes (`/usr`, `/tmp`, …). In OpenCode 2.2.5, `external_directory: deny` did not stop
   `ls ../bive-external-directory-probe-does-not-exist` or `git worktree add --detach ../bive-external-directory-probe
-  677eb38`; both ran from the coordinator's checkout. The temporary worktree was removed. Still unverified: a delegate
-  session rooted in such an external worktree attempting to write into the main checkout; the nested
-  `.worktrees/issue-<n>` layout remains the supported workflow.
+  677eb38`; both ran from the coordinator's checkout, and again on 2026-11-10 (`git worktree add ../bive-none2` from a
+  coordinator session ran). Verified on 2026-11-10 (#16, bived `ce9763e`, OpenCode 2.2.5): a delegate session rooted
+  in an external same-repository worktree (`../bive-guardcheck`, `--agent delegate`) asked to write into the main
+  checkout was refused ("worktree-guard: … is outside this session's worktree"), the file absent; it could still read
+  files of its worktree through the shell, as allowed. So the guard binds delegates, not the coordinator: the nested
+  `.worktrees/issue-<n>` layout remains the supported workflow, and an outside worktree is the coordinator's mistake,
+  not a delegate's escape.
+- The registry's Worker is not reachable (2026-11-10): `bive-registry.jcherfils.workers.dev` has no DNS record, so a
+  session with `BIVE_REGISTRY=on` loads the plugins and fills `.bive/state/tokens.jsonl` but sends nothing. Deploy
+  `registry/` (`npx wrangler deploy`) and set `REGISTRY_URL` in `.opencode/plugins/token-ratio/index.ts` to the URL it
+  prints; this rides with ROADMAP 0.1 › 5 (satellites out).
 - The guard knows a delegate by `BIVE_ROLE=delegate`, a session directory `.worktrees/issue-<n>`, or the role file
   `.bive/state/role` (#36). A delegate run as a child session or on the shared OpenCode server carries no variable
   (#21); in the coordinator's session, writes and shell `workdir` under `.worktrees/issue-<n>/` are then checked as
