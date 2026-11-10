@@ -14,8 +14,8 @@ and its first example.
 - Repository `https://github.com/jcherfils/bive`. Integration branch **`bived`** (agents' pull requests go there);
   `main` is the template people copy and is protected: the owner merges `bived` into it by pull request.
 - No build. Tests: `node --test tests/*.test.ts` (Node 22; no bun). `.github/workflows/bive-tests.yml` runs them on
-  pull requests and pushes to `main` and `bived`. Worker: `registry/` (deployed by the owner with
-  `npx wrangler deploy`).
+  pull requests and pushes to `main` and `bived`. Worker: in bived-apps/registry (deployed by the
+  owner with `npx wrangler deploy`; not deployed yet on 2026-11-10).
 - The coordinator of Bive is started in a clone with this prompt (OpenCode, model Opus 5.5 or Fable 5.1):
 
 ```text

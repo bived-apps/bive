@@ -50,8 +50,9 @@ delegate, report, merge) with no manual step but the three gates.
    commit. The steps that still needed a hand became issues: no `delegate` agent in `opencode.jsonc` (#84), #70's
    gate text next to #78's roles on `bived` (#85), no approval possible when coordinator and owner share one GitHub
    account (#86). Bive is project #1 of its own registry (`.bive/registry-id` committed).
-5. **Satellites out** (S) — todo. `help/` (WebLLM page) and the registry page move to a repository `bive-registry`;
-   the template keeps only the client (`.opencode/plugins/token-ratio/`). Done when every file of the template is read by a role or a
+5. **Satellites out** (S) — done on 2026-11-10. `help/` (WebLLM page), the registry's Worker and page and their
+   test moved to [bived-apps/registry](https://github.com/bived-apps/registry); the template keeps only the client
+   (`.opencode/plugins/token-ratio/`). The Worker is not deployed yet (HANDOFF › Watch out). Done when every file of the template is read by a role or a
    human during a task.
 6. **First project installed** (M) — next (#80); `bived` is aligned (#89), the owner chooses when. The owner's first project: its `opencode.jsonc` replaced, its private paths declared, its role additions
    in `.bive/prompts/project/`, its first issue through the flow. Done when 0.1's criterion holds.

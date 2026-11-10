@@ -68,7 +68,6 @@ and integration branches. This makes a red base visible promptly; adapt the work
 | `.opencode/plugins/token-ratio/` | Counts human and agent tokens ([docs/TOKENS.md](docs/TOKENS.md)); reports to the registry if asked ([docs/REGISTRY.md](docs/REGISTRY.md)); `lib.ts` holds the pure helpers the tests import |
 | `.bive/mcp-ssh.sh` | Runs a stdio MCP server on another machine over SSH ([docs/SSH.md](docs/SSH.md)) |
 | `.github/` | Issue and pull request templates; `bive-inviolable` check on delegates' pull requests |
-| `registry/`, `help/` | The registry's Worker and page, the browser help: leaving for their own repository (ROADMAP 0.1 › 5) |
 
 ## Developing Bive
 
