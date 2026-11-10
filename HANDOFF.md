@@ -49,6 +49,9 @@ the template that a role or a human does not read during a task.
   and `main`), with a merge commit; the coordinator reviews and approves, never merges, closes, pushes to the
   integration branch, or writes product code; the delegate writes. One role per session: whoever merges did not
   write. This replaces the decisions of 2026-11-09 on supervisor operational work and delegated merge rights.
+- **"Ready to merge" is the hand-over (owner, 2026-11-10, #86)**: while coordinator and owner share one GitHub account,
+  GitHub refuses the coordinator's approval; its `Ready to merge` comment with the checks it ran replaces it. No second
+  account or GitHub App.
 - **Merge gate kept as a check (owner, 2026-11-09)**: #70's `bive-merge-gate / merge-gate` stays, on the supervisor's
   merge: the owner applies `bive-merge-authorized-until-YYYY-MM-DD` to one approved pull request, and the supervisor
   merges it once the gate is green, pinned to its head (`--match-head-commit`). Red before the label means waiting
@@ -102,19 +105,13 @@ ROADMAP.md › 0.1: epic 4 (first full flow on Bive itself) is done (#79); next 
 2026-11-09). GitHub issues are the source of truth once the coordinator has split them. Open work at the handoff of
 2026-11-10, in order:
 
-1. **Ruleset `integration` requires `merge-gate` again**: #84 (PR #93) and #94 (PRs #95, #96) are merged; the gate's
-   job is `merge-gate`. To merge #96, `merge-gate` was taken out of the ruleset's required checks (only `tests` left
-   on 2026-11-10): the owner puts it back (Settings → Rules → Rulesets → integration), then the next pull request into
-   `bived` shows whether the gate turns green on its own with the owner's label.
-2. **Owner decisions still open**: untick *Allow squash merging* in Settings → General → Pull Requests
-   (`allow_squash_merge: true` on 2026-11-09; the rulesets already allow `merge` only); #86 (one GitHub account for
-   coordinator and owner: keep the "Ready to merge" comment, or a second account / GitHub App); close #74 (superseded
-   by #78).
-3. **#80, 0.1's criterion**: the owner's first project still runs the old model (its coordinator squash-merges
+1. **Owner**: close #74 (superseded by #78). Done on 2026-11-10: `merge-gate` and `tests` required by ruleset
+   `integration` (the gate turned green on its own on #97), *Allow squash merging* unticked, #86 decided.
+2. **#80, 0.1's criterion**: the owner's first project still runs the old model (its coordinator squash-merges
    locally, no `gh pr merge`/`gh pr close` deny, integration branch `main`). One coordinator PR there applies the
    roles of `bived`, the owner allows merge commits only on it, then one of its issues runs through the whole flow
    with `--agent delegate` (#84's first live run). The owner chooses when.
-4. **Two coordinators at once (#88)**: written, not yet run; the first time two milestones run in parallel, log it
+3. **Two coordinators at once (#88)**: written, not yet run; the first time two milestones run in parallel, log it
    here.
 
 ## Watch out
