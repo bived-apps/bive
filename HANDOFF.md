@@ -111,29 +111,21 @@ the template that a role or a human does not read during a task.
 
 ## Tasks
 
-ROADMAP.md › 0.1: epic 4 (first full flow on Bive itself) is done (#79); next epic 6 (first project installed,
-#80), then epic 5 (satellites out); guard hardening (#16) rides along. bivedream frozen until then (owner,
-2026-11-09). GitHub issues are the source of truth once the coordinator has split them. Open work at the handoff of
-2026-11-10 (night), in order:
+ROADMAP.md › 0.1 is done (2026-11-10, #80; field report #110). bivedream is no longer frozen: its first epic gets
+the next milestone number (0.2) when it starts. GitHub issues are the source of truth once the coordinator has split
+them. Open work at the handoff of 2026-11-10 (night), in order:
 
-1. **Owner**: label and merge #105 (this file: no supervisor agent qualified), then close #74 (superseded by #78).
-   Done on 2026-11-10: #96, #97, #98, #99, #102 and #103 merged and `bived` merged into `main` (the gate's `actions: read` fix, #101, is
-   live); `merge-gate` and `tests` required by ruleset `integration`; *Allow squash merging* unticked; #86 decided.
-2. **#80, 0.1's criterion**: the owner's first project still runs the old model (its coordinator squash-merges
-   locally, no `gh pr merge`/`gh pr close` deny, integration branch `main`). One coordinator PR there applies the
-   roles of `bived`, the owner allows merge commits only on it, then one of its issues runs through the whole flow
-   with `--agent delegate` (#84's first live run). The owner chooses when.
-3. **Supervisor test v2, in bived-apps/bench**: the owner asked that the three draws of test v1 (Decisions) be
-   recorded in the public repository bived-apps/bench and that the draw-3 Fable 5.2 candidate open its first issue
-   there, designing a harder test (independent cases, injection variants with no side defect, traps the gate cannot
-   see, scoring on the rule cited). Drafts in the project files (`bench/issue.md`, `bench/handoff-entry.md`); the
-   Claude GitHub App was installed on bench on 2026-11-10 so they can be posted. Never put an answer key or a
-   PR-to-case mapping in bench. The scratch repository jcherfils/biveTest holds draw 3 as left by the candidate.
-   Until a model passes, only the owner (or a person) supervises.
-4. **Coordinator qualification test**: the owner wants a new test for the coordinator role, like the supervisor's.
-   Not written yet; its author must not be a candidate for it.
-5. **Two coordinators at once (#88)**: written, not yet run; the first time two milestones run in parallel, log it
-   here.
+1. **Owner**: close #74 (superseded by #78). Deploy the registry Worker from bived-apps/registry when wanted (Watch out).
+2. **Field report #110**: seven manual steps of the first project's run; the coordinator splits the ones worth a
+   change into issues. The largest is one GitHub account for every role (#86): the coordinator's "Ready to merge"
+   was refused by the machine's own agent safety check as self-approval, so that run was merged with no written
+   hand-over.
+3. **Supervisor test v2, in bived-apps/bench**: issue bench#1 (harder test, scoring on the rule cited); the three
+   draws of v1 are recorded in bench (none qualified). Promotion only from bench (Decisions). Until a model passes,
+   only the owner (or a person) supervises.
+4. **Coordinator qualification test**: wanted by the owner, not written yet; its author must not be a candidate.
+5. **Two coordinators at once (#88)**: written, not yet run; log the first parallel run here.
+6. **bivedream → 0.2**: the owner picks the first epic.
 
 ## Watch out
 
@@ -192,6 +184,12 @@ ROADMAP.md › 0.1: epic 4 (first full flow on Bive itself) is done (#79); next 
 
 ## Session log
 
+- **2026-11-10, coordinator anthropic/claude-opus-5-5 — 0.1 closed**: #106 (promotion only from bench), #107 (#16's
+  live checks), #108 (registry and help to bived-apps/registry, `4b86b1c`), then #80 on the owner's first project:
+  its PR #979 brought Bive `d8cccb9`, and one issue ran the whole flow on machine A with OpenCode 2.2.5 (the first
+  delegate model hit its provider limit; fallback openai/gpt-6-luna; one change request; the owner's label; gate
+  green, which also proves `actions: read` on a private repository; merge commit on the gated head). Field report
+  #110 lists the seven hand steps.
 - **2026-11-10, coordinator anthropic/claude-opus-5-5 — supervisor test v1, three draws**: at the owner's request
   the test was built on the private scratch repository jcherfils/biveTest from the owner's Mac (8 shuffled pull
   requests, coordinator comments, owner's dated label on all 8) and run three times on a fresh agent with the
