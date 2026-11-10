@@ -28,5 +28,6 @@ Bive asks in return; the licence (MIT) does not require it.
   report cap or the daily new-project cap. `GET /v1/stats` returns the public totals and per-project aggregates;
   `GET /` returns the public page.
 
-- **Run a registry**: `registry/` holds the Cloudflare Worker (`worker.js`, D1 `schema.sql`, `wrangler.toml`) and
-  its page; the deploy steps are at the top of `wrangler.toml`.
+- **Run a registry**: the repository [bived-apps/registry](https://github.com/bived-apps/registry) holds the
+  Cloudflare Worker (`worker.js`, D1 `schema.sql`, `wrangler.toml`), its page and the browser help; the deploy steps
+  are at the top of `wrangler.toml`.

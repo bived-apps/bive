@@ -14,8 +14,8 @@ and its first example.
 - Repository `https://github.com/jcherfils/bive`. Integration branch **`bived`** (agents' pull requests go there);
   `main` is the template people copy and is protected: the owner merges `bived` into it by pull request.
 - No build. Tests: `node --test tests/*.test.ts` (Node 22; no bun). `.github/workflows/bive-tests.yml` runs them on
-  pull requests and pushes to `main` and `bived`. Worker: `registry/` (deployed by the owner with
-  `npx wrangler deploy`).
+  pull requests and pushes to `main` and `bived`. Worker: in bived-apps/registry (deployed by the
+  owner with `npx wrangler deploy`; not deployed yet on 2026-11-10).
 - The coordinator of Bive is started in a clone with this prompt (OpenCode, model Opus 5.5 or Fable 5.1):
 
 ```text
@@ -155,9 +155,10 @@ ROADMAP.md › 0.1: epic 4 (first full flow on Bive itself) is done (#79); next 
   `.worktrees/issue-<n>` layout remains the supported workflow, and an outside worktree is the coordinator's mistake,
   not a delegate's escape.
 - The registry's Worker is not reachable (2026-11-10): `bive-registry.jcherfils.workers.dev` has no DNS record, so a
-  session with `BIVE_REGISTRY=on` loads the plugins and fills `.bive/state/tokens.jsonl` but sends nothing. Deploy
-  `registry/` (`npx wrangler deploy`) and set `REGISTRY_URL` in `.opencode/plugins/token-ratio/index.ts` to the URL it
-  prints; this rides with ROADMAP 0.1 › 5 (satellites out).
+  session with `BIVE_REGISTRY=on` loads the plugins and fills `.bive/state/tokens.jsonl` but sends nothing. The Worker
+  now lives in bived-apps/registry (`4b86b1c`): deploy it from there (`npx wrangler deploy`, on a machine logged into
+  the owner's Cloudflare account; the Mac's wrangler login of 2026-11-08 may have expired) and set `REGISTRY_URL` in
+  `.opencode/plugins/token-ratio/index.ts` to the URL it prints. Not part of 0.1's criterion.
 - The guard knows a delegate by `BIVE_ROLE=delegate`, a session directory `.worktrees/issue-<n>`, or the role file
   `.bive/state/role` (#36). A delegate run as a child session or on the shared OpenCode server carries no variable
   (#21); in the coordinator's session, writes and shell `workdir` under `.worktrees/issue-<n>/` are then checked as
