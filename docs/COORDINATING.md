@@ -4,6 +4,18 @@ What `.bive/prompts/COORDINATOR.md` steps 5, 7 and 9 mean at the shell, for a co
 commands. `<n>` is the issue, `<slug>` a short name, `<base>` the integration branch, `<model>` the delegate's
 `provider/model`.
 
+## Session start
+
+The label the owner applies to authorize a merge must exist that day (owner, 2026-11-10). Create it, never rename an
+older one: renaming moves the label onto every pull request that carries it and would re-date the owner's past
+authorizations. The coordinator never applies it.
+
+```bash
+label="bive-merge-authorized-until-$(date -u +%F)"
+gh label list --search "$label" --json name --jq '.[].name' | grep -qx "$label" \
+  || gh label create "$label" --color B60205 --description "Owner only: authorizes one merge through $(date -u +%F) UTC"
+```
+
 ## Start a delegate (step 5)
 
 ```bash
