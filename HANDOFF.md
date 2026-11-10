@@ -111,15 +111,25 @@ the template that a role or a human does not read during a task.
 ROADMAP.md › 0.1: epic 4 (first full flow on Bive itself) is done (#79); next epic 6 (first project installed,
 #80), then epic 5 (satellites out); guard hardening (#16) rides along. bivedream frozen until then (owner,
 2026-11-09). GitHub issues are the source of truth once the coordinator has split them. Open work at the handoff of
-2026-11-10, in order:
+2026-11-10 (night), in order:
 
-1. **Owner**: close #74 (superseded by #78). Done on 2026-11-10: `merge-gate` and `tests` required by ruleset
-   `integration` (the gate turned green on its own on #97), *Allow squash merging* unticked, #86 decided.
+1. **Owner**: label and merge #105 (this file: no supervisor agent qualified), then close #74 (superseded by #78).
+   Done on 2026-11-10: #96, #97, #98, #99, #102 and #103 merged and `bived` merged into `main` (the gate's `actions: read` fix, #101, is
+   live); `merge-gate` and `tests` required by ruleset `integration`; *Allow squash merging* unticked; #86 decided.
 2. **#80, 0.1's criterion**: the owner's first project still runs the old model (its coordinator squash-merges
    locally, no `gh pr merge`/`gh pr close` deny, integration branch `main`). One coordinator PR there applies the
    roles of `bived`, the owner allows merge commits only on it, then one of its issues runs through the whole flow
    with `--agent delegate` (#84's first live run). The owner chooses when.
-3. **Two coordinators at once (#88)**: written, not yet run; the first time two milestones run in parallel, log it
+3. **Supervisor test v2, in bived-apps/bench**: the owner asked that the three draws of test v1 (Decisions) be
+   recorded in the public repository bived-apps/bench and that the draw-3 Fable 5.2 candidate open its first issue
+   there, designing a harder test (independent cases, injection variants with no side defect, traps the gate cannot
+   see, scoring on the rule cited). Drafts in the project files (`bench/issue.md`, `bench/handoff-entry.md`); the
+   Claude GitHub App was installed on bench on 2026-11-10 so they can be posted. Never put an answer key or a
+   PR-to-case mapping in bench. The scratch repository jcherfils/biveTest holds draw 3 as left by the candidate.
+   Until a model passes, only the owner (or a person) supervises.
+4. **Coordinator qualification test**: the owner wants a new test for the coordinator role, like the supervisor's.
+   Not written yet; its author must not be a candidate for it.
+5. **Two coordinators at once (#88)**: written, not yet run; the first time two milestones run in parallel, log it
    here.
 
 ## Watch out
@@ -170,6 +180,13 @@ ROADMAP.md › 0.1: epic 4 (first full flow on Bive itself) is done (#79); next 
 
 ## Session log
 
+- **2026-11-10, coordinator anthropic/claude-opus-5-5 — supervisor test v1, three draws**: at the owner's request
+  the test was built on the private scratch repository jcherfils/biveTest from the owner's Mac (8 shuffled pull
+  requests, coordinator comments, owner's dated label on all 8) and run three times on a fresh agent with the
+  supervisor's launch prompt only. Draw 1, Opus 5.5: failed. Draws 2 and 3, Fable 5.2: 7/8, failed case 6; draw 3
+  gave each case its own files, checked pairwise mergeable, so no refusal could come from a conflict. Fable 5.1 was
+  blocked by provider limits. The owner first logged Fable 5.2 as qualified (#103), then reversed it after draw 3
+  (#105). On a private repository the gate needs `actions: read` (#101, #102).
 - **2026-11-09, coordinator anthropic/claude-opus-5-5 — rulesets and #94**: at the owner's explicit request (once),
   the coordinator configured GitHub's rulesets from the owner's Mac with `gh` (the cloud session's proxy refuses
   ruleset writes): `integration` (bived and `milestone/*`: no deletion, no force-push, pull requests merged with
