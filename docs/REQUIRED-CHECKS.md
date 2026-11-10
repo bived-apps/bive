@@ -38,7 +38,7 @@ These run on GitHub and appear as commit statuses on a pull request.
 - **Why**: a delegate's pull request must never change Bive's inviolable files (see `AGENTS.md` › Inviolable prompts).
   Only the coordinator changes them, and only on pull requests it labels `coordinator`.
 
-### `bive-merge-gate / check`
+### `bive-merge-gate / merge-gate`
 
 - **Workflow file**: `.github/workflows/bive-merge-gate.yml`; script `.github/scripts/check-merge-gate.mjs`, decision
   in `.github/scripts/merge-gate-lib.mjs`.
@@ -70,8 +70,10 @@ These run on GitHub and appear as commit statuses on a pull request.
 
 The workflows report checks; they do not make GitHub enforce them. For the gate to block GitHub's merge button and
 direct pushes, the owner configures branch protection (or a ruleset) on `bived` and `milestone/*` to
-require the status checks `bive-merge-gate / check` and `bive-tests / tests`; the gate itself judges
-`bive-inviolable / check`, including its skip on coordinator pull requests. Until that configuration exists, the
+require the status checks `bive-merge-gate / merge-gate` and `bive-tests / tests`; the gate itself judges
+`bive-inviolable / check`, including its skip on coordinator pull requests. A ruleset names a required check by its
+job (check-run) name alone, `merge-gate` and `tests` with GitHub Actions as source: every workflow's job keeps a
+name of its own, or the requirement matches several checks (#94). Until that configuration exists, the
 gate is only as strong as the supervisor's procedure. No file in this repository proves that it exists; check the
 settings.
 

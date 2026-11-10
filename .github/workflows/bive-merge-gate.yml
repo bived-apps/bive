@@ -11,7 +11,7 @@ permissions:
   checks: read
 
 jobs:
-  check:
+  merge-gate:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:

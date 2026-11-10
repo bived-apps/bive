@@ -74,7 +74,7 @@ Once merged, if the issue is still open (GitHub closes on the default branch onl
 gh issue close <n> --comment "Done in <base> (PR #<pr>)"
 ```
 
-`bive-merge-gate / check` stays red on every pull request until the owner applies the dated label
+`bive-merge-gate / merge-gate` stays red on every pull request until the owner applies the dated label
 `bive-merge-authorized-until-YYYY-MM-DD` (`docs/REQUIRED-CHECKS.md`): read that red as "waiting for the owner's label",
 not as a failure to brief again. The coordinator never applies the label.
 
