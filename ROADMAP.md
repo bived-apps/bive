@@ -39,11 +39,10 @@ delegate, report, merge) with no manual step but the three gates.
    diff, no questions, answers assumed, and on the empty repository the agent created a private GitHub repository to
    open its pull request. README › Install now runs in two turns (read only and ask, then write on `install/bive`;
    never create a repository or a remote), and both cases passed with it.
- 3. **Guard hardened** (S) — in progress (#15 tests and #16 heredoc fix complete). OpenCode 2.2.5 allowed an outside
-    `ls` and `git worktree add` from the coordinator's checkout; the disposable worktree was removed. Still needed:
-    verify a delegate session in an outside same-repository worktree cannot write into the main checkout, and confirm
-    the registry opt-in report reaches the Worker (this machine could not resolve its hostname). Done when the tests
-    cover the guard cases, the coordinator commands pass, and the remaining live checks are recorded.
+ 3. **Guard hardened** (S) — done in #16 (live checks of 2026-11-10 in HANDOFF › Watch out). Tests 51/51, no `todo`;
+    a delegate in an outside same-repository worktree cannot write into the main checkout; the coordinator's own
+    `git worktree add ../…` is not refused (the nested layout is the rule). The registry report could not reach the
+    Worker, which has no DNS record: deploying it moves to 0.1 › 5.
 4. **First full flow on Bive itself** (M) — done in #79 (PR #83, merge commit `7549dec`, log in #87). One
    `delegate` issue, one brief, one worktree `.worktrees/issue-79`, a delegate on `opencode/beam-free` that pushed
    its branch with its report; the coordinator opened and reviewed PR #83, the supervisor merged it with a merge
@@ -53,7 +52,7 @@ delegate, report, merge) with no manual step but the three gates.
 5. **Satellites out** (S) — todo. `help/` (WebLLM page) and the registry page move to a repository `bive-registry`;
    the template keeps only the client (`.opencode/plugins/token-ratio/`). Done when every file of the template is read by a role or a
    human during a task.
-6. **First project installed** (M) — next (#80); `bived` is aligned (#89), the owner chooses when. The owner's first project: its `opencode.jsonc` replaced, its private paths declared, its role additions
+6. **First project installed** (M) — doing (#80, the owner's go on 2026-11-10); `bived` is aligned (#89). The owner's first project: its `opencode.jsonc` replaced, its private paths declared, its role additions
    in `.bive/prompts/project/`, its first issue through the flow. Done when 0.1's criterion holds.
 
 ### bivedream — the limit (GitHub milestone `bivedream`)
