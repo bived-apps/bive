@@ -100,24 +100,21 @@ the template that a role or a human does not read during a task.
 ROADMAP.md › 0.1: epic 4 (first full flow on Bive itself) is done (#79); next epic 6 (first project installed,
 #80), then epic 5 (satellites out); guard hardening (#16) rides along. bivedream frozen until then (owner,
 2026-11-09). GitHub issues are the source of truth once the coordinator has split them. Open work at the handoff of
-2026-11-09 (late), in order:
+2026-11-10, in order:
 
-1. **Merge PR #93 (#84), then this PR (#94)**: both coordinator PRs, one at a time (#88). Each waits for the owner's
-   dated label and the supervisor's merge; the coordinator closes #84 and #94 after each merge.
-2. **Right after #94 merges, the owner's ruleset** (#94): the gate's job is now `merge-gate`. GitHub's rulesets name a
-   required check by its job (check-run) name, and `bive-merge-gate` and `bive-inviolable` both had a job `check`, so
-   the required context did not name the gate. In ruleset `integration` replace the required `check` with
-   `merge-gate` (GitHub Actions) and keep `tests`. Until then, only `bive-inviolable` answers the required `check`,
-   so GitHub no longer enforces the gate: the supervisor still merges only on a green gate.
-3. **Owner decisions still open**: untick *Allow squash merging* in Settings → General → Pull Requests
+1. **Ruleset `integration` requires `merge-gate` again**: #84 (PR #93) and #94 (PRs #95, #96) are merged; the gate's
+   job is `merge-gate`. To merge #96, `merge-gate` was taken out of the ruleset's required checks (only `tests` left
+   on 2026-11-10): the owner puts it back (Settings → Rules → Rulesets → integration), then the next pull request into
+   `bived` shows whether the gate turns green on its own with the owner's label.
+2. **Owner decisions still open**: untick *Allow squash merging* in Settings → General → Pull Requests
    (`allow_squash_merge: true` on 2026-11-09; the rulesets already allow `merge` only); #86 (one GitHub account for
    coordinator and owner: keep the "Ready to merge" comment, or a second account / GitHub App); close #74 (superseded
    by #78).
-4. **#80, 0.1's criterion**: the owner's first project still runs the old model (its coordinator squash-merges
+3. **#80, 0.1's criterion**: the owner's first project still runs the old model (its coordinator squash-merges
    locally, no `gh pr merge`/`gh pr close` deny, integration branch `main`). One coordinator PR there applies the
    roles of `bived`, the owner allows merge commits only on it, then one of its issues runs through the whole flow
    with `--agent delegate` (#84's first live run). The owner chooses when.
-5. **Two coordinators at once (#88)**: written, not yet run; the first time two milestones run in parallel, log it
+4. **Two coordinators at once (#88)**: written, not yet run; the first time two milestones run in parallel, log it
    here.
 
 ## Watch out
@@ -157,6 +154,12 @@ ROADMAP.md › 0.1: epic 4 (first full flow on Bive itself) is done (#79); next 
 - OpenCode 2.2.5 has no `opencode agent` subcommand: `opencode debug agents` prints the resolved agents. An agent's
   `system` replaces the provider's base prompt, and `{file:…}` on a missing file gives an empty prompt without an
   error: after moving `.bive/prompts/DELEGATE.md`, check that the `delegate` agent's `system` is not empty there.
+- `bive-merge-gate` runs on `pull_request_target`: GitHub takes its workflow file from the default branch (`main`) but
+  the job checks out and runs the gate script of the pull request's base (`bived` or `milestone/<name>`). A change to
+  the gate's job name or script must reach `main` and the integration branches together, or the gate waits on its own
+  check until its deadline and fails on every pull request (2026-11-09: #95 renamed the job on `main` only, and #96,
+  `main` back into `bived`, had to be merged with the gate taken out of the ruleset). A gate change merged into
+  `bived` alone takes effect for the job name only once `bived` reaches `main`.
 - Branch deletion and branch protection through the API were refused from the review session's proxy; the owner does
   those in GitHub's settings.
 
