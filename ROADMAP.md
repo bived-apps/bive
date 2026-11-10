@@ -25,7 +25,7 @@ here is committed with the code it describes (an item started → `doing`, finis
 
 ## Epics
 
-### 0.1 — Bive installs itself
+### 0.1 — Bive installs itself (done 2026-11-10)
 
 Done when the owner's first project runs with Bive installed and one of its issues has gone through the whole flow (brief, worktree,
 delegate, report, merge) with no manual step but the three gates.
@@ -53,12 +53,16 @@ delegate, report, merge) with no manual step but the three gates.
    test moved to [bived-apps/registry](https://github.com/bived-apps/registry); the template keeps only the client
    (`.opencode/plugins/token-ratio/`). The Worker is not deployed yet (HANDOFF › Watch out). Done when every file of the template is read by a role or a
    human during a task.
-6. **First project installed** (M) — doing (#80, the owner's go on 2026-11-10); `bived` is aligned (#89). The owner's first project: its `opencode.jsonc` replaced, its private paths declared, its role additions
+6. **First project installed** (M) — done in #80 (2026-11-10). The project took Bive `d8cccb9` (its PR #979: the
+   gate's `actions: read`, promotion by bench); one of its issues went issue → brief → worktree → delegate
+   (`--agent delegate`, openai/gpt-6-luna) → report → coordinator's PR → one change request fixed by the same
+   delegate → owner's label → green `merge-gate` → the supervisor's merge commit on the gated head. The seven steps
+   that still needed a hand are the field report #110. The owner's first project: its `opencode.jsonc` replaced, its private paths declared, its role additions
    in `.bive/prompts/project/`, its first issue through the flow. Done when 0.1's criterion holds.
 
 ### bivedream — the limit (GitHub milestone `bivedream`)
 
-**Frozen (owner, 2026-11-09)** until 0.1's criterion holds: no bivedream issue is briefed before a first project
+**Frozen (owner, 2026-11-09)** until 0.1's criterion holds (it held on 2026-11-10, #80): no bivedream issue is briefed before a first project
 issue has gone through the whole flow. *Authorship kept through merges* is settled: merge commits by the supervisor.
 
 The owner's request (2026-11-08): a detailed plan for Bive that is modular, optional and light, built on what exists
@@ -178,6 +182,10 @@ per epic. Nothing of it is a Bive program: prompts, rules, and existing tools wi
 - Deploy the filtered Worker (`npx wrangler deploy`): the owner.
 
 ## Done
+
+- **0.1 — Bive installs itself** (2026-11-10): loading verified (#13), install tested (#17), guard hardened (#16),
+  first full flow on Bive itself (#79), satellites out (bived-apps/registry), first project installed (#80); field
+  report #110. bivedream is no longer frozen.
 
 - **0.0 — the template** (2026-11-08, one commit, tag `v0.0`): roles, transmission contract, tight `opencode.jsonc`,
   worktree guard, MCP over SSH, token ratio, inviolable prompts, opt-in registry, Bive's own handoff and roadmap,
