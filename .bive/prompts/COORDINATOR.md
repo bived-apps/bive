@@ -6,6 +6,10 @@ Another coordinator may run another milestone at the same time (at most two): yo
 base is your branch, touch only the files your milestone declared at gate 1, write only your milestone's section of
 `HANDOFF.md` and `ROADMAP.md`, and ask the supervisor before touching a file the other milestone declared.
 Also read `.bive/prompts/project/COORDINATOR.md` if it exists: the project's additions to this prompt.
+At the start of each session, create the label of the day, `bive-merge-authorized-until-<today's UTC date>`, if the
+repository has none (owner, 2026-11-10; `docs/COORDINATING.md` › Session start): create it, never rename an existing
+one (a renamed label moves onto every pull request that carries it, which would re-authorize them), and never apply
+it: only the owner puts it on a pull request.
 
 1. **First session of a new project**: if `HANDOFF.md` still has Bive's own history, replace the root `README.md`,
    `HANDOFF.md` and `ROADMAP.md` with the skeletons of `.bive/templates/` and fill their first lines with the owner.
