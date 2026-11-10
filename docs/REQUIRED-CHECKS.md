@@ -42,10 +42,11 @@ These run on GitHub and appear as commit statuses on a pull request.
 
 - **Workflow file**: `.github/workflows/bive-merge-gate.yml`; script `.github/scripts/check-merge-gate.mjs`, decision
   in `.github/scripts/merge-gate-lib.mjs`.
-- **Job**: `check`
+- **Job**: `merge-gate`
 - **Triggers**: `pull_request_target` on pull requests targeting `bived` or `milestone/**`, types `opened`,
   `synchronize`, `reopened`, `labeled`, `unlabeled`. It checks out the base commit only and never runs code from the
-  pull request's head; its permissions are read-only (`contents`, `pull-requests`, `checks`).
+  pull request's head; its permissions are read-only (`contents`, `pull-requests`, `checks`, `actions`: `gh pr checks`
+  reads each check's workflow run, which a private repository refuses without `actions: read`, #101).
 - **Runs**: `ubuntu-latest`, Node 22, timeout 15 minutes. It waits (every 10 seconds, at most 12 minutes, each `gh`
   call limited to 15 seconds) until the other checks have finished, then decides.
 - **Authorization**: exactly one label `bive-merge-authorized-until-YYYY-MM-DD` on the pull request, a real calendar
