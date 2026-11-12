@@ -30,7 +30,8 @@ Read this file, then [`HANDOFF.md`](HANDOFF.md), before changing anything. Your 
 - **One branch and one pull request per issue**: `issue/<n>-<slug>`. Only the coordinator creates pull requests for
   issue work, after receiving the pushed branch and delegate's report. The body starts with `Closes #N` (or `Part of
   #N` and what is left) and holds the delegate's report.
-- **Claim the issue** with a short comment before working on it; update it with the result.
+- **Claim the issue** with a short comment before working on it; update it with the result. A claim with no pushed
+  branch after one day is void and the issue may be claimed again (field report #110, remark 3).
 - **Stay in your worktree**: the guard plugin refuses writes outside it, including shell redirections; a delegate's
   commands may not name any path outside it (absolute, `~`, `$HOME`, `..`) apart from the system folders. A
   delegate's worktree is `.worktrees/issue-<n>`, inside the checkout and git-ignored (never `../<repo>-<n>`: the

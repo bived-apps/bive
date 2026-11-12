@@ -21,6 +21,8 @@ start delegates.
 
 ## Session start
 
+Fetch first, so no worktree is based on a stale local branch (field report #110, remark 2): `git fetch --prune`.
+
 The label the owner applies to authorize a merge must exist that day (owner, 2026-11-10). Create it, never rename an
 older one: renaming moves the label onto every pull request that carries it and would re-date the owner's past
 authorizations. The coordinator never applies it.
@@ -34,7 +36,7 @@ gh label list --search "$label" --json name --jq '.[].name' | grep -qx "$label" 
 ## Start a delegate (step 5)
 
 ```bash
-git worktree add .worktrees/issue-<n> -b issue/<n>-<slug> <base>
+git worktree add .worktrees/issue-<n> -b issue/<n>-<slug> origin/<base>
 git config extensions.worktreeConfig true                     # once per clone
 git -C .worktrees/issue-<n> config --worktree user.name "delegate <model>"
 git -C .worktrees/issue-<n> config --worktree user.email delegate@bive.invalid
@@ -46,6 +48,10 @@ brief="$(cat .bive/state/briefs/<n>.md)"                        # read here: out
 (cd .worktrees/issue-<n> && BIVE_ROLE=delegate opencode run --agent delegate --model <model> "$brief") &
 echo $!                                                         # record the PID (AGENTS.md › Never)
 ```
+
+On a model fallback (a provider limit, #110 remark 1) restart the brief with the next model and set the identity again,
+in one pass: `git -C .worktrees/issue-<n> config --worktree user.name "delegate <next model>"`, then `opencode run
+--model <next model>`; the commits keep the canonical name of the model that wrote them.
 
 The `delegate` agent of `opencode.jsonc` gives the session `.bive/prompts/DELEGATE.md` as its system prompt.
 `opencode debug agents` lists the agents OpenCode resolved (OpenCode 2.2.5 has no `opencode agent` subcommand).
@@ -140,7 +146,8 @@ refusal with the exact command, message, and worktree state.
 
 The core checks once, after the last merge, then `HANDOFF.md` and `ROADMAP.md` in one commit on a coordinator branch,
 opened as a pull request labelled `coordinator` and merged by the supervisor like any other. Clean up:
-`git worktree list`, then `git worktree remove .worktrees/issue-<n>` for each merged issue (never forced).
+`git worktree list`, then `git worktree remove .worktrees/issue-<n>` and `git branch -d issue/<n>-<slug>` for each
+merged issue (never forced).
 
 ## Branches and inherited commits (issue #73)
 
