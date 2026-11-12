@@ -36,6 +36,16 @@ files and 1 test file; owner validates it (gate 1):
 
 - **Part 0 — spike (coordinator)**: re-verify on the installed version that a session can be created in a worktree
   with an agent, a model and permissions, prompted with `delivery: "queue"` and awaited; note what changed.
+  **Done 2026-11-12 (OpenCode 2.2.5, fresh `opencode serve`, `opencode:<password>` basic auth)**: `POST /api/session`
+  with `{agent, model: {providerID, id}, location: {directory}}` (also `parentID`, `title`, `permissions`) created a
+  session in a worktree; `POST /api/session/{id}/prompt` with `{text, delivery: "queue"}` answered 200;
+  `POST /api/experimental/session/{id}/wait` returned 204 when the session finished; the delegate (`big-pickle`) wrote
+  its file inside the worktree. Findings: (1) the server needs its password (printed at start; `OPENCODE_PASSWORD` for
+  the CLI); (2) `wait` is under `/api/experimental`, so it may change: part 4 must also be able to follow
+  `session.execution.succeeded` on `/api/event`; (3) `isDelegate` already matches a session rooted at
+  `.worktrees/issue-<n>` by path, so part 2 is defence in depth (agent name) rather than a gap for the standard
+  layout; it matters for worktrees named otherwise; (4) a delegate declined an inviolable-file edit from its own
+  system prompt, so the guard was not exercised by that test.
 - **Part 1 — agents (coordinator, inviolable `opencode.jsonc`)**: add the `coordinator` agent next to `delegate`,
   with `external_directory` allowed for `.worktrees/issue-*` so the coordinator no longer stops at `cd ..`.
 - **Part 2 — role by agent (coordinator, inviolable plugin)**: the worktree guard recognises a delegate from the
