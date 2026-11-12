@@ -3,7 +3,7 @@
 // Contract: docs/SKILL-PROVISIONING.md.
 import { createHash } from "node:crypto"
 import {
-  existsSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSync,
+  existsSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSync, cpSync,
 } from "node:fs"
 import path from "node:path"
 
@@ -369,12 +369,291 @@ export function provisionLocal(options: ProvisionOptions): ProvisionReport {
   return report
 }
 
-export const provision = provisionLocal
-export const provisionSkills = provisionLocal
+export interface ProvisionRemoteOptions extends ProvisionOptions {
+  remoteRoot?: string
+  remote?: string
+  checkout?: string
+  directory?: string
+  location?: string | { directory?: string }
+  localRoot?: string
+  sourceRoot?: string
+  projectRoot?: string
+  bundle?: Record<string, string | Buffer> | Array<{ path: string; content: string | Buffer }>
+  pushBundle?: boolean
+  approvedDir?: string
+  skillsPath?: string
+  transport?: {
+    root?: string
+    existsSync?: (p: string) => boolean
+    readFileSync?: (p: string, enc?: string) => any
+    writeFileSync?: (p: string, data: any) => void
+    mkdirSync?: (p: string, opts?: { recursive?: boolean }) => void
+    cpSync?: (src: string, dest: string, opts?: { recursive?: boolean; force?: boolean }) => void
+    resolveRoot?: () => string
+  }
+}
+
+function resolveRemoteRoot(options: ProvisionRemoteOptions): string {
+  const t = options.transport
+  const candidates: Array<unknown> = [
+    t && (typeof t.resolveRoot === "function" ? t.resolveRoot() : t.root),
+    options.remoteRoot,
+    options.remote,
+    options.checkout,
+    options.directory,
+    typeof options.location === "string" ? options.location : options.location?.directory,
+    options.root,
+  ]
+  for (const c of candidates) {
+    if (typeof c === "string" && c.length > 0) return c
+  }
+  throw new ProvisioningError("remote_root_missing", "skill provisioning failed: remote checkout directory is required", {})
+}
+
+function resolveSourceRoot(options: ProvisionRemoteOptions, remoteRoot: string): string {
+  const candidates: Array<unknown> = [
+    options.localRoot,
+    options.sourceRoot,
+    options.projectRoot,
+    options.root,
+  ]
+  for (const c of candidates) {
+    if (typeof c === "string" && c.length > 0) return c
+  }
+  return remoteRoot
+}
+
+function safeCompute(target: string): string | null {
+  try {
+    if (!existsSync(target)) return null
+    return computeRevision(target)
+  } catch {
+    return null
+  }
+}
+
+function isWithin(root: string, target: string): boolean {
+  const r = path.resolve(root)
+  const t = path.resolve(target)
+  return t === r || t.startsWith(r + path.sep)
+}
+
+function copyRecursive(src: string, dest: string): void {
+  mkdirSync(path.dirname(dest), { recursive: true })
+  cpSync(src, dest, { recursive: true, force: true })
+}
+
+export function provisionRemote(options: ProvisionRemoteOptions): ProvisionReport {
+  const remoteRoot = path.resolve(resolveRemoteRoot(options))
+  const sourceRoot = path.resolve(resolveSourceRoot(options, remoteRoot))
+  const role = options.role
+  const approvedRel = options.approvedDir ?? options.skillsPath ?? ".opencode/skills"
+  if (!isSafeRelative(approvedRel)) {
+    throw new PathSafetyError(`skill provisioning failed: approved directory must be a safe relative path: ${approvedRel}`, { path: approvedRel })
+  }
+  const approvedRoot = path.resolve(remoteRoot, approvedRel)
+  if (!isWithin(remoteRoot, approvedRoot)) {
+    throw new PathSafetyError(`skill provisioning failed: approved directory escapes checkout: ${approvedRel}`, { path: approvedRel })
+  }
+
+  const useRemoteManifest = existsSync(
+    options.manifestPath
+      ? path.resolve(remoteRoot, options.manifestPath)
+      : path.join(remoteRoot, ".bive", "skills.json"),
+  )
+  const manifestRoot = useRemoteManifest ? remoteRoot : (existsSync(path.join(sourceRoot, ".bive", "skills.json")) ? sourceRoot : remoteRoot)
+
+  const { manifest, raw } = loadManifest(manifestRoot, options.manifestPath)
+  validateManifest(manifest)
+  if (!manifest.roles || !Object.prototype.hasOwnProperty.call(manifest.roles, role)) {
+    throw new ManifestValidationError(`skill provisioning failed: role ${role} is not declared in manifest`, { role })
+  }
+  const roleIds = manifest.roles[role] ?? []
+  const sourceRevision = sha256Buffer(Buffer.from(raw, "utf8"))
+  const report: ProvisionReport = {
+    role,
+    source_revision: sourceRevision,
+    generated_at: (options.now ? options.now() : new Date().toISOString()),
+    skills: [],
+    warnings: [],
+  }
+
+  const pushBundle = options.pushBundle !== false
+
+  for (const id of roleIds) {
+    const decl = (manifest.skills ?? {})[id]
+    if (!decl) {
+      throw new MissingSkillError(
+        `skill provisioning failed: skill "${id}" for role "${role}": missing declaration (expected revision missing, observed missing)`,
+        { id, role, expected: "missing", observed: "missing", path: "(undeclared)" },
+      )
+    }
+    const source = (decl.source ?? "project") as SkillSource
+    const expected = decl.revision ?? ""
+
+    const remoteResolved = resolveSkillPath(remoteRoot, decl, id)
+    const sourceResolved = resolveSkillPath(sourceRoot, decl, id)
+
+    // 1. same-commit verify in place
+    let observed = safeCompute(remoteResolved.full)
+
+    // 2. fallback: push bundle from source when missing/mismatched
+    if (observed !== expected) {
+      if (!pushBundle) {
+        // no push; fall through to failure reporting
+      } else {
+        // user-authored conflict check before overwriting
+        const userPath = path.join(remoteRoot, ".opencode", "skills", id)
+        if (path.resolve(userPath) !== path.resolve(remoteResolved.full) && existsSync(userPath)) {
+          let userHash: string
+          try {
+            userHash = computeRevision(userPath)
+          } catch {
+            userHash = "(unreadable)"
+          }
+          const currentObserved = observed ?? "(missing)"
+          if (userHash !== (observed ?? "")) {
+            if (decl.override === true) {
+              report.warnings.push(`override: managed skill "${id}" overrides user-authored skill at .opencode/skills/${id}`)
+            } else {
+              throw new SkillConflictError(
+                `skill provisioning failed: skill "${id}" for role "${role}": conflict with user-authored skill ` +
+                `(managed hash ${observed ?? "missing"}, user hash ${userHash}) at .opencode/skills/${id}`,
+                { id, role, managed: observed ?? "missing", user: userHash, path: `.opencode/skills/${id}` },
+              )
+            }
+          }
+        }
+
+        if (!existsSync(sourceResolved.full)) {
+          throw new MissingSkillError(
+            `skill provisioning failed: skill "${id}" for role "${role}": missing (expected revision ${expected}, observed missing) at ${sourceResolved.relative} (source)`,
+            { id, role, expected, observed: "missing", path: sourceResolved.relative, origin: sourceResolved.origin },
+          )
+        }
+        let sourceHash: string
+        try {
+          sourceHash = computeRevision(sourceResolved.full)
+        } catch {
+          throw new MissingSkillError(
+            `skill provisioning failed: skill "${id}" for role "${role}": unreadable (expected revision ${expected}, observed missing) at ${sourceResolved.relative}`,
+            { id, role, expected, observed: "missing", path: sourceResolved.relative },
+          )
+        }
+        if (expected && sourceHash !== expected) {
+          throw new SkillRevisionMismatchError(
+            `skill provisioning failed: skill "${id}" for role "${role}": revision mismatch (expected ${expected}, observed ${sourceHash}) at ${sourceResolved.relative}`,
+            { id, role, expected, observed: sourceHash, path: sourceResolved.relative, origin: sourceResolved.origin },
+          )
+        }
+
+        // copy source -> remote (approved path)
+        if (!isWithin(remoteRoot, remoteResolved.full)) {
+          throw new PathSafetyError(`skill provisioning failed: path escapes checkout for ${id}: ${remoteResolved.relative}`, { id, path: remoteResolved.relative })
+        }
+        copyRecursive(sourceResolved.full, remoteResolved.full)
+        observed = safeCompute(remoteResolved.full)
+      }
+    }
+
+    if (observed === null) {
+      throw new MissingSkillError(
+        `skill provisioning failed: skill "${id}" for role "${role}": missing (expected revision ${expected}, observed missing) at ${remoteResolved.relative}`,
+        { id, role, expected, observed: "missing", path: remoteResolved.relative, origin: remoteResolved.origin },
+      )
+    }
+    if (expected && observed !== expected) {
+      throw new SkillRevisionMismatchError(
+        `skill provisioning failed: skill "${id}" for role "${role}": revision mismatch (expected ${expected}, observed ${observed}) at ${remoteResolved.relative}`,
+        { id, role, expected, observed, path: remoteResolved.relative, origin: remoteResolved.origin },
+      )
+    }
+
+    // user-authored conflict check (for in-place case too)
+    const userPath = path.join(remoteRoot, ".opencode", "skills", id)
+    if (path.resolve(userPath) !== path.resolve(remoteResolved.full) && existsSync(userPath)) {
+      let userHash: string
+      try {
+        userHash = computeRevision(userPath)
+      } catch {
+        userHash = "(unreadable)"
+      }
+      if (userHash !== observed) {
+        if (decl.override === true) {
+          if (!report.warnings.some((w) => /override/.test(w) && w.includes(id))) {
+            report.warnings.push(`override: managed skill "${id}" overrides user-authored skill at .opencode/skills/${id}`)
+          }
+        } else {
+          throw new SkillConflictError(
+            `skill provisioning failed: skill "${id}" for role "${role}": conflict with user-authored skill ` +
+            `(managed hash ${observed}, user hash ${userHash}) at .opencode/skills/${id}`,
+            { id, role, managed: observed, user: userHash, path: `.opencode/skills/${id}` },
+          )
+        }
+      }
+    }
+
+    const globalHash = options.globalSkills?.[id]
+    if (globalHash !== undefined && globalHash !== observed) {
+      report.warnings.push(`shadowing warning: global skill "${id}" (${globalHash}) differs from managed (${observed})`)
+    }
+
+    report.skills.push({
+      id,
+      roles: rolesUsing(manifest, id),
+      source,
+      origin: remoteResolved.origin,
+      path: remoteResolved.relative,
+      revision: expected,
+      observed_revision: observed,
+      override: decl.override === true ? true : undefined,
+    })
+  }
+
+  const defaultReportPath = path.join(remoteRoot, ".bive", "skills.report.json")
+  let finalPath: string | null = null
+  if (options.reportPath === false || options.reportPath === null) {
+    finalPath = null
+  } else if (options.reportPath === undefined || options.reportPath === true) {
+    finalPath = defaultReportPath
+  } else {
+    finalPath = path.isAbsolute(String(options.reportPath))
+      ? String(options.reportPath)
+      : path.join(remoteRoot, String(options.reportPath))
+  }
+
+  if (finalPath) {
+    const resolvedRp = path.resolve(finalPath)
+    if (resolvedRp !== remoteRoot && !resolvedRp.startsWith(remoteRoot + path.sep)) {
+      throw new PathSafetyError(`skill provisioning failed: report path escapes project root: ${finalPath}`, { path: finalPath })
+    }
+    mkdirSync(path.dirname(resolvedRp), { recursive: true })
+    writeFileSync(resolvedRp, JSON.stringify(report, null, 2) + "\n", "utf8")
+  }
+
+  return report
+}
+
+// Redefine provision to auto-detect remote mode.
+export function provision(options: ProvisionOptions | ProvisionRemoteOptions): ProvisionReport {
+  const o = options as ProvisionRemoteOptions
+  if (o.remoteRoot || o.remote || o.checkout || o.directory || o.location || o.localRoot || o.sourceRoot || o.projectRoot || o.transport) {
+    return provisionRemote(o)
+  }
+  return provisionLocal(options as ProvisionOptions)
+}
+
+export const provisionRemoteSkills = provisionRemote
+export const provisionRemoteSession = provisionRemote
+export const provisionRemoteSessionSkills = provisionRemote
+export const remoteProvision = provisionRemote
+export const remoteProvisionSkills = provisionRemote
+export const provisionRemoteCheckout = provisionRemote
+export const provisionSkills = provision
 export const provisionLocalSkills = provisionLocal
-export const runProvisioning = provisionLocal
-export const verifySkills = provisionLocal
-export const verifySkill = provisionLocal
+export const runProvisioning = provision
+export const verifySkills = provision
+export const verifySkill = provision
 
 export function loadManifestFn(root: string, manifestPath?: string) {
   return loadManifest(root, manifestPath)
@@ -391,6 +670,13 @@ export { computeRevision as computeHash, computeRevision as skillHash }
 export default {
   provisionLocal,
   provision,
+  provisionRemote,
+  provisionRemoteSkills,
+  provisionRemoteSession,
+  provisionRemoteSessionSkills,
+  provisionRemoteCheckout,
+  remoteProvision,
+  remoteProvisionSkills,
   provisionSkills,
   provisionLocalSkills,
   runProvisioning,
