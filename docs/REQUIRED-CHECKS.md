@@ -47,8 +47,11 @@ These run on GitHub and appear as commit statuses on a pull request.
   `synchronize`, `reopened`, `labeled`, `unlabeled`. It checks out the base commit only and never runs code from the
   pull request's head; its permissions are read-only (`contents`, `pull-requests`, `checks`, `actions`: `gh pr checks`
   reads each check's workflow run, which a private repository refuses without `actions: read`, #101).
-- **Runs**: `ubuntu-latest`, Node 22, timeout 15 minutes. It waits (every 10 seconds, at most 12 minutes, each `gh`
-  call limited to 15 seconds) until the other checks have finished, then decides.
+- **Runs**: `ubuntu-latest`, Node 22, timeout 5 minutes. It reads the pull request and the checks once, then decides.
+  It never waits on a runner. If a check is pending or a required one is missing, the gate fails immediately with
+  "required CI checks have not finished yet; the gate runs again when they complete"; the re-run is triggered by
+  `.github/workflows/bive-merge-gate-rerun.yml` (`workflow_run` on `bive-tests` and `bive-inviolable`, default-branch
+  behavior) and turns the gate green by itself once the checks pass.
 - **Authorization**: exactly one label `bive-merge-authorized-until-YYYY-MM-DD` on the pull request, a real calendar
   date, valid through 23:59:59 UTC of that date and only while the base is `bived` or `milestone/<name>` (one path
   segment). Only the owner applies it, after the coordinator's approval and when the supervisor is about to merge;
@@ -59,8 +62,10 @@ These run on GitHub and appear as commit statuses on a pull request.
   both `pass`; every other check except its own `pass` as well. The one accepted exception: `bive-inviolable / check`
   may be `skipping` on a pull request labelled `coordinator` (its job condition skips it there). It re-reads the pull
   request after reading the checks and fails if the head, base or labels changed.
-- **Fails on**: a missing, malformed, duplicate or expired label; any check pending past the deadline, missing,
-  skipped (other than the exception), failed or cancelled; a pull request whose head or base changed during the run.
+- **Fails on**: a missing, malformed, duplicate or expired label; any required check pending or missing (an
+  immediate red that means "wait for CI", not a refusal — the gate is re-run automatically when checks complete),
+  or any check skipped (other than the exception), failed or cancelled; a pull request whose head or base changed
+  during the run.
 - **Several coordinators**: each approves only pull requests based on its own milestone branch; the gate does not
   check which coordinator approved, the supervisor does (`AGENTS.md` › Roles).
 - **Expiry is not re-evaluated on its own**: a gate that passed stays green after its date. The owner applies the
