@@ -160,6 +160,20 @@ name of its own, or the requirement matches several checks (#94). Until that con
 gate is only as strong as the supervisor's procedure. No file in this repository proves that it exists; check the
 settings.
 
+## Headless plugin check (issue #69)
+
+A non-interactive validation that detects whether Bive's plugins are discovered and loaded, without opening the
+OpenCode UI. Command:
+
+```
+node .github/scripts/check-plugins.mjs <directory> <plugin-id> [<plugin-id> ...]
+```
+
+- Runs `opencode plugin list --standalone` in `<directory>` with a bounded timeout (60 s).
+- Verifies each expected plugin ID is present with a real ID (not `-`).
+- Exits 0 if all pass, 1 if any are missing or rejected, 2 on usage error.
+- Project-specific plugin IDs are passed as arguments, not hardcoded in Bive.
+
 ## Local and manual checks (not GitHub statuses)
 
 These are run by people or agents on their own machine. They are **not** GitHub required statuses and do not appear as
