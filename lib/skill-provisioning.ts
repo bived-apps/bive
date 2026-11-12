@@ -905,3 +905,6 @@ export default {
   SkillConflictError,
   PathSafetyError,
 }
+
+export * from "./skill-permissions.ts"
+export { default as skillPermissionsModule } from "./skill-permissions.ts"
