@@ -16,7 +16,11 @@ and its first example.
 - No build. Tests: `node --test tests/*.test.ts` (Node 22; no bun). `.github/workflows/bive-tests.yml` runs them on
   pull requests and pushes to `main` and `bived`. Worker: in bived-apps/registry (deployed by the
   owner with `npx wrangler deploy`; not deployed yet on 2026-11-10).
-- The coordinator of Bive is started in a clone with this prompt (OpenCode, model Opus 5.5 or Fable 5.1):
+- The coordinator of Bive is started in a clone with the hand-over in `.bive/templates/launch.md` (milestone, branch,
+  model, and a mandatory `Read:` field: open issues by number, rule files with the section cited, existing files of
+  the repository concerned — each non-empty). Fill in only those fields; the rules live in `AGENTS.md` and the role
+  prompt, not in the launch prompt (#118). The launch prompt names the template (`docs/COORDINATING.md` › Session
+  start).
 
 ```text
 You are the coordinator of bive's milestone 0.1 (GitHub jcherfils/bive). Read AGENTS.md, HANDOFF.md, ROADMAP.md,

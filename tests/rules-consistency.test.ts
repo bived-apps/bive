@@ -9,7 +9,6 @@ function read(rel: string): string {
   return fs.readFileSync(path.join(ROOT, rel), "utf8")
 }
 
-// Extract the "Running it" section of HANDOFF.md (up to the next ## heading).
 function runningIt(): string {
   const text = read("HANDOFF.md")
   const start = text.indexOf("## Running it")
@@ -19,8 +18,6 @@ function runningIt(): string {
   return next === -1 ? rest : rest.slice(0, next)
 }
 
-// Phrases that contradict AGENTS.md, with the AGENTS.md line each contradicts.
-// The launch prompt restates none of them; the test fails if any reappear.
 const CONTRADICTIONS: Array<{ phrase: RegExp; rule: string; files: string[] }> = [
   { phrase: /\bsquash\b/i, rule: "AGENTS.md › Project rules: GitHub PR merge methods `merge` only", files: ["README.md", "HANDOFF.md:running-it"] },
   { phrase: /splits,\s*reviews,\s*merges/i, rule: "AGENTS.md › Roles: the coordinator never merges", files: ["README.md"] },
@@ -37,4 +34,9 @@ test("no rule-contradicting phrase appears in the launch prompts and handoff", (
       assert.equal(m, null, `${f} contradicts "${rule}" via "${m?.[0]}"`)
     }
   }
+})
+
+test("the launch prompt names the launch template", () => {
+  const text = read("HANDOFF.md")
+  assert.match(text, /\.bive\/templates\/launch\.md/, "HANDOFF.md must name the launch template")
 })
