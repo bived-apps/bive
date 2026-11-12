@@ -1,7 +1,7 @@
 # Bive-managed skill provisioning — contract (draft)
 
-Status: **draft for owner approval** (issue #134, part of #132). No implementation yet.
-This document is the provisioning contract that a future implementation must satisfy.
+Status: **accepted** (owner, 2026-11-12: D1–D10 as recommended). Implemented in lib/skill-provisioning.ts and lib/skill-permissions.ts (#136–#150).
+This document is the provisioning contract the implementation satisfies.
 It is written against OpenCode 2.2.5 skill/agent behaviour as researched for this issue.
 
 ## 1. Purpose and scope
