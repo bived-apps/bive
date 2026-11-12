@@ -2,11 +2,9 @@ import { execFile } from "node:child_process"
 import { readFileSync } from "node:fs"
 import path from "node:path"
 import { fileURLToPath } from "node:url"
-import { evaluateMergeGate, isIntegrationBranch, validateMergeAuthorization } from "./merge-gate-lib.mjs"
+import { AUTHORIZATION_LABEL_PREFIX, OVERRIDE_LABEL_PREFIX, evaluateMergeGate, isIntegrationBranch, validateMergeAuthorization } from "./merge-gate-lib.mjs"
 
 const GH_TIMEOUT_MS = 15_000
-const MAX_WAIT_MS = 12 * 60_000
-const POLL_INTERVAL_MS = 10_000
 const OWN_CHECK = "bive-merge-gate / merge-gate"
 const REQUIRED_CHECKS = ["bive-tests / tests", "bive-inviolable / check"]
 
@@ -66,6 +64,34 @@ export function createGhReaders(runProcess = runGh) {
       if (exitCode !== 0 && exitCode !== 8) throw new Error(`gh pr checks exited with status ${exitCode}`)
       return parseChecks(stdout)
     },
+
+    async readLabelEvents({ number, repository, label }) {
+      const { stdout, exitCode } = await runProcess([
+        "api", `repos/${repository}/issues/${number}/events`, "--paginate",
+      ], GH_TIMEOUT_MS)
+      if (exitCode !== 0) throw new Error(`gh api events exited with status ${exitCode}`)
+      const data = parseJson(stdout, "pull request events")
+      if (!Array.isArray(data)) throw new Error("gh returned an invalid pull request events list")
+      return data.filter((event) => event?.event === "labeled" && event?.label?.name === label)
+        .map((event) => ({
+          event: event.event,
+          label: event.label?.name,
+          actor: event.actor?.login,
+          actorType: event.actor?.type,
+          performedViaApp: event.performed_via_github_app ?? null,
+          createdAt: event.created_at,
+        }))
+    },
+
+    async readRepositoryOwner({ repository }) {
+      const { stdout, exitCode } = await runProcess([
+        "api", `repos/${repository}`, "--jq", ".owner.login",
+      ], GH_TIMEOUT_MS)
+      if (exitCode !== 0) throw new Error(`gh api repository exited with status ${exitCode}`)
+      const owner = stdout.trim()
+      if (!owner) throw new Error("gh returned an empty repository owner")
+      return owner
+    },
   }
 }
 
@@ -84,10 +110,9 @@ export async function runMergeGate({
   repository,
   readPullRequest,
   readChecks,
+  readLabelEvents = null,
+  readRepositoryOwner = null,
   now = Date.now,
-  sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms)),
-  maxWaitMs = MAX_WAIT_MS,
-  pollIntervalMs = POLL_INTERVAL_MS,
 }) {
   const request = event?.pull_request
   if (!Number.isInteger(request?.number) || typeof request?.head?.sha !== "string"
@@ -98,32 +123,81 @@ export async function runMergeGate({
     throw new Error("merge gate only runs for pull requests targeting bived or milestone/<name>")
   }
 
-  const deadline = now() + maxWaitMs
-  while (true) {
-    const pr = await readPullRequest({ number: request.number, repository })
-    if (pr.baseRefName !== request.base.ref) throw new Error("pull request base changed; refusing stale merge-gate run")
-    if (pr.headRefOid !== request.head.sha) throw new Error("pull request head changed; refusing stale merge-gate run")
+  const pr = await readPullRequest({ number: request.number, repository })
+  if (pr.baseRefName !== request.base.ref) throw new Error("pull request base changed; refusing stale merge-gate run")
+  if (pr.headRefOid !== request.head.sha) throw new Error("pull request head changed; refusing stale merge-gate run")
 
-    const authorization = validateMergeAuthorization({ labels: pr.labels, baseRef: pr.baseRefName, now: now() })
-    if (!authorization.ok) throw new Error(authorization.reason)
-
-    const checks = await readChecks({ number: request.number, repository })
-    if (checksArePending(checks)) {
-      const remaining = deadline - now()
-      if (remaining <= 0) throw new Error("timed out waiting for required CI checks to finish")
-      await sleep(Math.min(pollIntervalMs, remaining))
-      continue
+  // Resolve the owner identity and the applying event for the authorization label.
+  let owner = null
+  let labelAppliedAt = null
+  let labelAppliedBy = null
+  let labelActorType = null
+  let labelPerformedViaApp = null
+  const authLabel = (pr.labels || []).find((l) => l.startsWith(AUTHORIZATION_LABEL_PREFIX))
+  if (authLabel) {
+    if (readRepositoryOwner) {
+      try { owner = await readRepositoryOwner({ repository }) } catch { owner = null }
     }
-
-    // Refresh PR metadata after the checks read so a removed grant or updated head cannot pass on stale event data.
-    const current = await readPullRequest({ number: request.number, repository })
-    if (current.baseRefName !== pr.baseRefName || current.headRefOid !== pr.headRefOid) {
-      throw new Error("pull request changed during merge-gate validation; refusing stale results")
+    if (readLabelEvents) {
+      try {
+        const events = await readLabelEvents({ number: request.number, repository, label: authLabel })
+        if (Array.isArray(events) && events.length > 0) {
+          const latest = events.reduce((a, b) => (new Date(a.createdAt) >= new Date(b.createdAt) ? a : b))
+          labelAppliedAt = latest.createdAt
+          labelAppliedBy = latest.actor
+          labelActorType = latest.actorType
+          labelPerformedViaApp = latest.performedViaApp
+        }
+      } catch { /* leave null; new checks skipped for backward compat */ }
     }
-    const result = evaluateMergeGate({ labels: current.labels, baseRef: current.baseRefName, checks, now: now() })
-    if (!result.ok) throw new Error(result.reason)
-    return result
   }
+
+  // Override label (optional): relaxes pending/missing checks, never red checks.
+  let overrideAppliedAt = null
+  let overrideAppliedBy = null
+  let overrideActorType = null
+  let overridePerformedViaApp = null
+  let overrideOwner = owner
+  const overrideLabel = (pr.labels || []).find((l) => l.startsWith(OVERRIDE_LABEL_PREFIX))
+  if (overrideLabel) {
+    if (readRepositoryOwner && !overrideOwner) {
+      try { overrideOwner = await readRepositoryOwner({ repository }) } catch { overrideOwner = null }
+    }
+    if (readLabelEvents) {
+      try {
+        const events = await readLabelEvents({ number: request.number, repository, label: overrideLabel })
+        if (Array.isArray(events) && events.length > 0) {
+          const latest = events.reduce((a, b) => (new Date(a.createdAt) >= new Date(b.createdAt) ? a : b))
+          overrideAppliedAt = latest.createdAt
+          overrideAppliedBy = latest.actor
+          overrideActorType = latest.actorType
+          overridePerformedViaApp = latest.performedViaApp
+        }
+      } catch { /* leave null */ }
+    }
+  }
+
+  const authorization = validateMergeAuthorization({ labels: pr.labels, baseRef: pr.baseRefName, now: now(),
+    labelAppliedAt, labelAppliedBy, owner, labelActorType, labelPerformedViaApp,
+    overrideAppliedAt, overrideAppliedBy, overrideOwner, overrideActorType, overridePerformedViaApp })
+  if (!authorization.ok) throw new Error(authorization.reason)
+
+  const checks = await readChecks({ number: request.number, repository })
+  const override = (pr.labels || []).some((l) => l.startsWith(OVERRIDE_LABEL_PREFIX))
+  if (checksArePending(checks) && !override) {
+    throw new Error("required CI checks have not finished yet; the gate runs again when they complete")
+  }
+
+  // Refresh PR metadata after the checks read so a removed grant or updated head cannot pass on stale event data.
+  const current = await readPullRequest({ number: request.number, repository })
+  if (current.baseRefName !== pr.baseRefName || current.headRefOid !== pr.headRefOid) {
+    throw new Error("pull request changed during merge-gate validation; refusing stale results")
+  }
+  const result = evaluateMergeGate({ labels: current.labels, baseRef: current.baseRefName, checks, now: now(),
+    labelAppliedAt, labelAppliedBy, owner, labelActorType, labelPerformedViaApp,
+    overrideAppliedAt, overrideAppliedBy, overrideOwner, overrideActorType, overridePerformedViaApp })
+  if (!result.ok) throw new Error(result.reason)
+  return result
 }
 
 async function main() {

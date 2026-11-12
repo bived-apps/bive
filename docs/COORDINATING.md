@@ -4,7 +4,24 @@ What `.bive/prompts/COORDINATOR.md` steps 5, 7 and 9 mean at the shell, for a co
 commands. `<n>` is the issue, `<slug>` a short name, `<base>` the integration branch, `<model>` the delegate's
 `provider/model`.
 
+## Before a milestone (issue #116)
+
+Run these three checks before gate 1, before the first delegate starts. If one fails, tell the owner and do not
+start delegates.
+
+1. **Runners online**: the runners the project's workflows use are online.
+   - Self-hosted runners: `gh api repos/<owner>/<repo>/actions/runners` (needs admin rights; without them, ask the
+     owner to check the runner status in GitHub's settings).
+   - Hosted runners: no check needed; GitHub provides them.
+2. **Local environment version**: the runtime version of the project's local environment equals the one installed now.
+   The project fills the command in `AGENTS.md` › Before committing (Bive's own: `node --version` is 22). A mismatch
+   means the environment was built with another interpreter version.
+3. **Fast checks green on the base**: the fast checks have been seen green once on the milestone's base, in CI, before
+   the first delegate starts. A red base blocks all other merges until green.
+
 ## Session start
+
+Fetch first, so no worktree is based on a stale local branch (field report #110, remark 2): `git fetch --prune`.
 
 The label the owner applies to authorize a merge must exist that day (owner, 2026-11-10). Create it, never rename an
 older one: renaming moves the label onto every pull request that carries it and would re-date the owner's past
@@ -19,7 +36,7 @@ gh label list --search "$label" --json name --jq '.[].name' | grep -qx "$label" 
 ## Start a delegate (step 5)
 
 ```bash
-git worktree add .worktrees/issue-<n> -b issue/<n>-<slug> <base>
+git worktree add .worktrees/issue-<n> -b issue/<n>-<slug> origin/<base>
 git config extensions.worktreeConfig true                     # once per clone
 git -C .worktrees/issue-<n> config --worktree user.name "delegate <model>"
 git -C .worktrees/issue-<n> config --worktree user.email delegate@bive.invalid
@@ -31,6 +48,10 @@ brief="$(cat .bive/state/briefs/<n>.md)"                        # read here: out
 (cd .worktrees/issue-<n> && BIVE_ROLE=delegate opencode run --agent delegate --model <model> "$brief") &
 echo $!                                                         # record the PID (AGENTS.md › Never)
 ```
+
+On a model fallback (a provider limit, #110 remark 1) restart the brief with the next model and set the identity again,
+in one pass: `git -C .worktrees/issue-<n> config --worktree user.name "delegate <next model>"`, then `opencode run
+--model <next model>`; the commits keep the canonical name of the model that wrote them.
 
 The `delegate` agent of `opencode.jsonc` gives the session `.bive/prompts/DELEGATE.md` as its system prompt.
 `opencode debug agents` lists the agents OpenCode resolved (OpenCode 2.2.5 has no `opencode agent` subcommand).
@@ -80,26 +101,82 @@ The supervisor merges (`gh pr merge <pr> --merge --match-head-commit <sha>`, aft
 to `<base>`. To be told when a pull request is merged without a watcher plugin: `gh pr checks` for the checks, then
 `until [ "$(gh pr view <pr> --json state --jq .state)" != OPEN ]; do sleep 60; done` in the shell, when a session
 really needs to wait; most of the time the next session reads `gh pr list` instead.
-Once merged, if the issue is still open (GitHub closes on the default branch only):
+Once merged, if the issue is still open (GitHub closes on the default branch only), close it only after
+checking that the pull request's merge commit is reachable from the base:
 
 ```bash
-gh issue close <n> --comment "Done in <base> (PR #<pr>)"
+merge_commit="$(gh pr view <pr> --json mergeCommit --jq .mergeCommit.oid)"
+git fetch origin <base>
+if git merge-base --is-ancestor "$merge_commit" "origin/<base>"; then
+  gh issue close <n> --comment "Done in <base> at $merge_commit (PR #<pr>)"
+else
+  echo "refusing to close: PR #<pr> is not merged into <base>"
+fi
 ```
+
+Never write "Done" in an issue, a checklist or a report for an issue whose pull request is not merged;
+`Part of #N` issues stay open with what is left.
 
 `bive-merge-gate / merge-gate` stays red on every pull request until the owner applies the dated label
 `bive-merge-authorized-until-YYYY-MM-DD` (`docs/REQUIRED-CHECKS.md`): read that red as "waiting for the owner's label",
 not as a failure to brief again. The coordinator never applies the label.
 
+## Refusal and resume (issues #146, #147)
+
+When a delegate reports a refusal (guard, scanner, or any check):
+
+1. Record the refusal: the refused command, the refusal message, and the worktree state.
+2. Preserve all uncommitted work in the worktree — do not discard or push it.
+3. Do not let the delegate continue or push. A refusal is a hard stop, not a prompt to rewrite the command.
+4. Before any subsequent delegate starts, require a clear supervisor decision on how to proceed: resume the same
+   delegate with a corrected brief, split the work, or stop.
+5. Do not normalize retries as a workaround.
+
+**Recording the authorization (issue #147):** before resuming after a refusal, post a comment on the issue recording
+the refusal (command, message, worktree state) and the supervisor's explicit authorization to resume (or the
+decision to split or stop). The coordinator does not resume on its own authority; the supervisor's decision must be
+visible in the issue's comment thread before any delegate starts. If the supervisor's decision is not recorded, the
+refusal stands and no subsequent delegate starts.
+
+The delegate's prompt (`DELEGATE.md`) carries the matching rule: on refusal, stop immediately, do not retry by
+rewriting the command, do not continue with other commands, do not push, preserve uncommitted work, and report the
+refusal with the exact command, message, and worktree state.
+
 ## After the batch (step 9)
 
 The core checks once, after the last merge, then `HANDOFF.md` and `ROADMAP.md` in one commit on a coordinator branch,
 opened as a pull request labelled `coordinator` and merged by the supervisor like any other. Clean up:
-`git worktree list`, then `git worktree remove .worktrees/issue-<n>` for each merged issue (never forced).
+`git worktree list`, then `git worktree remove .worktrees/issue-<n>` and `git branch -d issue/<n>-<slug>` for each
+merged issue (never forced).
+
+## Branches and inherited commits (issue #73)
+
+Each issue branch starts from the current integration base (`origin/<base>` after `git fetch --prune`), never from
+another issue branch: a branch created from a sibling inherits its commits and merge commits, and the later pull
+request then carries them. Dependent work waits for the previous merge.
+
+Before opening a pull request, check that the branch is clean of inherited work:
+
+```bash
+git fetch origin <base>
+git merge-base --is-ancestor origin/<base> HEAD          # must succeed
+git rev-list --merges origin/<base>..HEAD                # must be empty
+```
+
+If either fails, create a fresh branch from `origin/<base>` and cherry-pick only the issue's own commits (never
+rewrite pushed history):
+
+```bash
+git switch -c issue/<n>-<slug>-fresh origin/<base>
+git cherry-pick <issue-commit>...
+```
 
 ## Two coordinators at once
 
-The supervisor may run one coordinator per milestone, at most two at once (`AGENTS.md` › Roles). Each works in its own
-clone, because `.worktrees/`, `.bive/state/` and the guard belong to one checkout:
+The supervisor may run one coordinator per milestone, at most as many as the runners able to take the fast checks (and
+never more than two) (`AGENTS.md` › Roles). Each coordinator keeps at most one CI run in flight (a new push waits for
+the previous run). Each works in its own clone, because `.worktrees/`, `.bive/state/` and the guard belong to one
+checkout:
 
 ```bash
 git clone <repository> <dir> && cd <dir> && git switch milestone/<name>

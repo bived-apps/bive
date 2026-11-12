@@ -4,8 +4,8 @@ A repository template for building software with LLM agents in three roles, on O
 
 ```mermaid
 flowchart LR
-  S(["supervisor<br/>you + your Claude project"])
-  C["coordinator<br/>one agent: splits, reviews, merges"]
+  S(["supervisor<br/>you, in OpenCode"])
+  C["coordinator<br/>one agent: splits, reviews, never merges"]
   D1["delegate<br/>issue 12, its own worktree"]
   D2["delegate<br/>issue 13, its own worktree"]
   S -- "plan · gate 1: the split" --> C
@@ -27,7 +27,7 @@ New project: **Use this template** on GitHub, open OpenCode in the clone, and st
 `.bive/prompts/COORDINATOR.md`: its first step replaces this README, `HANDOFF.md` and `ROADMAP.md` with the skeletons
 of `.bive/templates/`.
 
-Existing project: paste this into OpenCode (or Claude Code) at the root of your repository:
+Existing project: paste this into OpenCode at the root of your repository:
 
 ```text
 Install https://github.com/jcherfils/bive here, in two turns. Turn 1, read only: write nothing. List what you would
@@ -42,6 +42,7 @@ remote; never create a repository or a remote.
 
 For projects using Bive, configure the project's own CI checks to run on pull requests and pushes to both the default
 and integration branches. This makes a red base visible promptly; adapt the workflow to the project's test command.
+Projects on a self-hosted runner follow `docs/SELF-HOSTED.md`.
 
 ## The flow
 
@@ -50,7 +51,7 @@ and integration branches. This makes a red base visible promptly; adapt the work
    and starts a delegate in it.
 3. The delegate works only in its worktree, runs the fast checks, pushes its branch, returns its report, and stops.
 4. Only the coordinator creates the pull request, using the delegate's report as its body; the coordinator reviews
-   and merges into the integration branch. It asks you when a delegate fails twice (gate 2)
+   (never merges) into the integration branch. It asks you when a delegate fails twice (gate 2)
    and before the pull request to `main` (gate 3). You merge.
 
 ## Files

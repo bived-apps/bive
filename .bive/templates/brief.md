@@ -8,6 +8,9 @@ Branch `issue/<N>-<slug>` from `<integration branch>` · worktree `.worktrees/is
 
 **Steps**: <!-- exactly what to write: functions, files, signatures -->
 
+**Shared files**: <!-- ownership and dependency constraints for known shared files (issue #72): which files this issue
+  owns exclusively, which it depends on another issue's merge for, or "none". -->
+
 **Done when**: <!-- observable criteria -->
 
 **Checks**:

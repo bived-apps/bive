@@ -1,0 +1,13 @@
+# Triage of field report #110 (2026-11-10)
+
+Status of each of the seven remarks against `bived` (HEAD `0a638cc`).
+
+| Remark | Status | Evidence (file:section) | Next change |
+|---|---|---|---|
+| 1. Provider limit on the first delegate model | PARTIAL | `docs/COORDINATING.md` › Start a delegate (uses `<model>` in both `git config --worktree user.name "delegate <model>"` and `opencode run --model <model>`); `.bive/prompts/COORDINATOR.md` › 6 (model and fallback) | Make the fallback path update the worktree's Git author identity to the new canonical model (or collapse the start into one command that takes the model and derives the identity), so a fallback is one argument. |
+| 2. Stale local checkout | PARTIAL | `docs/COORDINATING.md` › Branches and inherited commits (bases worktrees on `origin/<base>` after `git fetch --prune`); but › Start a delegate still runs `git worktree add … <base>` and › Session start has no fetch | Add `git fetch --prune` to › Session start and change › Start a delegate to `git worktree add … origin/<base>`. |
+| 3. Stale claim on the issue | STILL WANTED | No mention of claims in `.bive/prompts/COORDINATOR.md`, `docs/COORDINATING.md` or `AGENTS.md` | State in `.bive/prompts/COORDINATOR.md` that a claim comment with no pushed branch after one day is void and may be re-claimed. |
+| 4. One GitHub account for every role (#86) | DONE | `HANDOFF.md` › Decisions › "Ready to merge" is the hand-over (no second account or GitHub App); `.bive/prompts/COORDINATOR.md` › 7 (`Ready to merge` comment replaces approval); `docs/COORDINATING.md` › Open and review a pull request (queue `review:approved`) | None (owner decided the comment is the hand-over). |
+| 5. Report in an empty commit, head SHA by hand | PARTIAL | `.bive/templates/report.md` › Log still asks for `head SHA`; `docs/COORDINATING.md` › Open and review a pull request (coordinator fills the SHA if the report was carried in a commit body); `.bive/prompts/DELEGATE.md` (include the report in the final pushed commit) | Make the delegate's Log placeholder omit the head SHA and leave it for the coordinator to add. |
+| 6. Label before approval | STILL WANTED | `.github/scripts/check-merge-gate.mjs` has no coordinator hand-over check; `docs/REQUIRED-CHECKS.md` › `bive-merge-gate / merge-gate` requires only the dated label and green checks | Require a coordinator hand-over on the head (e.g. the `Ready to merge` comment) before the label counts (depends on #86). |
+| 7. Worktree cleanup | PARTIAL | `docs/COORDINATING.md` › After the batch (lists `git worktree remove .worktrees/issue-<n>`, never forced) | Add deletion of the local issue branch (`git branch -D issue/<n>-<slug>`) to the same cleanup list. |

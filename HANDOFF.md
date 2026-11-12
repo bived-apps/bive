@@ -16,35 +16,37 @@ and its first example.
 - No build. Tests: `node --test tests/*.test.ts` (Node 22; no bun). `.github/workflows/bive-tests.yml` runs them on
   pull requests and pushes to `main` and `bived`. Worker: in bived-apps/registry (deployed by the
   owner with `npx wrangler deploy`; not deployed yet on 2026-11-10).
-- The coordinator of Bive is started in a clone with this prompt (OpenCode, model Opus 5.5 or Fable 5.1):
+- The coordinator of Bive is started in a clone with the hand-over in `.bive/templates/launch.md` (milestone, branch,
+  model, and a mandatory `Read:` field: open issues by number, rule files with the section cited, existing files of
+  the repository concerned — each non-empty). Fill in only those fields; the rules live in `AGENTS.md` and the role
+  prompt, not in the launch prompt (#118). The launch prompt names the template (`docs/COORDINATING.md` › Session
+  start).
 
 ```text
 You are the coordinator of bive's milestone 0.1 (GitHub jcherfils/bive). Read AGENTS.md, HANDOFF.md, ROADMAP.md,
-then .bive/prompts/COORDINATOR.md: it is your prompt. Integration branch: bived (never push to main; the owner
-merges bived into main). Work epic by epic in ROADMAP order; split each into issues labelled delegate (goal, read
-first, steps, done-when, tests), and stop at gate 1 to show me the split before any delegate starts. Delegates run
-on the models of .bive/models.json, one worktree each under .worktrees/issue-<n>, with BIVE_ROLE=delegate; they push
-their branches and return reports. You alone create and review each PR (diff, node --test, a complete report.md,
-gh pr checks --watch), approve it and comment "Ready to merge" (gh runs as my account, so GitHub refuses the
-approval: the comment is the hand-over, #86); I merge, you never merge, close or push to bived. A red
-bive-merge-gate / merge-gate only waits for my dated label: it is not yours to fix. Never write product code
-yourself: a delegate that failed twice is split again or raised to me. Bive's own rule applies to Bive: nothing enters
-the template that a role or a human does not read during a task.
+then .bive/prompts/COORDINATOR.md: it is your prompt. Fill in only the milestone, branch and model; the rules are
+there and in AGENTS.md, not here.
 ```
 
 - Delegates get no prompt to paste: the coordinator hands them `.bive/state/briefs/<n>.md` as the message of
   `BIVE_ROLE=delegate opencode run --agent delegate --model <model>`, run from `.worktrees/issue-<n>`
   (`docs/COORDINATING.md` › Start a delegate). The `delegate` agent of `opencode.jsonc` has
   `.bive/prompts/DELEGATE.md` as its system prompt (#84).
-- The supervisor is the owner with their Claude project (`.bive/prompts/SUPERVISOR.md`).
-- The supervisor's session (the owner's Claude project) is started with: "You are the supervisor of bive. Read
+- The supervisor is the owner, in an OpenCode session (`.bive/prompts/SUPERVISOR.md`).
+- The supervisor's session (an OpenCode session) is started with: "You are the supervisor of bive. Read
   AGENTS.md, HANDOFF.md, ROADMAP.md, then .bive/prompts/SUPERVISOR.md: it is your prompt. You merge pull requests
   into bived with `gh pr merge --merge --match-head-commit <sha>` once the coordinator has approved them, I have
-  applied the dated label and `bive-merge-gate / merge-gate` is green; you start the coordinators (at most two, one per
+  applied the dated label and `bive-merge-gate / merge-gate` is green; you start the coordinators (at most as many as
+  the runners able to take the fast checks, never more than two, one per
   milestone) and arbitrate shared files; you never brief, review line by line, or write code."
 
 ## Decisions
 
+- **No stacked pull requests for now (owner, 2026-11-12, #128)**: each issue branch starts from the integration base
+  (#73); revisit if conflicts stay frequent.
+- **Skill provisioning contract accepted (owner, 2026-11-12, #132)**: D1–D10 of `docs/SKILL-PROVISIONING.md` §10 as
+  recommended (JSON manifest, explicit role lists, verify in place locally, hard failure, fail on conflicts, deny
+  non-role skills, per-skill hash with a source revision, report as file and system message, 1 MiB catalog cap).
 - **Inspect before delegating (owner, 2026-11-10)**: the supervisor reads (or has read and reported) the open issues,
   rules and existing files of the repository concerned before delegating, cites them in the brief, and announces work
   as ready only after checking it against them (`.bive/prompts/SUPERVISOR.md`).
@@ -59,12 +61,14 @@ the template that a role or a human does not read during a task.
   merge: the owner applies `bive-merge-authorized-until-YYYY-MM-DD` to one approved pull request, and the supervisor
   merges it once the gate is green, pinned to its head (`--match-head-commit`). Red before the label means waiting
   for the owner. Branch protection requiring the gate and `bive-tests / tests` is the owner's, in GitHub (#85).
-- **Several coordinators (owner, 2026-11-09)**: one coordinator per milestone branch, at most two at once, each in its
-  own clone, started by the supervisor with the launch prompt below (milestone, branch and model filled in) and logged
-  here. Each approves only pull requests based on its branch; the gate covers `bived` and `milestone/<name>`. At gate 1
-  each milestone lists its files and the supervisor arbitrates overlaps (one writer or an order, see #72); at most one
-  open `coordinator` pull request on the inviolable files at a time (#88).
-- **A supervisor may be an agent (owner, 2026-11-09)**: a person with their own Claude project, or an agent that passed
+- **Several coordinators (owner, 2026-11-09)**: one coordinator per milestone branch, at most as many as the runners
+  able to take the fast checks (and never more than two), each in its own clone, started by the supervisor with the
+  launch prompt below (milestone, branch and model filled in) and logged here. Each coordinator keeps at most one CI
+  run in flight (a new push waits for the previous run). Each approves only pull requests based on its branch; the
+  gate covers `bived` and `milestone/<name>`. At gate 1 each milestone lists its files and the supervisor arbitrates
+  overlaps (one writer or an order, see #72); at most one open `coordinator` pull request on the inviolable files at a
+  time (#88).
+- **A supervisor may be an agent (owner, 2026-11-09)**: a person in their own OpenCode session, or an agent that passed
   the owner-administered test of `.bive/templates/supervisor-test.md` (every trap refused, the right pull request
   merged); the pass is logged here per model and version.
 - **Promotion only from bench (owner, 2026-11-10)**: an agent is promoted to a role (supervisor today, coordinator
@@ -114,21 +118,19 @@ the template that a role or a human does not read during a task.
 
 ## Tasks
 
-ROADMAP.md › 0.1 is done (2026-11-10, #80; field report #110). bivedream is no longer frozen: its first epic gets
-the next milestone number (0.2) when it starts. GitHub issues are the source of truth once the coordinator has split
-them. Open work at the handoff of 2026-11-10 (night), in order:
+ROADMAP.md › 0.1 is done (2026-11-10, #80). The backlog of 2026-11-12 is closed except two issues. Open work, in order:
 
-1. **Owner**: close #74 (superseded by #78). Deploy the registry Worker from bived-apps/registry when wanted (Watch out).
-2. **Field report #110**: seven manual steps of the first project's run; the coordinator splits the ones worth a
-   change into issues. The largest is one GitHub account for every role (#86): the coordinator's "Ready to merge"
-   was refused by the machine's own agent safety check as self-approval, so that run was merged with no written
-   hand-over.
-3. **Supervisor test v2, in bived-apps/bench**: issue bench#1 (harder test, scoring on the rule cited); the three
-   draws of v1 are recorded in bench (none qualified). Promotion only from bench (Decisions). Until a model passes,
-   only the owner (or a person) supervises.
-4. **Coordinator qualification test**: wanted by the owner, not written yet; its author must not be a candidate.
-5. **Two coordinators at once (#88)**: written, not yet run; log the first parallel run here.
-6. **bivedream → 0.2**: the owner picks the first epic.
+1. **Gate 1 for 0.2 — Delegates as sessions** (owner chose it, 2026-11-12): validate the split in ROADMAP › 0.2; then
+   the coordinator files the issues and runs part 0 first.
+2. **#120, who merges before a bench pass**: the owner will be asked again later; nothing recorded in the rules.
+3. **#110, remark 6**: whether the gate should require a coordinator hand-over before the label counts; weak while one
+   GitHub account serves every role (#130 only refuses Bot/App actors; no App exists yet).
+4. **Registry**: Bive is project #1 once it has 3 sessions on 2 days (4 sessions on 2026-11-12; the second day is
+   2026-11-13). Check `https://bived-apps.github.io/registry/` then.
+5. **Models**: `opencode/beam-free`, `flint-40b-free` and `nemotron-3.5-lightning-free` hit their free usage limit on
+   2026-11-12; `opencode/big-pickle` still answered (owner: lean on it).
+6. **Supervisor test v2, in bived-apps/bench** (bench#1): none qualified; until a model passes, only the owner (or a
+   person) supervises. **Coordinator qualification test**: wanted, not written.
 
 ## Watch out
 
@@ -149,11 +151,11 @@ them. Open work at the handoff of 2026-11-10 (night), in order:
   files of its worktree through the shell, as allowed. So the guard binds delegates, not the coordinator: the nested
   `.worktrees/issue-<n>` layout remains the supported workflow, and an outside worktree is the coordinator's mistake,
   not a delegate's escape.
-- The registry's Worker is not reachable (2026-11-10): `bive-registry.jcherfils.workers.dev` has no DNS record, so a
-  session with `BIVE_REGISTRY=on` loads the plugins and fills `.bive/state/tokens.jsonl` but sends nothing. The Worker
-  now lives in bived-apps/registry (`4b86b1c`): deploy it from there (`npx wrangler deploy`, on a machine logged into
-  the owner's Cloudflare account; the Mac's wrangler login of 2026-11-08 may have expired) and set `REGISTRY_URL` in
-  `.opencode/plugins/token-ratio/index.ts` to the URL it prints. Not part of 0.1's criterion.
+- The registry's Worker is live (owner, 2026-11-12): `https://bive-registry.bive.workers.dev`, deployed from
+  bived-apps/registry; `REGISTRY_URL` in `.opencode/plugins/token-ratio/index.ts` points at it. The public page is
+  served from bived-apps/registry on GitHub Pages (`https://bived-apps.github.io/registry/`, owner, 2026-11-12);
+  Pages is off on this repository. Open: the page fetches `/v1/stats` with a relative path, which 404s on github.io;
+  it must use the Worker's absolute URL (CORS is open), a one-line fix in bived-apps/registry.
 - The guard knows a delegate by `BIVE_ROLE=delegate`, a session directory `.worktrees/issue-<n>`, or the role file
   `.bive/state/role` (#36). A delegate run as a child session or on the shared OpenCode server carries no variable
   (#21); in the coordinator's session, writes and shell `workdir` under `.worktrees/issue-<n>/` are then checked as
@@ -187,6 +189,20 @@ them. Open work at the handoff of 2026-11-10 (night), in order:
 
 ## Session log
 
+- **2026-11-12, coordinator opencode/beam-free — backlog closed, registry live**: ~45 issues solved in one day:
+  epic #132 (skills) with its seven slices, the merge gate (#114, #115, #129, #130), guard refusals (#146–#148), the
+  self-hosted CI rules (#116, #121–#124, #126), one source for the rules (#117–#119, #125, #127, #131), #69, #72, #73,
+  #75, then the field report #110 (triage by a delegate, five follow-ups). The owner deployed the Worker; the plugin
+  reported nothing until #183 (OpenCode 2.2.5 runs emit `session.execution.succeeded`, not `session.idle`; found with
+  a local sink via `BIVE_REGISTRY_URL`), and a long-running app keeps the old plugin in memory until restarted.
+  PRs that conflicted after other merges were redone on a fresh branch from `origin/bived` (#170 → #176).
+- **2026-11-12, coordinator opencode/beam-free — epic #132 batch (Bive-managed skill provisioning)**: delegates #136
+  (local), #138 (remote), #140 (report delivery), #142 (role permissions) and #144 (catalog source) implemented the
+  slices of epic #132 on `lib/skill-provisioning.ts` (plus re-exports and the permission helpers); the coordinator
+  opened PRs #137, #139, #141, #143, #145 from the delegates' reports (report sections filled, first line `Closes #N`),
+  watched the checks, the owner applied the dated label `bive-merge-authorized-until-2026-11-12`, the gate went green,
+  the supervisor merged each PR with a merge commit and the coordinator closed #136, #138, #140, #142, #144. Core
+  checks once after the last merge: `node --test tests/*.test.ts` 46/46 pass, both Bive plugins listed.
 - **2026-11-10, coordinator anthropic/claude-opus-5-5 — 0.1 closed**: #106 (promotion only from bench), #107 (#16's
   live checks), #108 (registry and help to bived-apps/registry, `4b86b1c`), then #80 on the owner's first project:
   its PR #979 brought Bive `d8cccb9`, and one issue ran the whole flow on machine A with OpenCode 2.2.5 (the first
