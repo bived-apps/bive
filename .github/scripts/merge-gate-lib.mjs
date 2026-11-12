@@ -12,7 +12,7 @@ const REQUIRED_CHECKS = [
   { workflow: "bive-inviolable", name: "check" },
 ]
 
-function validateDatedLabel(label, prefix, { now, appliedAt, appliedBy, owner }) {
+function validateDatedLabel(label, prefix, { now, appliedAt, appliedBy, owner, actorType, performedViaApp }) {
   const match = new RegExp(`^${prefix}(\\d{4}-\\d{2}-\\d{2})$`).exec(label)
   if (!match) return { ok: false, reason: `${prefix} label must end in YYYY-MM-DD` }
   const labelDate = match[1]
@@ -41,12 +41,21 @@ function validateDatedLabel(label, prefix, { now, appliedAt, appliedBy, owner })
     }
   }
 
+  // Issue #130: an agent acting under a GitHub App must never be the actor of a
+  // dated authorization/override label. Refuse when the labeled event's actor is
+  // a Bot or was performed via a GitHub App, so the owner's identity stays distinct.
+  if (actorType === "Bot" || performedViaApp) {
+    return { ok: false, reason: `${prefix} label was applied by an agent (Bot or GitHub App), not the owner` }
+  }
+
   return { ok: true }
 }
 
 export function validateMergeAuthorization({ labels = [], baseRef, now = Date.now(),
   labelAppliedAt = null, labelAppliedBy = null, owner = null,
-  overrideAppliedAt = null, overrideAppliedBy = null, overrideOwner = null }) {
+  labelActorType = null, labelPerformedViaApp = null,
+  overrideAppliedAt = null, overrideAppliedBy = null, overrideOwner = null,
+  overrideActorType = null, overridePerformedViaApp = null }) {
   if (!isIntegrationBranch(baseRef)) {
     return { ok: false, reason: "merge gate only authorizes pull requests targeting bived or milestone/<name>" }
   }
@@ -54,14 +63,16 @@ export function validateMergeAuthorization({ labels = [], baseRef, now = Date.no
   if (matches.length !== 1) return { ok: false, reason: "exactly one dated merge-authorization label is required" }
 
   const result = validateDatedLabel(matches[0], AUTHORIZATION_LABEL_PREFIX, {
-    now, appliedAt: labelAppliedAt, appliedBy: labelAppliedBy, owner })
+    now, appliedAt: labelAppliedAt, appliedBy: labelAppliedBy, owner,
+    actorType: labelActorType, performedViaApp: labelPerformedViaApp })
   if (!result.ok) return result
 
   const overrides = labels.filter((label) => label.startsWith(OVERRIDE_LABEL_PREFIX))
   if (overrides.length > 1) return { ok: false, reason: "at most one owner-override label is allowed" }
   if (overrides.length === 1) {
     const oResult = validateDatedLabel(overrides[0], OVERRIDE_LABEL_PREFIX, {
-      now, appliedAt: overrideAppliedAt, appliedBy: overrideAppliedBy, owner: overrideOwner })
+      now, appliedAt: overrideAppliedAt, appliedBy: overrideAppliedBy, owner: overrideOwner,
+      actorType: overrideActorType, performedViaApp: overridePerformedViaApp })
     if (!oResult.ok) return oResult
   }
 
@@ -74,10 +85,14 @@ function isRedBucket(bucket) {
 
 export function evaluateMergeGate({ labels = [], baseRef, checks = [], now = Date.now(),
   labelAppliedAt = null, labelAppliedBy = null, owner = null,
-  overrideAppliedAt = null, overrideAppliedBy = null, overrideOwner = null }) {
+  labelActorType = null, labelPerformedViaApp = null,
+  overrideAppliedAt = null, overrideAppliedBy = null, overrideOwner = null,
+  overrideActorType = null, overridePerformedViaApp = null }) {
   const override = labels.some((l) => l.startsWith(OVERRIDE_LABEL_PREFIX))
   const grant = validateMergeAuthorization({ labels, baseRef, now, labelAppliedAt, labelAppliedBy, owner,
-    overrideAppliedAt, overrideAppliedBy, overrideOwner })
+    labelActorType, labelPerformedViaApp,
+    overrideAppliedAt, overrideAppliedBy, overrideOwner,
+    overrideActorType, overridePerformedViaApp })
   if (!grant.ok) return grant
 
   const coordinator = labels.includes("coordinator")
