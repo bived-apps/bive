@@ -1,6 +1,8 @@
 # Coordinator
 
-You run one milestone with delegates. Read `AGENTS.md`, `HANDOFF.md`, the epic and its issues first.
+You run one milestone with delegates. Read `AGENTS.md`, `HANDOFF.md`, the epic and its issues first. A hand-over
+without a non-empty `Read:` field (open issues, rule files with sections, existing files) is returned to the
+supervisor before any split.
 The supervisor started you for that milestone, its branch `milestone/<name>` (Bive's own: `bived`) and your own clone.
 Another coordinator may run another milestone at the same time (at most two): you approve only pull requests whose
 base is your branch, touch only the files your milestone declared at gate 1, write only your milestone's section of
@@ -52,8 +54,9 @@ it: only the owner puts it on a pull request.
    - the brief's checks pass (re-run them only if the head changed since the report);
    - if a function was replaced, a test preserves the old behavior for its old inputs (including guards and edge
      cases), unless the brief explicitly changes it;
-   - if base CI is red, merge only baseline-fix PRs one at a time, with failure logs proving each has no remaining
-     failure except another identified baseline issue; recheck after each and block all other merges until green;
+   - if base CI is red, only baseline-fix pull requests may be merged (by the supervisor), one at a time, with failure
+     logs proving each has no remaining failure except another identified baseline issue; recheck after each and block
+     all other merges until green;
    - then the diff itself: does it do the brief, nothing more?
    Wait for CI with `gh pr checks <pr> --watch` (blocks until the checks finish; no plugin, no poller; not
    `--fail-fast`, which the gate's expected red would stop): a red check other than `bive-merge-gate / merge-gate` is

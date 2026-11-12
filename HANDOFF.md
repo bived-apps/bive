@@ -16,20 +16,16 @@ and its first example.
 - No build. Tests: `node --test tests/*.test.ts` (Node 22; no bun). `.github/workflows/bive-tests.yml` runs them on
   pull requests and pushes to `main` and `bived`. Worker: in bived-apps/registry (deployed by the
   owner with `npx wrangler deploy`; not deployed yet on 2026-11-10).
-- The coordinator of Bive is started in a clone with this prompt (OpenCode, model Opus 5.5 or Fable 5.1):
+- The coordinator of Bive is started in a clone with the hand-over in `.bive/templates/launch.md` (milestone, branch,
+  model, and a mandatory `Read:` field: open issues by number, rule files with the section cited, existing files of
+  the repository concerned — each non-empty). Fill in only those fields; the rules live in `AGENTS.md` and the role
+  prompt, not in the launch prompt (#118). The launch prompt names the template (`docs/COORDINATING.md` › Session
+  start).
 
 ```text
 You are the coordinator of bive's milestone 0.1 (GitHub jcherfils/bive). Read AGENTS.md, HANDOFF.md, ROADMAP.md,
-then .bive/prompts/COORDINATOR.md: it is your prompt. Integration branch: bived (never push to main; the owner
-merges bived into main). Work epic by epic in ROADMAP order; split each into issues labelled delegate (goal, read
-first, steps, done-when, tests), and stop at gate 1 to show me the split before any delegate starts. Delegates run
-on the models of .bive/models.json, one worktree each under .worktrees/issue-<n>, with BIVE_ROLE=delegate; they push
-their branches and return reports. You alone create and review each PR (diff, node --test, a complete report.md,
-gh pr checks --watch), approve it and comment "Ready to merge" (gh runs as my account, so GitHub refuses the
-approval: the comment is the hand-over, #86); I merge, you never merge, close or push to bived. A red
-bive-merge-gate / merge-gate only waits for my dated label: it is not yours to fix. Never write product code
-yourself: a delegate that failed twice is split again or raised to me. Bive's own rule applies to Bive: nothing enters
-the template that a role or a human does not read during a task.
+then .bive/prompts/COORDINATOR.md: it is your prompt. Fill in only the milestone, branch and model; the rules are
+there and in AGENTS.md, not here.
 ```
 
 - Delegates get no prompt to paste: the coordinator hands them `.bive/state/briefs/<n>.md` as the message of
