@@ -72,6 +72,21 @@ These run on GitHub and appear as commit statuses on a pull request.
   label dated the day of the merge, and the supervisor merges that day with `gh pr merge --merge
   --match-head-commit <sha>`, so a push after the gate's run refuses the merge.
 
+## Failure categories (issue #127)
+
+A failing check belongs to one of three categories, each with one action:
+
+- **Base (red base)**: the failure reproduces on the base branch without the pull request. Action: merge only
+  baseline-fix pull requests one at a time, with failure logs proving each has no remaining failure except another
+  identified baseline issue; recheck after each and block all other merges until green.
+- **Pull request**: the failure reproduces on the pull request's head and is caused by its change. Action: the pull
+  request's fault — brief the delegate again or split.
+- **Non-deterministic**: the failure does not reproduce on one re-run with the same inputs (same seed, positions,
+  inputs). Action: open (or comment on) an issue `Flaky: <test>` with the run links and the seed/positions/inputs
+  needed to reproduce it, and stop retrying; at most one re-run per failure. The supervisor never merges past it
+  without that issue and a green run on the head. Skipping or quarantining a test is forbidden; retrying in a loop
+  is forbidden.
+
 ## Branch protection (owner, in GitHub's settings)
 
 The workflows report checks; they do not make GitHub enforce them. For the gate to block GitHub's merge button and
