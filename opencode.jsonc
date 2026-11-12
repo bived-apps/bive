@@ -19,6 +19,20 @@
       "description": "Bive delegate: one issue, one worktree; pushes its branch and reports to the coordinator.",
       "mode": "primary",
       "system": "{file:./.bive/prompts/DELEGATE.md}"
+    },
+    // The coordinator's agent (0.2 part 1, #187): COORDINATOR.md is its system prompt. Agent rules are appended after
+    // the global ones (last match wins), so the two rules below lift the global external_directory deny for the
+    // delegates' worktrees only (the resource is the canonical absolute path, hence the leading `*`); the coordinator
+    // can then run commands and read there without `cd ..` being refused. It gets no edit rule: it never writes
+    // product code, and the guard plugin still refuses its writes outside its own worktree.
+    "coordinator": {
+      "description": "Bive coordinator: splits, briefs, starts delegates, reviews pull requests; never merges or writes product code.",
+      "mode": "primary",
+      "system": "{file:./.bive/prompts/COORDINATOR.md}",
+      "permissions": [
+        {"action": "external_directory", "resource": "*/.worktrees/issue-*", "effect": "allow"},
+        {"action": "external_directory", "resource": "*/.worktrees/issue-*/*", "effect": "allow"}
+      ]
     }
   },
 
