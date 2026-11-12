@@ -117,7 +117,31 @@ describe("shell, delegate", () => {
     assert.throws(shell(delegate, "sed -i 's/a/b/' opencode.jsonc"), /inviolable/)
   })
   test("a pipe is refused as invalid-structure", () => {
-    refused(shell(delegate, "git status | grep foo"), /invalid-structure/)
+    refused(shell(delegate, "git status | xargs rm"), /invalid-structure/)
+  })
+  test("read-only filters at the end of a statement pass (#204)", () => {
+    passes(shell(delegate, "node --test tests/a.test.ts 2>&1 | tail -15"))
+    passes(shell(delegate, "git log --oneline | head -n 5"))
+    passes(shell(delegate, "git status | grep foo"))
+    passes(shell(delegate, 'node --test tests/*.test.ts 2>&1 | grep -E "^# (pass|fail)"'))
+    passes(shell(delegate, "node --test a 2>&1 | tail -5; node --test b | tail -n 3"))
+    passes(shell(delegate, "git log | grep -i fix | tail -3"))
+    passes(shell(delegate, "git status | tail -n 3 && git diff --stat"))
+  })
+  test("anything else after a pipe, or a filter with a file or an expansion, is still refused (#204)", () => {
+    refused(shell(delegate, "git status | tail -n 3 /etc/passwd"), /invalid-structure|outside/)
+    refused(shell(delegate, "git status | grep foo AGENTS.md"), /invalid-structure/)
+    refused(shell(delegate, "git status | grep $(cat x)"), /invalid-structure/)
+    refused(shell(delegate, 'git status | grep "$(cat x)"'), /invalid-structure/)
+    refused(shell(delegate, "git status | grep `cat x`"), /invalid-structure/)
+    refused(shell(delegate, "git status | tail | sh"), /invalid-structure/)
+    refused(shell(delegate, "cat a | tee b"), /invalid-structure/)
+    refused(shell(delegate, "git status | head -n 3 > ../x"), /outside/)
+    refused(shell(delegate, "echo $(cat /etc/passwd) | tail -1"), /invalid-structure/)
+  })
+  test("a coordinator keeps its pipes (the filters matter to delegates only)", () => {
+    const c = makeGuard({ root: main, delegate: false })
+    passes(shell(c, "git status | xargs echo"))
   })
   test("command substitution is refused as invalid-structure", () => {
     refused(shell(delegate, "echo $(cat /etc/passwd)"), /invalid-structure/)
@@ -189,6 +213,6 @@ describe("delegate detection (child sessions inherit the coordinator's environme
 
 describe("violations", () => {
   test("every refusal above was counted", () => {
-    assert.equal(violations(), 39)      // every `refused(...)` call above contributes one violation
+    assert.equal(violations(), 48)      // every `refused(...)` call above contributes one violation
   })
 })
