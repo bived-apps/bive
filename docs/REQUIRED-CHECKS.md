@@ -125,6 +125,21 @@ where the dependency is absent, never passes. The fast tier runs no marked test.
   marker shows instead of a silent green.
 - **Project rules**: `AGENTS.md` › Project rules lists the project's markers and, for each, the runner label that
   provides it.
+## Self-hosted runner, workflow changes (issue #123)
+
+On a self-hosted runner, a `pull_request` run executes the workflow files of the pull request's head. A branch that
+edits a workflow therefore runs that edit on the owner's machine at once. The rule:
+
+- Any change under `.github/workflows/` (or any script a workflow runs from the head) needs the owner's explicit
+  agreement before its first run.
+- A pull request that edits a workflow runs only on hosted runners until the owner agrees.
+- Jobs on self-hosted runners run from `pull_request_target` with the base's workflow (the safe pattern, already in
+  Bive's `bive-merge-gate`), or are gated by a GitHub environment with the owner as required reviewer.
+- GitHub's "require approval to run workflows" setting applies to pull requests from forks, not to branches of the
+  same repository, where every agent pushes; list the project's workflows on self-hosted runners in the project rules
+  (`AGENTS.md` › Project rules).
+- The coordinator's review names any diff under `.github/workflows/` and raises it to the owner; the supervisor's
+  review design includes it.
 
 ## Branch protection (owner, in GitHub's settings)
 

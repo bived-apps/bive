@@ -118,6 +118,12 @@ Nothing enters the template that is not read by one of the three roles, or by a 
 - **GitHub PR merge methods (owner, 2026-11-09)**: `merge` only. The desired repository setting, not an automatic
   one: the owner keeps Settings → General → Pull Requests aligned (squash and rebase off), so that a merge keeps
   each delegate's commits under its name.
+- **Self-hosted runner, workflow changes (owner, 2026-11-12)**: on a self-hosted runner, any change under
+  `.github/workflows/` (or any script a workflow runs from the head) needs the owner's explicit agreement before its
+  first run. A pull request that edits a workflow runs only on hosted runners until the owner agrees; jobs on
+  self-hosted runners run from `pull_request_target` with the base's workflow, or are gated by a GitHub environment
+  with the owner as required reviewer. GitHub's "require approval to run workflows" applies to forks, not to branches
+  of the same repository, where every agent pushes.
 
 ## Before committing
 
