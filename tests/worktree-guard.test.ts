@@ -153,6 +153,22 @@ describe("delegate detection (child sessions inherit the coordinator's environme
     assert.equal(isDelegate(main, undefined, undefined), false)
     assert.equal(isDelegate(path.join(main, ".worktrees", "issue-12x"), "coordinator", "coordinator"), false)
   })
+  test("the session's agent makes a delegate too (0.2 part 2): no BIVE_ROLE, a worktree not named issue-<n>", () => {
+    const odd = path.join(main, ".worktrees", "task-a")
+    assert.equal(isDelegate(odd, undefined, undefined, "delegate"), true)
+    assert.equal(isDelegate(odd, undefined, undefined, "coordinator"), false)
+    assert.equal(isDelegate(odd, undefined, undefined, undefined), false)
+    assert.equal(isDelegate(odd, undefined, undefined, "build"), false)
+    // the old rules still hold whatever the agent says
+    assert.equal(isDelegate(main, "delegate", undefined, "coordinator"), true)
+    assert.equal(isDelegate(path.join(main, ".worktrees", "issue-12"), undefined, undefined, "coordinator"), true)
+  })
+  test("a delegate-agent guard refuses the inviolable files and outside paths in a worktree not named issue-<n>", () => {
+    const d = makeGuard({ root: path.join(main, ".worktrees", "task-a"), delegate: true })
+    refused(write(d, "AGENTS.md"), /inviolable/)
+    refused(shell(d, "cat ../../a.py"), /outside/)
+    passes(write(d, "src/a.py"))
+  })
   test("a coordinator's session checks what lands in .worktrees/issue-<n>/ as that delegate's", () => {
     const c = makeGuard({ root: main, delegate: false })
     const nested = path.join(main, ".worktrees", "issue-12")
@@ -173,6 +189,6 @@ describe("delegate detection (child sessions inherit the coordinator's environme
 
 describe("violations", () => {
   test("every refusal above was counted", () => {
-    assert.equal(violations(), 37)      // every `refused(...)` call above contributes one violation
+    assert.equal(violations(), 39)      // every `refused(...)` call above contributes one violation
   })
 })
