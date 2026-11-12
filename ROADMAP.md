@@ -78,14 +78,16 @@ group, so no two milestones' PRs collide):
     `gh`; no file crosses machines and the guard stays strict.
 - **Gate track** (inviolable `bive-*` workflows and `.github/scripts`; own PRs, self-hosted runner rule applies):
   - #198 `bive-inviolable` passes when an inviolable file is byte-identical to the default branch (a sync).
-  - #200 a project declares which checks may be skipped, instead of "skipped is red" everywhere. **Owner decision**:
-    where the list lives (`.bive/` file or the label's rules) and Bive's own default.
+  - #200 a project declares which checks may be skipped, instead of "skipped is red" everywhere. **Owner decision, 2026-11-12:
+    `.bive/gate.json`**, an inviolable file with `skippable: [check names]`; Bive's own list is empty, so Bive stays
+    strict.
 - **Prompt and doc track** (coordinator PRs; with part 5 so `COORDINATOR.md` and `COORDINATING.md` change once):
   - #201 the hard stop on a refusal in `COORDINATOR.md`, or the stated reason a coordinator may rephrase and how it
     reports; part 1 removes the `cd ..` refusal, not the rule.
   - #203 ordered fallbacks per role in `.bive/models.json` and a minimum capability for the coordinator role in
-    `docs/PROVIDERS.md`; the switching code is part 4, the file format and the prompt are here. **Owner decision**:
-    what the minimum is.
+    `docs/PROVIDERS.md`; the switching code is part 4, the file format and the prompt are here. **Owner decision, 2026-11-12:
+    a published bench pass** on the milestone-run case is the minimum; until one exists the owner names the allowed
+    coordinator models in `.bive/models.json`.
   - #199 an update procedure for installed projects (read-only diff, then one coordinator PR; never copy
     `.bive/registry-id`; keep `opencode.jsonc`, `.bive/prompts/project/` and the project's gate adaptations).
 

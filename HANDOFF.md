@@ -122,8 +122,8 @@ ROADMAP.md › 0.1 is done (2026-11-10, #80). The backlog of 2026-11-12 is close
 
 1. **0.2 — Delegates as sessions** (owner chose it, 2026-11-12; part 0 done; issues #187–#192 are parts 1–6, #196 is
    part 1 in review). The second batch (#197–#204, a field report of that evening) is in the same milestone and
-   sequenced with the parts: ROADMAP › 0.2 › *Second batch*. Owner decisions waiting there: #202 (launch brief place),
-   #200 (where the skippable checks are listed), #203 (minimum capability of a coordinator).
+   sequenced with the parts: ROADMAP › 0.2 › *Second batch*. Owner decisions of 2026-11-12: #202 launch brief = a GitHub comment;
+   #200 skippable checks = `.bive/gate.json`, Bive strict; #203 coordinator minimum = a published bench pass.
 2. **#120, who merges before a bench pass**: the owner will be asked again later; nothing recorded in the rules.
 3. **#110, remark 6**: whether the gate should require a coordinator hand-over before the label counts; weak while one
    GitHub account serves every role (#130 only refuses Bot/App actors; no App exists yet).
