@@ -78,6 +78,16 @@ function withoutHeredocBodies(command: string): string {
   return syntax.join("\n")
 }
 const WORD = /(?:[^\s"'=;&|()<>]|\\ )+/g              // a shell word; `=` splits `--out=/x` into its value
+// Shell constructs the portable scanner cannot safely parse: it cannot determine which paths such a command
+// touches, so it refuses rather than risk missing an escape. Keep the hard stop; the message names the construct
+// and does not suggest retrying by rewriting the command.
+const UNPARSEABLE = [
+  { re: /(?<!\|)\|(?!\|)/, name: "pipe (|)" },
+  { re: /\$\(/, name: "command substitution ($(...))" },
+  { re: /`/, name: "command substitution (backticks)" },
+  { re: /<\(/, name: "process substitution (<(...))" },
+  { re: /(?<![<>])>\(/, name: "process substitution (>(...))" },
+]
 const PATCH_FILE = /^\*\*\* (?:Add|Update|Delete) File: (.+)$|^\*\*\* Move to: (.+)$/gm
 
 // Each refusal is a violation: counted in this process for the token-ratio plugin, which reports the count to the registry.
@@ -173,6 +183,14 @@ export function makeGuard(options: GuardOptions): Check {
       const shellSyntax = withoutHeredocBodies(cmd)
       const redirected = [...shellSyntax.matchAll(REDIRECT)].map((m) => m[1])
       for (const t of redirected) if (!inside(t) && !system(t)) refuse(t)
+      // A delegate: the portable scanner cannot safely parse pipes, command substitution or process substitution,
+      // so it refuses them rather than risk missing a path escape. The message names the construct and does not
+      // suggest retrying by rewriting the command (issue #148).
+      if (delegate) {
+        const hit = UNPARSEABLE.find((u) => u.re.test(shellSyntax))
+        if (hit) violation(`worktree-guard: invalid-structure: ${hit.name} cannot be safely parsed by the portable `
+          + "shell scanner, so the guard cannot verify which paths this command touches; it is refused.")
+      }
       // A delegate: no path outside its worktree at all, read or write, but the system prefixes.
       if (delegate) for (const w of pathWords(shellSyntax)) if (!inside(w) && !system(w)) refuse(w)
       if (delegate) {
