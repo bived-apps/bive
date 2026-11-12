@@ -129,6 +129,9 @@ them. Open work at the handoff of 2026-11-10 (night), in order:
 4. **Coordinator qualification test**: wanted by the owner, not written yet; its author must not be a candidate.
 5. **Two coordinators at once (#88)**: written, not yet run; log the first parallel run here.
 6. **bivedream → 0.2**: the owner picks the first epic.
+7. **Epic #132 — project-scoped OpenCode skills by Bive role** (2026-11-12): implementation slices merged (#136 local
+   PR #137, #138 remote PR #139, #140 delivery PR #141, #142 permissions PR #143, #144 catalog PR #145); open: activation
+   of provisioning into managed sessions, owner decisions D1–D10 pending.
 
 ## Watch out
 
@@ -187,6 +190,13 @@ them. Open work at the handoff of 2026-11-10 (night), in order:
 
 ## Session log
 
+- **2026-11-12, coordinator opencode/beam-free — epic #132 batch (Bive-managed skill provisioning)**: delegates #136
+  (local), #138 (remote), #140 (report delivery), #142 (role permissions) and #144 (catalog source) implemented the
+  slices of epic #132 on `lib/skill-provisioning.ts` (plus re-exports and the permission helpers); the coordinator
+  opened PRs #137, #139, #141, #143, #145 from the delegates' reports (report sections filled, first line `Closes #N`),
+  watched the checks, the owner applied the dated label `bive-merge-authorized-until-2026-11-12`, the gate went green,
+  the supervisor merged each PR with a merge commit and the coordinator closed #136, #138, #140, #142, #144. Core
+  checks once after the last merge: `node --test tests/*.test.ts` 46/46 pass, both Bive plugins listed.
 - **2026-11-10, coordinator anthropic/claude-opus-5-5 — 0.1 closed**: #106 (promotion only from bench), #107 (#16's
   live checks), #108 (registry and help to bived-apps/registry, `4b86b1c`), then #80 on the owner's first project:
   its PR #979 brought Bive `d8cccb9`, and one issue ran the whole flow on machine A with OpenCode 2.2.5 (the first
