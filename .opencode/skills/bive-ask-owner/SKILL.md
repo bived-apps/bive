@@ -5,7 +5,7 @@ description: How a Bive role asks the owner a yes/no/other question: the premade
 
 # Asking the owner
 
-The owner answers three kinds of reply: **yes**, **no**, **other** (free text). Make every question answerable in one
+The owner answers one of four ways: **yes**, **no**, **other** (free text) or **coordinator** ("you decide"). Make every question answerable in one
 line. The block to fill is `.bive/templates/question.md`.
 
 ## The ladder: nobody skips a rung
@@ -14,7 +14,7 @@ line. The block to fill is `.bive/templates/question.md`.
 |---|---|---|
 | **Delegate** | Writes each question as a filled block under `**Left**` of its report (or in its final commit body), says what it will assume meanwhile only if *Reversible* is yes, then **stops that part**. | Asks the owner, opens an issue, comments on a pull request, or guesses on something irreversible. |
 | **Coordinator** | Collects the delegates' blocks, answers what the rules already answer (cite `AGENTS.md` / prompt section instead of asking), merges duplicates, and asks the rest in **one batch**. | Sends the owner the same question twice, or a question a rule answers. |
-| **Supervisor / owner** | Answers `Q<n> yes`, `Q<n> no` or `Q<n> other: <text>`. | |
+| **Supervisor / owner** | Answers `Q<n> yes`, `Q<n> no`, `Q<n> other: <text>` or `Q<n> coordinator`. | |
 
 A delegate's report is the only channel from a delegate; the coordinator is the only one who talks to the owner.
 
@@ -35,6 +35,14 @@ A delegate's report is the only channel from a delegate; the coordinator is the 
   "Answer with one line per question."
 - Batch at the end of a part or when a delegate is blocked, not one by one. More than 5 in a batch means the split was
   wrong: raise that instead.
+
+## When the owner answers "coordinator"
+
+The coordinator decides, says so on the issue (`Owner, <date>: Q2 coordinator; decided yes because ...`) and takes the
+responsibility. It may not take over a decision about a merge, a dated label, a gate (the split, a delegate that
+failed twice, the pull request to `main`), or a change to `AGENTS.md` or a role prompt: those go back to the owner as
+a plain yes/no. If the question was marked not reversible, the coordinator repeats it once with its recommendation
+rather than deciding.
 
 ## Recording the answer
 
