@@ -78,6 +78,10 @@ Generic, whatever the language (owner, 2026-11-08, taken from the practice of th
   plugin refuses these writes (each refusal counts as a violation in the registry) and the `bive-inviolable` check
   fails any `issue/*` pull request that touches them, unless it carries the label `coordinator`: the coordinator's
   own pull requests, the only ones that may change these files (only the coordinator sets that label).
+- **Immediate rule, before the App exists** (issue #130): every GitHub action an agent takes other than pushing its
+  own branch (a comment, a label, a branch update, a re-run, a review) is preceded or carried by a comment signed
+  with its role and model (`— <role> <provider/model>`), and an agent never acts on a pull request it does not
+  own (another milestone's, another session's). The App, once installed, makes the roles machine-enforceable.
 - **Others complete, never edit, the role prompts**: the supervisor or the coordinator adds to a role in
   `.bive/prompts/project/<ROLE>.md`, which may narrow a rule but never loosen or contradict one; the core prompt wins.
 

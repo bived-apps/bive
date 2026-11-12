@@ -64,6 +64,14 @@ These run on GitHub and appear as commit statuses on a pull request.
   meaningful only once roles hold distinct identities (#110 remark 4); until then the owner's out-of-band decision
   (applying the label at all) is the real authorization. The open question in #114 stands: accept this limitation or
   require a second proof only the owner can give (e.g. a signed or out-of-band token).
+- **Agent identity (issue #130)**: once a GitHub App is installed for the agents, its actions show as
+  `actor.login: "<slug>[bot]"`, `actor.type: "Bot"`, and `performed_via_github_app` set. The gate refuses a dated
+  label (and an override label) whose labeled event has `actor.type: "Bot"` or `performed_via_github_app` set, so an
+  agent can never authorize its own merge. The App's permissions are contents write, pull requests write, issues
+  write, checks read, actions read; no administration, no workflows write. The App cannot merge into `main`: rulesets
+  restrict updates with the owner (repository admin role) as the only bypass. Until the App exists, the immediate
+  rule in `AGENTS.md` applies: every GitHub action an agent takes other than pushing its own branch is preceded or
+  carried by a comment signed with its role and model, and an agent never acts on a pull request it does not own.
 - **Owner override (issue #115)**: an optional label `bive-owner-override-YYYY-MM-DD` (same date rules and actor
   check as the authorization label). With it, the gate passes even when required checks are pending or missing, but
   never when a check is red (failed, cancelled, or otherwise non-pass). The override is the only way to merge past a
