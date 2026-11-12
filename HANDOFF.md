@@ -42,6 +42,11 @@ there and in AGENTS.md, not here.
 
 ## Decisions
 
+- **No stacked pull requests for now (owner, 2026-11-12, #128)**: each issue branch starts from the integration base
+  (#73); revisit if conflicts stay frequent.
+- **Skill provisioning contract accepted (owner, 2026-11-12, #132)**: D1–D10 of `docs/SKILL-PROVISIONING.md` §10 as
+  recommended (JSON manifest, explicit role lists, verify in place locally, hard failure, fail on conflicts, deny
+  non-role skills, per-skill hash with a source revision, report as file and system message, 1 MiB catalog cap).
 - **Inspect before delegating (owner, 2026-11-10)**: the supervisor reads (or has read and reported) the open issues,
   rules and existing files of the repository concerned before delegating, cites them in the brief, and announces work
   as ready only after checking it against them (`.bive/prompts/SUPERVISOR.md`).
