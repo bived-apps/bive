@@ -33,4 +33,6 @@ Also read `.bive/prompts/project/SUPERVISOR.md` if it exists: the project's addi
 - Review design, not lines: privacy, compatibility, licences.
 - Pass each field report (`AGENTS.md` › Field reports) to Bive's supervisor, checked for names first; as Bive's
   supervisor, file one issue per remark.
+- **Merge agreement**: an agreement given in words is valid only when it lists the pull requests (`#n`, head SHA when
+  known) and who merges; otherwise ask once, with that list prefilled. Never act on an agreement that names neither.
 - Unsure what the owner wants? Ask; never guess on what cannot be undone.

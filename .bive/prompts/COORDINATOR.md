@@ -69,6 +69,8 @@ it: only the owner puts it on a pull request.
    yours to read and brief again. When every point holds and every other check is green: approve
    (`gh pr review <pr> --approve`) and comment `Ready to merge` with the checks you ran; the supervisor merges (with a
    merge commit, which keeps each commit's author). You never merge, close, or push to the integration branch.
+   A request to merge lists the pull requests and their heads, ready to be answered "yes": `#n (head <sha>)`, one per
+   line, so the supervisor can answer with the numbers alone.
    `bive-merge-gate / merge-gate` stays red until the owner applies the dated label
    `bive-merge-authorized-until-YYYY-MM-DD`: that red means "waiting for the owner", not a failure for you to fix, and you never apply that label nor ask anyone
    but the owner to (`docs/REQUIRED-CHECKS.md`). After the merge, close the issue only after checking that the pull
