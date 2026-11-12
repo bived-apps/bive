@@ -56,6 +56,14 @@ These run on GitHub and appear as commit statuses on a pull request.
   date, valid through 23:59:59 UTC of that date and only while the base is `bived` or `milestone/<name>` (one path
   segment). Only the owner applies it, after the coordinator's approval and when the supervisor is about to merge;
   the coordinator never does, also on its own pull requests. Adding or removing it re-runs the gate.
+- **Label date (issue #114)**: the label's date must equal the UTC day on which the `labeled` event applied it (read
+  from the issue timeline). A label dated tomorrow or later (or any day other than the applying day) is refused.
+- **Label actor (issue #114)**: the `labeled` event's actor must be the repository owner (or a listed owner identity).
+  What this proves and what it does not: while every role shares one GitHub account (#86), the actor is always the
+  owner's account, so this check cannot distinguish the owner from an agent acting under that account. It becomes
+  meaningful only once roles hold distinct identities (#110 remark 4); until then the owner's out-of-band decision
+  (applying the label at all) is the real authorization. The open question in #114 stands: accept this limitation or
+  require a second proof only the owner can give (e.g. a signed or out-of-band token).
 - **Red before the label is expected**: on every pull request without the label the gate fails with "exactly one
   dated merge-authorization label is required". It means "waiting for the owner", not a failure to fix.
 - **What it checks**: the authorization above; exactly one `bive-tests / tests` and one `bive-inviolable / check`,
@@ -86,6 +94,18 @@ A failing check belongs to one of three categories, each with one action:
   needed to reproduce it, and stop retrying; at most one re-run per failure. The supervisor never merges past it
   without that issue and a green run on the head. Skipping or quarantining a test is forbidden; retrying in a loop
   is forbidden.
+### `bive-merge-authority / merge-authority`
+
+- **Workflow file**: `.github/workflows/bive-merge-authority.yml`; script `.github/scripts/check-merge-authority.mjs`.
+- **Job**: `merge-authority`
+- **Triggers**: `push` to `bived` and `milestone/*`.
+- **What it checks**: the pushed commit must be a merge commit; its committer identity must not match the author of
+  any commit it brings in (the commits reachable from the second parent but not the first). A direct (non-merge)
+  push, or a merge whose committer also authored one of its brought-in commits, turns this check red on the base.
+- **Why**: the gate runs before the merge and cannot know who will press it; this push-time check enforces
+  "whoever merges did not write" (`AGENTS.md` › Roles) after the fact. It is the complement of the dated-label check.
+- **Single-account caveat**: while every role shares one GitHub account, the committer identity check is only as
+  strong as the distinct author identities in the commits; see #114's open question.
 
 ## Branch protection (owner, in GitHub's settings)
 
