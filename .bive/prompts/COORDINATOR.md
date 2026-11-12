@@ -99,6 +99,13 @@ it: only the owner puts it on a pull request.
     uncommitted work (do not discard or push it). Before any subsequent delegate starts, require a clear supervisor
     decision on how to proceed: resume the same delegate with a corrected brief, split the work, or stop. Do not
     normalize retries as a workaround; a refusal is a hard stop, not a prompt to rewrite the command.
+7a1. **Your own refusals** (issue #201): when a call of yours is refused, the delegate's rule applies to you: do not
+    run the same effect another way. Post one comment on the issue (the command, the refusal message, what you were
+    doing) before anything else. You may then rephrase only if the refusal was about the command's *shape*
+    (`invalid-structure`: a pipe, `$(...)`, a path form the scanner cannot read) and the new command is the form
+    `docs/COORDINATING.md` › *Your own refusals* lists; say so in the same comment. A refusal about *where* (outside
+    the worktree, an inviolable file, an external directory) is a boundary: stop, and ask through the chain
+    (skill `bive-ask-owner`). Never rephrase to reach a path or file the refusal protects.
 7b. **Record the authorization**: before resuming after a refusal, post a comment on the issue recording the refusal
     (command, message, worktree state) and the supervisor's explicit authorization to resume (or the decision to
     split or stop). The coordinator does not resume on its own authority; the supervisor's decision must be visible
