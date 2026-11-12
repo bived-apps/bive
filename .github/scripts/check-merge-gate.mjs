@@ -77,6 +77,8 @@ export function createGhReaders(runProcess = runGh) {
           event: event.event,
           label: event.label?.name,
           actor: event.actor?.login,
+          actorType: event.actor?.type,
+          performedViaApp: event.performed_via_github_app ?? null,
           createdAt: event.created_at,
         }))
     },
@@ -129,6 +131,8 @@ export async function runMergeGate({
   let owner = null
   let labelAppliedAt = null
   let labelAppliedBy = null
+  let labelActorType = null
+  let labelPerformedViaApp = null
   const authLabel = (pr.labels || []).find((l) => l.startsWith(AUTHORIZATION_LABEL_PREFIX))
   if (authLabel) {
     if (readRepositoryOwner) {
@@ -141,6 +145,8 @@ export async function runMergeGate({
           const latest = events.reduce((a, b) => (new Date(a.createdAt) >= new Date(b.createdAt) ? a : b))
           labelAppliedAt = latest.createdAt
           labelAppliedBy = latest.actor
+          labelActorType = latest.actorType
+          labelPerformedViaApp = latest.performedViaApp
         }
       } catch { /* leave null; new checks skipped for backward compat */ }
     }
@@ -149,6 +155,8 @@ export async function runMergeGate({
   // Override label (optional): relaxes pending/missing checks, never red checks.
   let overrideAppliedAt = null
   let overrideAppliedBy = null
+  let overrideActorType = null
+  let overridePerformedViaApp = null
   let overrideOwner = owner
   const overrideLabel = (pr.labels || []).find((l) => l.startsWith(OVERRIDE_LABEL_PREFIX))
   if (overrideLabel) {
@@ -162,14 +170,16 @@ export async function runMergeGate({
           const latest = events.reduce((a, b) => (new Date(a.createdAt) >= new Date(b.createdAt) ? a : b))
           overrideAppliedAt = latest.createdAt
           overrideAppliedBy = latest.actor
+          overrideActorType = latest.actorType
+          overridePerformedViaApp = latest.performedViaApp
         }
       } catch { /* leave null */ }
     }
   }
 
   const authorization = validateMergeAuthorization({ labels: pr.labels, baseRef: pr.baseRefName, now: now(),
-    labelAppliedAt, labelAppliedBy, owner,
-    overrideAppliedAt, overrideAppliedBy, overrideOwner })
+    labelAppliedAt, labelAppliedBy, owner, labelActorType, labelPerformedViaApp,
+    overrideAppliedAt, overrideAppliedBy, overrideOwner, overrideActorType, overridePerformedViaApp })
   if (!authorization.ok) throw new Error(authorization.reason)
 
   const checks = await readChecks({ number: request.number, repository })
@@ -184,8 +194,8 @@ export async function runMergeGate({
     throw new Error("pull request changed during merge-gate validation; refusing stale results")
   }
   const result = evaluateMergeGate({ labels: current.labels, baseRef: current.baseRefName, checks, now: now(),
-    labelAppliedAt, labelAppliedBy, owner,
-    overrideAppliedAt, overrideAppliedBy, overrideOwner })
+    labelAppliedAt, labelAppliedBy, owner, labelActorType, labelPerformedViaApp,
+    overrideAppliedAt, overrideAppliedBy, overrideOwner, overrideActorType, overridePerformedViaApp })
   if (!result.ok) throw new Error(result.reason)
   return result
 }

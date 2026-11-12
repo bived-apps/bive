@@ -64,6 +64,14 @@ These run on GitHub and appear as commit statuses on a pull request.
   meaningful only once roles hold distinct identities (#110 remark 4); until then the owner's out-of-band decision
   (applying the label at all) is the real authorization. The open question in #114 stands: accept this limitation or
   require a second proof only the owner can give (e.g. a signed or out-of-band token).
+- **Agent identity (issue #130)**: once a GitHub App is installed for the agents, its actions show as
+  `actor.login: "<slug>[bot]"`, `actor.type: "Bot"`, and `performed_via_github_app` set. The gate refuses a dated
+  label (and an override label) whose labeled event has `actor.type: "Bot"` or `performed_via_github_app` set, so an
+  agent can never authorize its own merge. The App's permissions are contents write, pull requests write, issues
+  write, checks read, actions read; no administration, no workflows write. The App cannot merge into `main`: rulesets
+  restrict updates with the owner (repository admin role) as the only bypass. Until the App exists, the immediate
+  rule in `AGENTS.md` applies: every GitHub action an agent takes other than pushing its own branch is preceded or
+  carried by a comment signed with its role and model, and an agent never acts on a pull request it does not own.
 - **Owner override (issue #115)**: an optional label `bive-owner-override-YYYY-MM-DD` (same date rules and actor
   check as the authorization label). With it, the gate passes even when required checks are pending or missing, but
   never when a check is red (failed, cancelled, or otherwise non-pass). The override is the only way to merge past a
@@ -128,6 +136,33 @@ the code under test. The rule:
 - The runner runs under its own system account, not the machine owner's.
 - Rebuild from nothing on demand: a `workflow_dispatch` input or a label deletes the job's environment before
   installing.
+## Marked tests (issue #122)
+
+A test that needs hardware, an installed application, or a time budget carries a marker naming it (the project's
+test framework's own mechanism: a pytest marker, a `node:test` `skip` condition, a tag), and skips with that reason
+where the dependency is absent, never passes. The fast tier runs no marked test.
+
+- **Routing**: a job for marked tests runs only on a runner with the matching label, alone on it (no other job at
+  the same time, so a timing threshold is not skewed).
+- **Reporting**: the report template's Checks section names which markers ran and which were skipped, so a skipped
+  marker shows instead of a silent green.
+- **Project rules**: `AGENTS.md` › Project rules lists the project's markers and, for each, the runner label that
+  provides it.
+## Self-hosted runner, workflow changes (issue #123)
+
+On a self-hosted runner, a `pull_request` run executes the workflow files of the pull request's head. A branch that
+edits a workflow therefore runs that edit on the owner's machine at once. The rule:
+
+- Any change under `.github/workflows/` (or any script a workflow runs from the head) needs the owner's explicit
+  agreement before its first run.
+- A pull request that edits a workflow runs only on hosted runners until the owner agrees.
+- Jobs on self-hosted runners run from `pull_request_target` with the base's workflow (the safe pattern, already in
+  Bive's `bive-merge-gate`), or are gated by a GitHub environment with the owner as required reviewer.
+- GitHub's "require approval to run workflows" setting applies to pull requests from forks, not to branches of the
+  same repository, where every agent pushes; list the project's workflows on self-hosted runners in the project rules
+  (`AGENTS.md` › Project rules).
+- The coordinator's review names any diff under `.github/workflows/` and raises it to the owner; the supervisor's
+  review design includes it.
 
 ## Branch protection (owner, in GitHub's settings)
 
