@@ -42,8 +42,6 @@ there and in AGENTS.md, not here.
 
 ## Decisions
 
-- **Who merges before a bench pass (owner, 2026-11-12, #120)**: the owner or the owner's own OpenCode session; no
-  other agent without a published pass. The dated label stays the authorization on each pull request.
 - **No stacked pull requests for now (owner, 2026-11-12, #128)**: each issue branch starts from the integration base
   (#73); revisit if conflicts stay frequent.
 - **Skill provisioning contract accepted (owner, 2026-11-12, #132)**: D1–D10 of `docs/SKILL-PROVISIONING.md` §10 as

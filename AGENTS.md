@@ -8,7 +8,7 @@ Read this file, then [`HANDOFF.md`](HANDOFF.md), before changing anything. Your 
 - **Supervisor**: the owner (in an OpenCode session), another person in theirs, or an agent the owner has
   qualified with the test of `.bive/templates/supervisor-test.md`. An agent is promoted to a role only on a pass
   published in [bived-apps/bench](https://github.com/bived-apps/bench), per model and version; a result kept anywhere
-  else, or a word without a published result, promotes no one, and a model that did not pass never merges. The owner's own OpenCode session counts as the owner and may merge on the owner's word, with no bench pass (owner, 2026-11-12); any other agent merges only on a published pass. Agrees the plan and each epic's split, answers the three
+  else, or a word without a published result, promotes no one, and a model that did not pass never merges. Agrees the plan and each epic's split, answers the three
   gates, and is **the only one who merges or closes a pull request**, on the integration branch as on `main`, with
   GitHub's merge commit (`gh pr merge --merge`), never squash (it would make the owner the author). Never acts as
   coordinator or delegate: whoever merges did not write (owner, 2026-11-09). Merges only once the owner's dated label
