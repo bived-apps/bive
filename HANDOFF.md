@@ -151,11 +151,10 @@ them. Open work at the handoff of 2026-11-10 (night), in order:
   files of its worktree through the shell, as allowed. So the guard binds delegates, not the coordinator: the nested
   `.worktrees/issue-<n>` layout remains the supported workflow, and an outside worktree is the coordinator's mistake,
   not a delegate's escape.
-- The registry's Worker is not reachable (2026-11-10): `bive-registry.jcherfils.workers.dev` has no DNS record, so a
-  session with `BIVE_REGISTRY=on` loads the plugins and fills `.bive/state/tokens.jsonl` but sends nothing. The Worker
-  now lives in bived-apps/registry (`4b86b1c`): deploy it from there (`npx wrangler deploy`, on a machine logged into
-  the owner's Cloudflare account; the Mac's wrangler login of 2026-11-08 may have expired) and set `REGISTRY_URL` in
-  `.opencode/plugins/token-ratio/index.ts` to the URL it prints. Not part of 0.1's criterion.
+- The registry's Worker is live (owner, 2026-11-12): `https://bive-registry.bive.workers.dev`, deployed from
+  bived-apps/registry; `REGISTRY_URL` in `.opencode/plugins/token-ratio/index.ts` points at it. The public page is
+  to be served from bived-apps/registry (GitHub Pages); `jcherfils.github.io/bive/` returns 404 until Pages on this
+  repository is turned off or given a landing page (owner's decision pending).
 - The guard knows a delegate by `BIVE_ROLE=delegate`, a session directory `.worktrees/issue-<n>`, or the role file
   `.bive/state/role` (#36). A delegate run as a child session or on the shared OpenCode server carries no variable
   (#21); in the coordinator's session, writes and shell `workdir` under `.worktrees/issue-<n>/` are then checked as
