@@ -18,7 +18,7 @@ jobs:
       - name: No inviolable file changed
         run: |
           changed=$(git diff --name-only "origin/${{ github.base_ref }}...HEAD" | grep -E \
-            '^(\.bive/registry-id$|\.bive/prompts/|\.bive/templates/|\.opencode/plugins?/|\.github/workflows/bive-|opencode\.jsonc$|AGENTS\.md$)' || true)
+            '^(\.bive/registry-id$|\.bive/gate\.json$|\.bive/prompts/|\.bive/templates/|\.opencode/plugins?/|\.github/workflows/bive-|opencode\.jsonc$|AGENTS\.md$)' || true)
           # A file byte-identical to the default branch is not a change of this pull request: a sync of the default
           # branch into a milestone carries the default branch's own inviolable files (issue #198).
           default="origin/${{ github.event.repository.default_branch }}"

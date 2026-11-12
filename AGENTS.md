@@ -80,7 +80,8 @@ Generic, whatever the language (owner, 2026-11-08, taken from the practice of th
 
 - **A delegate never changes Bive's inviolable files**: the role prompts and their project additions
   (`.bive/prompts/`), the templates (`.bive/templates/`), the plugins (`.opencode/plugins/`), `opencode.jsonc`,
-  `.bive/registry-id`, this file and the `bive-*` workflows. If one is wrong, it says so in its report. The guard
+  `.bive/registry-id`, `.bive/gate.json` (the checks a project lets the gate skip), this file and the `bive-*`
+  workflows. If one is wrong, it says so in its report. The guard
   plugin refuses these writes (each refusal counts as a violation in the registry) and the `bive-inviolable` check
   fails any `issue/*` pull request that touches them, unless it carries the label `coordinator`: the coordinator's
   own pull requests, the only ones that may change these files (only the coordinator sets that label).

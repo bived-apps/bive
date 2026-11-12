@@ -2,7 +2,7 @@ import { execFile } from "node:child_process"
 import { readFileSync } from "node:fs"
 import path from "node:path"
 import { fileURLToPath } from "node:url"
-import { AUTHORIZATION_LABEL_PREFIX, OVERRIDE_LABEL_PREFIX, evaluateMergeGate, isIntegrationBranch, validateMergeAuthorization } from "./merge-gate-lib.mjs"
+import { AUTHORIZATION_LABEL_PREFIX, OVERRIDE_LABEL_PREFIX, evaluateMergeGate, isIntegrationBranch, parseSkippable, validateMergeAuthorization } from "./merge-gate-lib.mjs"
 
 const GH_TIMEOUT_MS = 15_000
 const OWN_CHECK = "bive-merge-gate / merge-gate"
@@ -83,6 +83,20 @@ export function createGhReaders(runProcess = runGh) {
         }))
     },
 
+    // `.bive/gate.json` as it is on the BASE branch (a pull request cannot list its own skips): its text, or null when
+    // it is missing or unreadable, which means the strict rule (issue #200).
+    async readGateConfig({ repository, ref }) {
+      try {
+        const { stdout, exitCode } = await runProcess([
+          "api", `repos/${repository}/contents/.bive/gate.json?ref=${encodeURIComponent(ref)}`, "--jq", ".content",
+        ], GH_TIMEOUT_MS)
+        if (exitCode !== 0) return null
+        return Buffer.from(stdout.trim(), "base64").toString("utf8")
+      } catch {
+        return null
+      }
+    },
+
     async readRepositoryOwner({ repository }) {
       const { stdout, exitCode } = await runProcess([
         "api", `repos/${repository}`, "--jq", ".owner.login",
@@ -112,6 +126,7 @@ export async function runMergeGate({
   readChecks,
   readLabelEvents = null,
   readRepositoryOwner = null,
+  readGateConfig = null,
   now = Date.now,
 }) {
   const request = event?.pull_request
@@ -193,7 +208,11 @@ export async function runMergeGate({
   if (current.baseRefName !== pr.baseRefName || current.headRefOid !== pr.headRefOid) {
     throw new Error("pull request changed during merge-gate validation; refusing stale results")
   }
-  const result = evaluateMergeGate({ labels: current.labels, baseRef: current.baseRefName, checks, now: now(),
+  let skippable = []
+  if (readGateConfig) {
+    try { skippable = parseSkippable(await readGateConfig({ repository, ref: current.baseRefName })) } catch { skippable = [] }
+  }
+  const result = evaluateMergeGate({ labels: current.labels, baseRef: current.baseRefName, checks, now: now(), skippable,
     labelAppliedAt, labelAppliedBy, owner, labelActorType, labelPerformedViaApp,
     overrideAppliedAt, overrideAppliedBy, overrideOwner, overrideActorType, overridePerformedViaApp })
   if (!result.ok) throw new Error(result.reason)
