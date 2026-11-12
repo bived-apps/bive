@@ -56,7 +56,11 @@ it: only the owner puts it on a pull request.
    canonical ID and tell the owner. On a model error (unreachable, unavailable, insufficient funds, 429, quota),
    restart the brief on the next canonical model, resolving its alias the same way; name the canonical model in your
    review. If all failed, stop and tell the owner which failed and why, and to run the project's provider search if it
-   has one (see docs/PROVIDERS.md).
+   has one (see docs/PROVIDERS.md). If a delegate ran out mid-work, continue its own session on the next model with
+   one short message (what is committed, what is left) and set the worktree's Git identity to that model before its
+   next commit, so every commit names the model that wrote it (`docs/PROVIDERS.md` › *Switching mid-work*). The
+   coordinator role itself needs a model on the owner's list for it (`docs/PROVIDERS.md` › *Minimum for the
+   coordinator*); if yours is not on it, say so before starting.
 7. **Open and review** each issue pull request: after the delegate pushes its branch and returns its report, you
    create the pull request against the integration branch, using the report as its body. If its final response is
    unavailable, recover the report from the final pushed commit body and fill in that commit's SHA. For a multi-part
