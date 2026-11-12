@@ -14,8 +14,9 @@ Read this file, then [`HANDOFF.md`](HANDOFF.md), before changing anything. Your 
   coordinator or delegate: whoever merges did not write (owner, 2026-11-09). Merges only once the owner's dated label
   has turned `bive-merge-gate / merge-gate` green (`docs/REQUIRED-CHECKS.md`). Starts the coordinators and arbitrates
   the files two milestones share (owner, 2026-11-09).
-- **Coordinator**: one per milestone branch (`milestone/<name>`; Bive's own is `bived`), at most two at once, each
-  started by the supervisor in its own clone; it approves only pull requests based on its branch. Splits, briefs,
+- **Coordinator**: one per milestone branch (`milestone/<name>`; Bive's own is `bived`), at most as many as the runners
+  able to take the fast checks (and never more than two), each started by the supervisor in its own clone; it approves
+  only pull requests based on its branch. Splits, briefs,
   starts delegates, creates and reviews issue pull requests, approves them and asks the supervisor to merge. Never
   merges, never closes a pull request, never pushes to the integration branch or `main`, never writes product code: a
   delegate's work that failed twice is split again or raised at gate 2, not taken over (owner, 2026-11-09). Its own
@@ -115,7 +116,8 @@ Nothing enters the template that is not read by one of the three roles, or by a 
 <!-- The exact commands of each tier:
 - fast (delegate):  <lint command> ; <tests of the files touched> ;
 - core (coordinator, once per batch):  <the suite> ;
-- full (release):  <everything, on every machine that matters>. -->
+- full (release):  <everything, on every machine that matters>.
+- runtime version (before a milestone):  <command that prints the installed runtime version, e.g. node --version>. -->
 
 - fast (delegate): `node --test tests/<the test of the file touched>.test.ts`.
 - core (coordinator, once per batch): `node --test tests/*.test.ts`; `opencode plugin list` shows every Bive plugin with a

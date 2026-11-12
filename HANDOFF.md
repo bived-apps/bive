@@ -16,20 +16,16 @@ and its first example.
 - No build. Tests: `node --test tests/*.test.ts` (Node 22; no bun). `.github/workflows/bive-tests.yml` runs them on
   pull requests and pushes to `main` and `bived`. Worker: in bived-apps/registry (deployed by the
   owner with `npx wrangler deploy`; not deployed yet on 2026-11-10).
-- The coordinator of Bive is started in a clone with this prompt (OpenCode, model Opus 5.5 or Fable 5.1):
+- The coordinator of Bive is started in a clone with the hand-over in `.bive/templates/launch.md` (milestone, branch,
+  model, and a mandatory `Read:` field: open issues by number, rule files with the section cited, existing files of
+  the repository concerned — each non-empty). Fill in only those fields; the rules live in `AGENTS.md` and the role
+  prompt, not in the launch prompt (#118). The launch prompt names the template (`docs/COORDINATING.md` › Session
+  start).
 
 ```text
 You are the coordinator of bive's milestone 0.1 (GitHub jcherfils/bive). Read AGENTS.md, HANDOFF.md, ROADMAP.md,
-then .bive/prompts/COORDINATOR.md: it is your prompt. Integration branch: bived (never push to main; the owner
-merges bived into main). Work epic by epic in ROADMAP order; split each into issues labelled delegate (goal, read
-first, steps, done-when, tests), and stop at gate 1 to show me the split before any delegate starts. Delegates run
-on the models of .bive/models.json, one worktree each under .worktrees/issue-<n>, with BIVE_ROLE=delegate; they push
-their branches and return reports. You alone create and review each PR (diff, node --test, a complete report.md,
-gh pr checks --watch), approve it and comment "Ready to merge" (gh runs as my account, so GitHub refuses the
-approval: the comment is the hand-over, #86); I merge, you never merge, close or push to bived. A red
-bive-merge-gate / merge-gate only waits for my dated label: it is not yours to fix. Never write product code
-yourself: a delegate that failed twice is split again or raised to me. Bive's own rule applies to Bive: nothing enters
-the template that a role or a human does not read during a task.
+then .bive/prompts/COORDINATOR.md: it is your prompt. Fill in only the milestone, branch and model; the rules are
+there and in AGENTS.md, not here.
 ```
 
 - Delegates get no prompt to paste: the coordinator hands them `.bive/state/briefs/<n>.md` as the message of
@@ -40,7 +36,8 @@ the template that a role or a human does not read during a task.
 - The supervisor's session (the owner's Claude project) is started with: "You are the supervisor of bive. Read
   AGENTS.md, HANDOFF.md, ROADMAP.md, then .bive/prompts/SUPERVISOR.md: it is your prompt. You merge pull requests
   into bived with `gh pr merge --merge --match-head-commit <sha>` once the coordinator has approved them, I have
-  applied the dated label and `bive-merge-gate / merge-gate` is green; you start the coordinators (at most two, one per
+  applied the dated label and `bive-merge-gate / merge-gate` is green; you start the coordinators (at most as many as
+  the runners able to take the fast checks, never more than two, one per
   milestone) and arbitrate shared files; you never brief, review line by line, or write code."
 
 ## Decisions
@@ -59,11 +56,13 @@ the template that a role or a human does not read during a task.
   merge: the owner applies `bive-merge-authorized-until-YYYY-MM-DD` to one approved pull request, and the supervisor
   merges it once the gate is green, pinned to its head (`--match-head-commit`). Red before the label means waiting
   for the owner. Branch protection requiring the gate and `bive-tests / tests` is the owner's, in GitHub (#85).
-- **Several coordinators (owner, 2026-11-09)**: one coordinator per milestone branch, at most two at once, each in its
-  own clone, started by the supervisor with the launch prompt below (milestone, branch and model filled in) and logged
-  here. Each approves only pull requests based on its branch; the gate covers `bived` and `milestone/<name>`. At gate 1
-  each milestone lists its files and the supervisor arbitrates overlaps (one writer or an order, see #72); at most one
-  open `coordinator` pull request on the inviolable files at a time (#88).
+- **Several coordinators (owner, 2026-11-09)**: one coordinator per milestone branch, at most as many as the runners
+  able to take the fast checks (and never more than two), each in its own clone, started by the supervisor with the
+  launch prompt below (milestone, branch and model filled in) and logged here. Each coordinator keeps at most one CI
+  run in flight (a new push waits for the previous run). Each approves only pull requests based on its branch; the
+  gate covers `bived` and `milestone/<name>`. At gate 1 each milestone lists its files and the supervisor arbitrates
+  overlaps (one writer or an order, see #72); at most one open `coordinator` pull request on the inviolable files at a
+  time (#88).
 - **A supervisor may be an agent (owner, 2026-11-09)**: a person with their own Claude project, or an agent that passed
   the owner-administered test of `.bive/templates/supervisor-test.md` (every trap refused, the right pull request
   merged); the pass is logged here per model and version.
