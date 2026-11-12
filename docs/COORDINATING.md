@@ -128,8 +128,10 @@ opened as a pull request labelled `coordinator` and merged by the supervisor lik
 
 ## Two coordinators at once
 
-The supervisor may run one coordinator per milestone, at most two at once (`AGENTS.md` › Roles). Each works in its own
-clone, because `.worktrees/`, `.bive/state/` and the guard belong to one checkout:
+The supervisor may run one coordinator per milestone, at most as many as the runners able to take the fast checks (and
+never more than two) (`AGENTS.md` › Roles). Each coordinator keeps at most one CI run in flight (a new push waits for
+the previous run). Each works in its own clone, because `.worktrees/`, `.bive/state/` and the guard belong to one
+checkout:
 
 ```bash
 git clone <repository> <dir> && cd <dir> && git switch milestone/<name>
