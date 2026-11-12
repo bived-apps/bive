@@ -33,6 +33,24 @@ gh label list --search "$label" --json name --jq '.[].name' | grep -qx "$label" 
   || gh label create "$label" --color B60205 --description "Owner only: authorizes one merge through $(date -u +%F) UTC"
 ```
 
+## Start a coordinator: the hand-over is a GitHub comment (issue #202, owner 2026-11-12)
+
+The guard keeps a supervisor's writes inside its own worktree, so a hand-over file outside it cannot be written by
+the supervisor. The hand-over (`.bive/templates/launch.md`, filled) is therefore posted by the supervisor as **one
+comment on the milestone's epic issue**, whose first line is `# Launch #<milestone> <title>`. The launcher (the
+owner, or a person or script outside the guard) takes the newest such comment from an account that is the owner, a
+member or a collaborator, and hands it to the coordinator:
+
+```bash
+gh api repos/<owner>/<repo>/issues/<epic>/comments --paginate --jq \
+  '[.[] | select(.body | startswith("# Launch #")) | select(.author_association | IN("OWNER","MEMBER","COLLABORATOR"))] | last | .body' \
+  > <coordinator clone>/.bive/state/launch.md
+(cd <coordinator clone> && opencode run --agent coordinator --model <model> "$(cat .bive/state/launch.md)")
+```
+
+A hand-over whose `Read:` field is empty is still returned to the supervisor (`COORDINATOR.md`). A second hand-over
+comment replaces the first: the newest wins, and the history stays on the issue.
+
 ## Start a delegate (step 5)
 
 ```bash
