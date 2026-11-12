@@ -1,5 +1,8 @@
 **Question Q<n>** — from <role> <provider/model>, issue #<N>
 
+**To**: <!-- the rung asked: coordinator | supervisor | owner -->
+**Path**: <!-- who has seen it, in order, with each one's reason to pass it up, e.g. "delegate -> coordinator (not mine: a gate)" -->
+
 **Decision needed**: <!-- one sentence the owner can answer without reading anything else -->
 
 **Context**: <!-- at most 3 lines, with links to the issue, file or PR that matter -->

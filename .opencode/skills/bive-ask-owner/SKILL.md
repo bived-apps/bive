@@ -9,15 +9,30 @@ The owner answers one of five ways: **yes**, **no**, **other** (free text), **su
 **coordinator** ("you decide"). Make every question answerable in one
 line. The block to fill is `.bive/templates/question.md`.
 
-## The ladder: nobody skips a rung
+## The chain: answer what you may, pass up the rest, unchanged
 
-| Role | Does | Never |
+Every role may ask the rung directly above it, during its session. Each role **answers** what is inside its authority
+and **transmits** the rest, unchanged, adding itself and its reason to `Path`. Nobody answers beyond their authority,
+and nobody answers "no" just to avoid passing a question up.
+
+| Role | May answer | Transmits when |
 |---|---|---|
-| **Delegate** | Writes each question as a filled block under `**Left**` of its report (or in its final commit body), says what it will assume meanwhile only if *Reversible* is yes, then **stops that part**. | Asks the owner, opens an issue, comments on a pull request, or guesses on something irreversible. |
-| **Coordinator** | Collects the delegates' blocks, answers what the rules already answer (cite `AGENTS.md` / prompt section instead of asking), merges duplicates, and asks the rest in **one batch**. | Sends the owner the same question twice, or a question a rule answers. |
-| **Supervisor / owner** | Answers `Q<n> yes`, `Q<n> no`, `Q<n> other: <text>`, `Q<n> supervisor` or `Q<n> coordinator`. | |
+| **Delegate** | Implementation choices inside its brief (say which you took in the report). | It is anything else: ask the coordinator and, if the answer blocks the part, stop that part (others may go on). |
+| **Coordinator** | Anything a rule already answers (cite the section); brief ambiguity, sequencing, model fallback, test and doc choices within the rules. | It is a gate (the split, a delegate that failed twice, the pull request to `main`), shared-file arbitration, starting a coordinator, a rule interpretation that could change behaviour, or not reversible. |
+| **Supervisor** | Gate decisions, shared-file arbitration, how a rule applies to a case, starting coordinators. | It is owner-only (below), or it would change a rule. |
+| **Owner** | Everything. Only the owner decides: the dated merge label, who may merge before a bench pass (#120), promoting an agent to a role, any change to `AGENTS.md` or a role prompt, anything irreversible or outward (publishing, deleting, spending), credentials. | |
 
-A delegate's report is the only channel from a delegate; the coordinator is the only one who talks to the owner.
+**Bypass**: a rung is skipped only when (a) it does not exist (no qualified supervisor agent: the question goes to the
+owner or the person the owner named), or (b) it has not answered after the wait the question states (default one
+day) and the question blocks work: the asker passes it to the next rung and records the bypass in `Path`. A bypass is
+never a way to get a different answer: once a rung has answered, the question is not asked again higher up, unless
+that answer was outside its authority, which makes it void.
+
+**Transport**: during a session, a delegate asks by a comment on its issue (the block, `To: coordinator`) and, once
+delegates are API sessions (ROADMAP 0.2), the coordinator may also prompt it; before that, the block goes under
+`**Left**` in the delegate's report. The coordinator is the only role that posts to the owner: it batches, cites the
+rule instead of asking when a rule answers, and merges duplicates. A role answering sends the answer to the asker
+(comment on the issue) and records it as below.
 
 ## Writing a good question
 

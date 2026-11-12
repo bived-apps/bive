@@ -18,7 +18,7 @@ test("every role gets the bive-ask-owner skill at the declared revision", () => 
 
 test("the question template offers yes, no and other, with a recommendation and reversibility", () => {
   const t = read(".bive/templates/question.md")
-  for (const k of ["**Yes**", "**No**", "**Other**", "**Ask supervisor**", "**Coordinator decides**", "**Recommended**", "**Blocks**", "**Reversible**", "**Default if unanswered**"]) {
+  for (const k of ["**To**", "**Path**", "**Yes**", "**No**", "**Other**", "**Ask supervisor**", "**Coordinator decides**", "**Recommended**", "**Blocks**", "**Reversible**", "**Default if unanswered**"]) {
     assert.ok(t.includes(k), `template lacks ${k}`)
   }
 })
@@ -26,7 +26,9 @@ test("the question template offers yes, no and other, with a recommendation and 
 test("the skill states the ladder and the delegate and coordinator prompts point at it", () => {
   const s = read(".opencode/skills/bive-ask-owner/SKILL.md")
   assert.match(s, /^---\nname: bive-ask-owner\n/)
-  assert.match(s, /Delegate.*Coordinator.*Supervisor/s)
+  assert.match(s, /Delegate.*Coordinator.*Supervisor.*Owner/s)
+  assert.match(s, /Bypass/)
+  assert.match(s, /transmit/i)
   assert.match(read(".bive/prompts/DELEGATE.md"), /bive-ask-owner/)
   assert.match(read(".bive/prompts/COORDINATOR.md"), /bive-ask-owner/)
 })
