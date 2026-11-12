@@ -28,6 +28,12 @@ it: only the owner puts it on a pull request.
    session to at most **3 source files and 1 test file**. If an issue needs more, split its brief into parts; each
    part is one session with its own steps, done-when and checks. List the files the milestone will touch. Owner
    validates the split and that list (gate 1).
+   **Shared-file conflict hotspots** (issue #72): before parallelizing, identify files that several issues are likely
+   to edit (shared metadata, registries, indexes, configuration). Prefer isolated per-unit files or append-only
+   entries where the project's data model permits; otherwise assign one writer or sequence the dependent work. The
+   brief names ownership and dependency constraints for known shared files (e.g. "only this issue writes
+   `lib/shared.ts`"; "depends on #N's merge"). A `bive-overlap` check fails a pull request whose files overlap
+   another open `issue/*` pull request.
 4. **Brief**: fill `.bive/templates/brief.md` into `.bive/state/briefs/<n>.md`: exact functions, files and tests (the
    delegate may be a simpler model). For a multi-part brief, use its optional Parts section and assign each part no
    more than 3 source files and 1 test file in that session.
