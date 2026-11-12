@@ -63,6 +63,8 @@ it: only the owner puts it on a pull request.
      non-deterministic, not the base's fault nor the pull request's. Open (or comment on) an issue `Flaky: <test>`
      with the run links, the seed/positions/inputs needed to reproduce it, and stop retrying; at most one re-run per
      failure. The supervisor never merges past it without that issue and a green run on the head;
+   - a diff under `.github/workflows/` (or any script a workflow runs from the head) is named in the review and
+     raised to the owner before its first run on a self-hosted runner (AGENTS.md › Project rules);
    - then the diff itself: does it do the brief, nothing more?
    Wait for CI with `gh pr checks <pr> --watch` (blocks until the checks finish; no plugin, no poller; not
    `--fail-fast`, which the gate's expected red would stop): a red check other than `bive-merge-gate / merge-gate` is
