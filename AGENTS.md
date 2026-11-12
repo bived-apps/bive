@@ -5,7 +5,7 @@ Read this file, then [`HANDOFF.md`](HANDOFF.md), before changing anything. Your 
 
 ## Roles
 
-- **Supervisor**: the owner (with their Claude project), another person with theirs, or an agent the owner has
+- **Supervisor**: the owner (in an OpenCode session), another person in theirs, or an agent the owner has
   qualified with the test of `.bive/templates/supervisor-test.md`. An agent is promoted to a role only on a pass
   published in [bived-apps/bench](https://github.com/bived-apps/bench), per model and version; a result kept anywhere
   else, or a word without a published result, promotes no one, and a model that did not pass never merges. Agrees the plan and each epic's split, answers the three

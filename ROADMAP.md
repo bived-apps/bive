@@ -190,7 +190,7 @@ per epic. Nothing of it is a Bive program: prompts, rules, and existing tools wi
   checks in `docs/REQUIRED-CHECKS.md`; #72 conflict-aware
   planning around shared files; #73 fresh branches after squash merges; #74 a repository-configurable merge waiter;
   #75 generated-doc regeneration; #69 headless plugin validation. #70 and #71 are integrated; the others are unstarted.
-- Signed registry ids (a challenge, a proof of work, an HMAC token; patch kept in the owner's Claude project): only if noise
+- Signed registry ids (a challenge, a proof of work, an HMAC token; patch kept by the owner): only if noise
   appears on the public page.
 - Deploy the filtered Worker (`npx wrangler deploy`): the owner.
 

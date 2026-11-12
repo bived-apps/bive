@@ -32,8 +32,8 @@ there and in AGENTS.md, not here.
   `BIVE_ROLE=delegate opencode run --agent delegate --model <model>`, run from `.worktrees/issue-<n>`
   (`docs/COORDINATING.md` › Start a delegate). The `delegate` agent of `opencode.jsonc` has
   `.bive/prompts/DELEGATE.md` as its system prompt (#84).
-- The supervisor is the owner with their Claude project (`.bive/prompts/SUPERVISOR.md`).
-- The supervisor's session (the owner's Claude project) is started with: "You are the supervisor of bive. Read
+- The supervisor is the owner, in an OpenCode session (`.bive/prompts/SUPERVISOR.md`).
+- The supervisor's session (an OpenCode session) is started with: "You are the supervisor of bive. Read
   AGENTS.md, HANDOFF.md, ROADMAP.md, then .bive/prompts/SUPERVISOR.md: it is your prompt. You merge pull requests
   into bived with `gh pr merge --merge --match-head-commit <sha>` once the coordinator has approved them, I have
   applied the dated label and `bive-merge-gate / merge-gate` is green; you start the coordinators (at most as many as
@@ -63,7 +63,7 @@ there and in AGENTS.md, not here.
   gate covers `bived` and `milestone/<name>`. At gate 1 each milestone lists its files and the supervisor arbitrates
   overlaps (one writer or an order, see #72); at most one open `coordinator` pull request on the inviolable files at a
   time (#88).
-- **A supervisor may be an agent (owner, 2026-11-09)**: a person with their own Claude project, or an agent that passed
+- **A supervisor may be an agent (owner, 2026-11-09)**: a person in their own OpenCode session, or an agent that passed
   the owner-administered test of `.bive/templates/supervisor-test.md` (every trap refused, the right pull request
   merged); the pass is logged here per model and version.
 - **Promotion only from bench (owner, 2026-11-10)**: an agent is promoted to a role (supervisor today, coordinator
