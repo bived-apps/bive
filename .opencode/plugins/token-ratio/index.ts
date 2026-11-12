@@ -28,6 +28,7 @@ const LOC_EVERY_MS = 60 * 60 * 1000
 // selections that change the model or agent, the session's creation (parent, directory), its move to another
 // directory and its idle moment (report). Every instance receives every session's events: ownSession filters.
 const EVENTS = ["session.created", "session.step.started", "session.step.ended", "session.idle",
+                "session.execution.succeeded",
                 "session.model.selected", "session.agent.selected", "session.moved"]
 
 type Use = { tokens: number, input: number, ms: number, replies: number }
@@ -197,6 +198,7 @@ export default Plugin.define({
               break
             }
             case "session.idle":
+            case "session.execution.succeeded":   // OpenCode 2.2.5 run emits this, not session.idle (2026-11-12)
               if ((await facts(id)).own && await isRoot(id)) await report()
               break
           }
