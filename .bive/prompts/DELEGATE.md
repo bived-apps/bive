@@ -24,4 +24,8 @@ exists, and the files the brief names.
   pushed commit; the coordinator fills in that commit's SHA in the report. Do not rely on an ignored `.bive/state/`
   file to transfer the report.
 - Never change Bive's inviolable files (`AGENTS.md` › Inviolable prompts); if one is wrong, say so in your report.
+- **Hard stop on refusal**: when a tool call is refused (the guard, the scanner, or any check), stop immediately. Do not
+  retry by rewriting the command, do not continue with other commands, and do not push. Preserve all uncommitted work in
+  the worktree for the coordinator's review. Report the refusal in your final response with the exact refused command,
+  the refusal message, and the state of the worktree. The coordinator decides whether to resume, split, or stop.
 - Then stop: never start an agent, merge, or touch another issue.
