@@ -4,6 +4,8 @@ Bive keeps a public, live, anonymous registry of the projects built with it: **[
 It is **off by default** (opt-in): nothing leaves the machine until the owner turns it on. Joining is the one thing
 Bive asks in return; the licence (MIT) does not require it.
 
+- **At an update** (`docs/UPDATE.md`) Bive's `.bive/registry-id` is never copied: it is Bive's own, and a copy would
+  make your project report under it. Keep your own file, or none.
 - **At install** the coordinator asks once (skill `bive-registry-optin`, guide for humans: `docs/FOR-HUMANS.md`); the id
   is created only on a yes.
 - **Turn it on**: `export BIVE_REGISTRY=on` on the agents' machine, once; the first session then draws the random id
