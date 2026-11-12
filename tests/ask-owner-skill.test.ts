@@ -11,7 +11,7 @@ test("every role gets the bive-ask-owner skill at the declared revision", () => 
   // Editing the skill changes its hash: update .bive/skills.json (revision) in the same commit.
   for (const role of ["supervisor", "coordinator", "delegate"]) {
     const report = provisionLocal({ root: ROOT, role, reportPath: false })
-    const expected = role === "coordinator" ? ["bive-ask-owner", "bive-registry-optin"] : ["bive-ask-owner"]
+    const expected = role === "coordinator" ? ["bive-ask-owner", "bive-pick-model", "bive-registry-optin"] : ["bive-ask-owner"]
     assert.deepEqual(report.skills.map((s) => s.id).sort(), expected, role)
     for (const s of report.skills) assert.equal(s.revision, s.observed_revision, `${role} ${s.id}`)
   }
@@ -44,4 +44,15 @@ test("the registry opt-in skill creates no id without a yes, and the human guide
   const h = read("docs/FOR-HUMANS.md")
   assert.match(h, /bive-merge-authorized-until-YYYY-MM-DD/)
   assert.match(h, /registry/i)
+})
+
+test("the pick-model skill points at the check, keeps the probe opt-in and the canonical identity (#206)", () => {
+  const s = read(".opencode/skills/bive-pick-model/SKILL.md")
+  assert.match(s, /^---\nname: bive-pick-model\n/)
+  assert.match(s, /node lib\/models-check-cli\.ts/)
+  assert.match(s, /--probe/)
+  assert.match(s, /It sends nothing/)
+  assert.match(s, /\*\*canonical\*\* name/)
+  assert.ok(fs.existsSync(path.join(ROOT, "lib/models-check-cli.ts")))
+  assert.match(read("docs/PROVIDERS.md"), /models-check-cli\.ts/)
 })
