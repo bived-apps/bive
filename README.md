@@ -40,6 +40,9 @@ install/bive, and push it. The coordinator opens a pull request against the defa
 remote; never create a repository or a remote.
 ```
 
+Already installed, and you want Bive's newer rules? Do not copy files over: follow `docs/UPDATE.md` (two turns, one
+coordinator pull request, and it never copies Bive's `.bive/registry-id`).
+
 For projects using Bive, configure the project's own CI checks to run on pull requests and pushes to both the default
 and integration branches. This makes a red base visible promptly; adapt the workflow to the project's test command.
 Projects on a self-hosted runner follow `docs/SELF-HOSTED.md`.
