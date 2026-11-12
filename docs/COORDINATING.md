@@ -4,6 +4,21 @@ What `.bive/prompts/COORDINATOR.md` steps 5, 7 and 9 mean at the shell, for a co
 commands. `<n>` is the issue, `<slug>` a short name, `<base>` the integration branch, `<model>` the delegate's
 `provider/model`.
 
+## Before a milestone (issue #116)
+
+Run these three checks before gate 1, before the first delegate starts. If one fails, tell the owner and do not
+start delegates.
+
+1. **Runners online**: the runners the project's workflows use are online.
+   - Self-hosted runners: `gh api repos/<owner>/<repo>/actions/runners` (needs admin rights; without them, ask the
+     owner to check the runner status in GitHub's settings).
+   - Hosted runners: no check needed; GitHub provides them.
+2. **Local environment version**: the runtime version of the project's local environment equals the one installed now.
+   The project fills the command in `AGENTS.md` › Before committing (Bive's own: `node --version` is 22). A mismatch
+   means the environment was built with another interpreter version.
+3. **Fast checks green on the base**: the fast checks have been seen green once on the milestone's base, in CI, before
+   the first delegate starts. A red base blocks all other merges until green.
+
 ## Session start
 
 The label the owner applies to authorize a merge must exist that day (owner, 2026-11-10). Create it, never rename an

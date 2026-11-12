@@ -115,7 +115,8 @@ Nothing enters the template that is not read by one of the three roles, or by a 
 <!-- The exact commands of each tier:
 - fast (delegate):  <lint command> ; <tests of the files touched> ;
 - core (coordinator, once per batch):  <the suite> ;
-- full (release):  <everything, on every machine that matters>. -->
+- full (release):  <everything, on every machine that matters>.
+- runtime version (before a milestone):  <command that prints the installed runtime version, e.g. node --version>. -->
 
 - fast (delegate): `node --test tests/<the test of the file touched>.test.ts`.
 - core (coordinator, once per batch): `node --test tests/*.test.ts`; `opencode plugin list` shows every Bive plugin with a
