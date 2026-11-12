@@ -90,6 +90,21 @@ gh issue close <n> --comment "Done in <base> (PR #<pr>)"
 `bive-merge-authorized-until-YYYY-MM-DD` (`docs/REQUIRED-CHECKS.md`): read that red as "waiting for the owner's label",
 not as a failure to brief again. The coordinator never applies the label.
 
+## Refusal and resume (issue #146)
+
+When a delegate reports a refusal (guard, scanner, or any check):
+
+1. Record the refusal: the refused command, the refusal message, and the worktree state.
+2. Preserve all uncommitted work in the worktree — do not discard or push it.
+3. Do not let the delegate continue or push. A refusal is a hard stop, not a prompt to rewrite the command.
+4. Before any subsequent delegate starts, require a clear supervisor decision on how to proceed: resume the same
+   delegate with a corrected brief, split the work, or stop.
+5. Do not normalize retries as a workaround.
+
+The delegate's prompt (`DELEGATE.md`) carries the matching rule: on refusal, stop immediately, do not retry by
+rewriting the command, do not continue with other commands, do not push, preserve uncommitted work, and report the
+refusal with the exact command, message, and worktree state.
+
 ## After the batch (step 9)
 
 The core checks once, after the last merge, then `HANDOFF.md` and `ROADMAP.md` in one commit on a coordinator branch,
