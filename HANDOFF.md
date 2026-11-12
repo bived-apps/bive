@@ -153,8 +153,9 @@ them. Open work at the handoff of 2026-11-10 (night), in order:
   not a delegate's escape.
 - The registry's Worker is live (owner, 2026-11-12): `https://bive-registry.bive.workers.dev`, deployed from
   bived-apps/registry; `REGISTRY_URL` in `.opencode/plugins/token-ratio/index.ts` points at it. The public page is
-  to be served from bived-apps/registry (GitHub Pages); `jcherfils.github.io/bive/` returns 404 until Pages on this
-  repository is turned off or given a landing page (owner's decision pending).
+  served from bived-apps/registry on GitHub Pages (`https://bived-apps.github.io/registry/`, owner, 2026-11-12);
+  Pages is off on this repository. Open: the page fetches `/v1/stats` with a relative path, which 404s on github.io;
+  it must use the Worker's absolute URL (CORS is open), a one-line fix in bived-apps/registry.
 - The guard knows a delegate by `BIVE_ROLE=delegate`, a session directory `.worktrees/issue-<n>`, or the role file
   `.bive/state/role` (#36). A delegate run as a child session or on the shared OpenCode server carries no variable
   (#21); in the coordinator's session, writes and shell `workdir` under `.worktrees/issue-<n>/` are then checked as
