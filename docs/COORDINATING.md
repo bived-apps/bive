@@ -33,6 +33,24 @@ gh label list --search "$label" --json name --jq '.[].name' | grep -qx "$label" 
   || gh label create "$label" --color B60205 --description "Owner only: authorizes one merge through $(date -u +%F) UTC"
 ```
 
+## Start a coordinator: the hand-over is a GitHub comment (issue #202, owner 2026-11-12)
+
+The guard keeps a supervisor's writes inside its own worktree, so a hand-over file outside it cannot be written by
+the supervisor. The hand-over (`.bive/templates/launch.md`, filled) is therefore posted by the supervisor as **one
+comment on the milestone's epic issue**, whose first line is `# Launch #<milestone> <title>`. The launcher (the
+owner, or a person or script outside the guard) takes the newest such comment from an account that is the owner, a
+member or a collaborator, and hands it to the coordinator:
+
+```bash
+gh api repos/<owner>/<repo>/issues/<epic>/comments --paginate --jq \
+  '[.[] | select(.body | startswith("# Launch #")) | select(.author_association | IN("OWNER","MEMBER","COLLABORATOR"))] | last | .body' \
+  > <coordinator clone>/.bive/state/launch.md
+(cd <coordinator clone> && opencode run --agent coordinator --model <model> "$(cat .bive/state/launch.md)")
+```
+
+A hand-over whose `Read:` field is empty is still returned to the supervisor (`COORDINATOR.md`). A second hand-over
+comment replaces the first: the newest wins, and the history stays on the issue.
+
 ## Start a delegate (step 5)
 
 ```bash
@@ -141,6 +159,24 @@ refusal stands and no subsequent delegate starts.
 The delegate's prompt (`DELEGATE.md`) carries the matching rule: on refusal, stop immediately, do not retry by
 rewriting the command, do not continue with other commands, do not push, preserve uncommitted work, and report the
 refusal with the exact command, message, and worktree state.
+
+## Your own refusals (issue #201)
+
+The coordinator is also guarded. Same rule as a delegate's: do not rerun the effect another way before reporting. Post
+a comment on the issue with the command and the refusal message, and say what you were doing; only then continue.
+
+A refusal about the command's **shape** (`invalid-structure`) may be rephrased, in the same comment, into one of
+these forms, all seen on 2026-11-12:
+
+| Refused | Why | Use instead |
+| --- | --- | --- |
+| a redirect to a parent-directory path after a `cd` | redirects are resolved against the session root, not the directory after the `cd` | run from the root; give absolute paths inside the worktree |
+| `$(...)` in a call whose workdir is a delegate's worktree | any call there is checked as that delegate's | run from the root with `cd .worktrees/issue-<n> && ...` |
+| a `gh ... --body "..."` whose text has a parent-directory path | the quoted text is scanned | write the text to a file with the write tool, pass `--body-file` |
+| a pipe into anything but `tail`, `head`, `grep` (a delegate) | the scanner cannot read it | the command's own switches, or one command per step |
+
+A refusal about **where** (a path outside the worktree, an inviolable file, an external directory) is a boundary, not
+a shape: stop and ask through the chain (skill `bive-ask-owner`). Never reach the same path or file another way.
 
 ## After the batch (step 9)
 
