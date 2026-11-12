@@ -25,6 +25,19 @@ here is committed with the code it describes (an item started → `doing`, finis
 
 ## Epics
 
+### 0.2 — Bive provisions its own skills (epic #132)
+
+**Make project-scoped OpenCode skills available by Bive role** (M; epic #132, the first bivedream epic, owner decision
+2026-11-08, started 2026-11-12): a project declares its OpenCode skills in `.bive/skills.json`; Bive provisions them to
+the managed roles (supervisor, coordinator, delegate) on local and remote sessions, reports the source and revision /
+hash used, and fails clearly on missing or conflicting skills, without global install or overwriting user-authored
+skills.
+
+- Slices implemented and merged on 2026-11-12: local (#136, PR #137), remote (#138, PR #139), report delivery (#140,
+  PR #141), role permissions (#142, PR #143), catalog source (#144, PR #145).
+- Remaining: activation of provisioning in managed sessions; owner decisions D1–D10 (contract §10, drafted in #134)
+  pending.
+
 ### 0.1 — Bive installs itself (done 2026-11-10)
 
 Done when the owner's first project runs with Bive installed and one of its issues has gone through the whole flow (brief, worktree,
