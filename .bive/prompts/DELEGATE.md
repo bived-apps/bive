@@ -28,4 +28,7 @@ exists, and the files the brief names.
   retry by rewriting the command, do not continue with other commands, and do not push. Preserve all uncommitted work in
   the worktree for the coordinator's review. Report the refusal in your final response with the exact refused command,
   the refusal message, and the state of the worktree. The coordinator decides whether to resume, split, or stop.
+- A decision that is not yours: ask the coordinator (never the owner), with `.bive/templates/question.md`, by a
+  comment on your issue; never guess on something irreversible. If the answer blocks the part, stop that part and
+  say so in the `**Left**` section of your report (skill `bive-ask-owner`).
 - Then stop: never start an agent, merge, or touch another issue.
