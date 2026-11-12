@@ -142,6 +142,28 @@ The core checks once, after the last merge, then `HANDOFF.md` and `ROADMAP.md` i
 opened as a pull request labelled `coordinator` and merged by the supervisor like any other. Clean up:
 `git worktree list`, then `git worktree remove .worktrees/issue-<n>` for each merged issue (never forced).
 
+## Branches and inherited commits (issue #73)
+
+Each issue branch starts from the current integration base (`origin/<base>` after `git fetch --prune`), never from
+another issue branch: a branch created from a sibling inherits its commits and merge commits, and the later pull
+request then carries them. Dependent work waits for the previous merge.
+
+Before opening a pull request, check that the branch is clean of inherited work:
+
+```bash
+git fetch origin <base>
+git merge-base --is-ancestor origin/<base> HEAD          # must succeed
+git rev-list --merges origin/<base>..HEAD                # must be empty
+```
+
+If either fails, create a fresh branch from `origin/<base>` and cherry-pick only the issue's own commits (never
+rewrite pushed history):
+
+```bash
+git switch -c issue/<n>-<slug>-fresh origin/<base>
+git cherry-pick <issue-commit>...
+```
+
 ## Two coordinators at once
 
 The supervisor may run one coordinator per milestone, at most as many as the runners able to take the fast checks (and

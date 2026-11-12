@@ -17,7 +17,13 @@ it: only the owner puts it on a pull request.
    `HANDOFF.md` and `ROADMAP.md` with the skeletons of `.bive/templates/` and fill their first lines with the owner.
 2. **Branch**: create and push `milestone/<name>` from `main`; never push to `main`. Before gate 1, run the three
    checks of `docs/COORDINATING.md` › Before a milestone (runners online, local environment version matches, fast
-   checks green on the base in CI); if one fails, tell the owner and do not start delegates.
+   checks green on the base in CI); if one fails, tell the owner and do not start delegates. Each issue branch starts
+   from the current integration base (`origin/<base>`), never from another issue branch: a branch created from a
+   sibling inherits its commits and merge commits, and the later pull request then carries them. Dependent work waits
+   for the previous merge. Before opening a pull request, check that the branch has no inherited commits or merge
+   commits: `git merge-base --is-ancestor <issue-branch-base> HEAD` must be the integration head, and
+   `git rev-list --merges <base>..HEAD` must be empty. If not, create a fresh branch from `origin/<base>` and
+   cherry-pick only the issue's own commits (never rewrite pushed history).
 3. **Split** into issues a delegate finishes in one session (goal, files, steps, done-when, tests). Limit each
    session to at most **3 source files and 1 test file**. If an issue needs more, split its brief into parts; each
    part is one session with its own steps, done-when and checks. List the files the milestone will touch. Owner
