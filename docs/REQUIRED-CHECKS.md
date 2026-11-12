@@ -121,6 +121,21 @@ A failing check belongs to one of three categories, each with one action:
   without that issue and a green run on the head. Skipping or quarantining a test is forbidden; retrying in a loop
   is forbidden.
 
+## Self-hosted runners: environment isolation (issue #121)
+
+On a self-hosted runner (a single machine that keeps its state), a virtual environment kept between runs, or a
+package-manager cache shared with the machine owner's own account, can give red tests that have nothing to do with
+the code under test. The rule:
+
+- Every environment, cache and tool a CI job installs lives under the job's workspace (`$GITHUB_WORKSPACE` or
+  `$RUNNER_TEMP`), never in the runner account's home or a path the machine's users share.
+- Cache and environment variables point there explicitly: for example `UV_CACHE_DIR`, `PIP_CACHE_DIR`,
+  `npm_config_cache`.
+- The environment is keyed on what built it (lock file hash and interpreter version), so a stale one is never reused
+  silently; the health check of #116 compares the same key.
+- The runner runs under its own system account, not the machine owner's.
+- Rebuild from nothing on demand: a `workflow_dispatch` input or a label deletes the job's environment before
+  installing.
 ## Marked tests (issue #122)
 
 A test that needs hardware, an installed application, or a time budget carries a marker naming it (the project's
