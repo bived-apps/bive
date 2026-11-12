@@ -83,7 +83,19 @@ function isRedBucket(bucket) {
   return bucket !== "pass" && bucket !== "pending" && bucket !== undefined && bucket !== null && bucket !== ""
 }
 
-export function evaluateMergeGate({ labels = [], baseRef, checks = [], now = Date.now(),
+// The project's own list of checks that may be skipped (issue #200): `.bive/gate.json`, read from the BASE branch by the
+// caller so a pull request cannot list its own skips. `{"skippable": ["workflow / name", ...]}`; a missing, corrupt or
+// wrong-shaped file means the strict rule (nothing may be skipped). Never throws.
+export function parseSkippable(text) {
+  if (typeof text !== "string") return []
+  let data
+  try { data = JSON.parse(text) } catch { return [] }
+  const list = data && typeof data === "object" ? data.skippable : undefined
+  if (!Array.isArray(list)) return []
+  return list.filter((item) => typeof item === "string" && /^\S.* \/ \S.*$/.test(item))
+}
+
+export function evaluateMergeGate({ labels = [], baseRef, checks = [], now = Date.now(), skippable = [],
   labelAppliedAt = null, labelAppliedBy = null, owner = null,
   labelActorType = null, labelPerformedViaApp = null,
   overrideAppliedAt = null, overrideAppliedBy = null, overrideOwner = null,
@@ -107,7 +119,7 @@ export function evaluateMergeGate({ labels = [], baseRef, checks = [], now = Dat
     if (found.length > 1) return { ok: false, reason: `expected exactly one ${identity(required)} check` }
     const bucket = found[0].bucket
     const expectedSkip = coordinator && identity(required) === "bive-inviolable / check" && bucket === "skipping"
-    if (bucket === "pass" || expectedSkip) continue
+    if (bucket === "pass" || expectedSkip || (bucket === "skipping" && skippable.includes(identity(required)))) continue
     if (override && bucket === "pending") continue
     return { ok: false, reason: `${identity(required)} is ${bucket || "missing a result"}` }
   }
@@ -117,6 +129,7 @@ export function evaluateMergeGate({ labels = [], baseRef, checks = [], now = Dat
     const bucket = check.bucket
     if (bucket === "pass") return false
     if (override && bucket === "pending") return false
+    if (bucket === "skipping" && skippable.includes(identity(check))) return false
     if (coordinator && identity(check) === "bive-inviolable / check" && bucket === "skipping") return false
     return true
   })

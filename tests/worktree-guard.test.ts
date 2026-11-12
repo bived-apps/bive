@@ -30,7 +30,9 @@ describe("write tools", () => {
     refused(write(delegate, "AGENTS.md"), /inviolable/)
     refused(write(delegate, ".opencode/plugins/worktree-guard/check.ts"), /inviolable/)
     refused(write(delegate, ".opencode/plugin/token-ratio.ts"), /inviolable/)
+    refused(write(delegate, ".bive/gate.json"), /inviolable/)
     passes(write(coordinator, "AGENTS.md"))
+    passes(write(coordinator, ".bive/gate.json"))
   })
   test("the V1 names still work (filePath, bash)", () => {
     refused(() => delegate("write", { filePath: path.join(main, "a.py") }), /outside/)
@@ -189,6 +191,6 @@ describe("delegate detection (child sessions inherit the coordinator's environme
 
 describe("violations", () => {
   test("every refusal above was counted", () => {
-    assert.equal(violations(), 39)      // every `refused(...)` call above contributes one violation
+    assert.equal(violations(), 40)      // every `refused(...)` call above contributes one violation
   })
 })

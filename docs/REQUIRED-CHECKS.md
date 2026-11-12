@@ -28,7 +28,7 @@ These run on GitHub and appear as commit statuses on a pull request.
   carry the `coordinator` label:
   `startsWith(github.head_ref, 'issue/') && !contains(github.event.pull_request.labels.*.name, 'coordinator')`.
 - **What it checks**: compares the changed files against the base branch and fails if any inviolable path changed.
-  The matched paths are: `.bive/registry-id`, anything under `.bive/prompts/` or `.bive/templates/`, anything under
+  The matched paths are: `.bive/registry-id`, `.bive/gate.json`, anything under `.bive/prompts/` or `.bive/templates/`, anything under
   `.opencode/plugins/` or `.opencode/plugin/`, files matching `.github/workflows/bive-*`, `opencode.jsonc`, and
   `AGENTS.md`.
 - **Skip conditions** (the job is skipped, not failed):
@@ -83,6 +83,12 @@ These run on GitHub and appear as commit statuses on a pull request.
   both `pass`; every other check except its own `pass` as well. The one accepted exception: `bive-inviolable / check`
   may be `skipping` on a pull request labelled `coordinator` (its job condition skips it there). It re-reads the pull
   request after reading the checks and fails if the head, base or labels changed.
+- **Skippable checks (issue #200, owner 2026-11-12)**: a project whose CI skips a job by design (for example its
+  tests on a Markdown-only change) lists it in `.bive/gate.json`: `{"skippable": ["bive-tests / tests"]}`, each entry
+  `<workflow> / <job>` as the checks list shows it. A listed check that is `skipping` counts as passing, required or
+  not; `fail`, `cancel` and `pending` never do. The gate reads the file from the pull request's **base** branch, so a
+  pull request cannot list its own skips; the file is inviolable (a delegate never changes it). A missing, corrupt or
+  wrong-shaped file means nothing may be skipped, which is Bive's own setting (`{"skippable": []}`).
 - **Fails on**: a missing, malformed, duplicate or expired label; any required check pending or missing (an
   immediate red that means "wait for CI", not a refusal — the gate is re-run automatically when checks complete),
   or any check skipped (other than the exception), failed or cancelled; a pull request whose head or base changed
