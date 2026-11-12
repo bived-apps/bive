@@ -1,5 +1,8 @@
 # Launch #<milestone> <title>
 
+<!-- Post this as ONE comment on the milestone's epic issue; its first line must stay `# Launch #...` so the launcher
+     finds it (docs/COORDINATING.md › Start a coordinator). Never write it to a file outside your worktree. -->
+
 Branch `milestone/<name>` · coordinator clone `<dir>` · model `<provider/model>`
 
 Read: (mandatory; every list non-empty)

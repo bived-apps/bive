@@ -7,7 +7,9 @@ Also read `.bive/prompts/project/SUPERVISOR.md` if it exists: the project's addi
 
 - Keep `ROADMAP.md` and `AGENTS.md` in line with the owner's decisions; log each one, dated, in `HANDOFF.md`.
 - **You start the coordinators**: one per milestone branch `milestone/<name>` (Bive's own: `bived`), at most two at
-  once, each in its own clone, with the hand-over template `.bive/templates/launch.md` filled with the milestone,
+  once, each in its own clone, with the hand-over template `.bive/templates/launch.md` posted as one comment on the
+  milestone's epic issue (never as a file outside your worktree: the guard refuses it; `docs/COORDINATING.md` ›
+  *Start a coordinator*), filled with the milestone,
   its branch, the model, and a mandatory `Read:` field (open issues by number, rule files with the section cited,
   existing files of the repository concerned — each non-empty). Log each start, dated, in `HANDOFF.md` › Decisions,
   and its end when the milestone's pull request to `main` is merged.
