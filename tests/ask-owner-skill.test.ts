@@ -11,8 +11,9 @@ test("every role gets the bive-ask-owner skill at the declared revision", () => 
   // Editing the skill changes its hash: update .bive/skills.json (revision) in the same commit.
   for (const role of ["supervisor", "coordinator", "delegate"]) {
     const report = provisionLocal({ root: ROOT, role, reportPath: false })
-    assert.deepEqual(report.skills.map((s) => s.id), ["bive-ask-owner"], role)
-    assert.equal(report.skills[0].revision, report.skills[0].observed_revision, role)
+    const expected = role === "coordinator" ? ["bive-ask-owner", "bive-registry-optin"] : ["bive-ask-owner"]
+    assert.deepEqual(report.skills.map((s) => s.id).sort(), expected, role)
+    for (const s of report.skills) assert.equal(s.revision, s.observed_revision, `${role} ${s.id}`)
   }
 })
 
@@ -33,4 +34,14 @@ test("the skill states the ladder and the delegate and coordinator prompts point
   assert.match(s, /transmit/i)
   assert.match(read(".bive/prompts/DELEGATE.md"), /bive-ask-owner/)
   assert.match(read(".bive/prompts/COORDINATOR.md"), /bive-ask-owner/)
+})
+
+test("the registry opt-in skill creates no id without a yes, and the human guide covers the label", () => {
+  const s = read(".opencode/skills/bive-registry-optin/SKILL.md")
+  assert.match(s, /^---\nname: bive-registry-optin\n/)
+  assert.match(s, /never create, copy or commit an id without a yes/i)
+  assert.match(s, /write nothing/i)
+  const h = read("docs/FOR-HUMANS.md")
+  assert.match(h, /bive-merge-authorized-until-YYYY-MM-DD/)
+  assert.match(h, /registry/i)
 })
