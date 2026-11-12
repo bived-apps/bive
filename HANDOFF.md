@@ -36,7 +36,8 @@ there and in AGENTS.md, not here.
 - The supervisor's session (the owner's Claude project) is started with: "You are the supervisor of bive. Read
   AGENTS.md, HANDOFF.md, ROADMAP.md, then .bive/prompts/SUPERVISOR.md: it is your prompt. You merge pull requests
   into bived with `gh pr merge --merge --match-head-commit <sha>` once the coordinator has approved them, I have
-  applied the dated label and `bive-merge-gate / merge-gate` is green; you start the coordinators (at most two, one per
+  applied the dated label and `bive-merge-gate / merge-gate` is green; you start the coordinators (at most as many as
+  the runners able to take the fast checks, never more than two, one per
   milestone) and arbitrate shared files; you never brief, review line by line, or write code."
 
 ## Decisions
@@ -55,11 +56,13 @@ there and in AGENTS.md, not here.
   merge: the owner applies `bive-merge-authorized-until-YYYY-MM-DD` to one approved pull request, and the supervisor
   merges it once the gate is green, pinned to its head (`--match-head-commit`). Red before the label means waiting
   for the owner. Branch protection requiring the gate and `bive-tests / tests` is the owner's, in GitHub (#85).
-- **Several coordinators (owner, 2026-11-09)**: one coordinator per milestone branch, at most two at once, each in its
-  own clone, started by the supervisor with the launch prompt below (milestone, branch and model filled in) and logged
-  here. Each approves only pull requests based on its branch; the gate covers `bived` and `milestone/<name>`. At gate 1
-  each milestone lists its files and the supervisor arbitrates overlaps (one writer or an order, see #72); at most one
-  open `coordinator` pull request on the inviolable files at a time (#88).
+- **Several coordinators (owner, 2026-11-09)**: one coordinator per milestone branch, at most as many as the runners
+  able to take the fast checks (and never more than two), each in its own clone, started by the supervisor with the
+  launch prompt below (milestone, branch and model filled in) and logged here. Each coordinator keeps at most one CI
+  run in flight (a new push waits for the previous run). Each approves only pull requests based on its branch; the
+  gate covers `bived` and `milestone/<name>`. At gate 1 each milestone lists its files and the supervisor arbitrates
+  overlaps (one writer or an order, see #72); at most one open `coordinator` pull request on the inviolable files at a
+  time (#88).
 - **A supervisor may be an agent (owner, 2026-11-09)**: a person with their own Claude project, or an agent that passed
   the owner-administered test of `.bive/templates/supervisor-test.md` (every trap refused, the right pull request
   merged); the pass is logged here per model and version.

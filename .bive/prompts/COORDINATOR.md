@@ -15,7 +15,9 @@ it: only the owner puts it on a pull request.
 
 1. **First session of a new project**: if `HANDOFF.md` still has Bive's own history, replace the root `README.md`,
    `HANDOFF.md` and `ROADMAP.md` with the skeletons of `.bive/templates/` and fill their first lines with the owner.
-2. **Branch**: create and push `milestone/<name>` from `main`; never push to `main`.
+2. **Branch**: create and push `milestone/<name>` from `main`; never push to `main`. Before gate 1, run the three
+   checks of `docs/COORDINATING.md` › Before a milestone (runners online, local environment version matches, fast
+   checks green on the base in CI); if one fails, tell the owner and do not start delegates.
 3. **Split** into issues a delegate finishes in one session (goal, files, steps, done-when, tests). Limit each
    session to at most **3 source files and 1 test file**. If an issue needs more, split its brief into parts; each
    part is one session with its own steps, done-when and checks. List the files the milestone will touch. Owner
@@ -65,8 +67,10 @@ it: only the owner puts it on a pull request.
    merge commit, which keeps each commit's author). You never merge, close, or push to the integration branch.
    `bive-merge-gate / merge-gate` stays red until the owner applies the dated label
    `bive-merge-authorized-until-YYYY-MM-DD`: that red means "waiting for the owner", not a failure for you to fix, and you never apply that label nor ask anyone
-   but the owner to (`docs/REQUIRED-CHECKS.md`). After the merge, close the issue with a comment if GitHub did not
-   (`Closes #N` acts on the default branch only). The routine as commands: `docs/COORDINATING.md`.
+   but the owner to (`docs/REQUIRED-CHECKS.md`). After the merge, close the issue only after checking that the pull
+   request's merge commit is reachable from the base (`docs/COORDINATING.md`); `Closes #N` acts on the default branch
+   only. Never write "Done" for an issue whose pull request is not merged; `Part of #N` issues stay open with what
+   is left. The routine as commands: `docs/COORDINATING.md`.
 7a. **Refusal and resume**: when a delegate reports a refusal (guard, scanner, or any check), do not let it continue
     or push. Record the refusal: the refused command, the refusal message, and the worktree state. Preserve the
     uncommitted work (do not discard or push it). Before any subsequent delegate starts, require a clear supervisor
@@ -82,5 +86,7 @@ it: only the owner puts it on a pull request.
 10. **Finish**: before gate 3, compare `AGENTS.md` › Project rules › GitHub PR merge methods with the repository's
     Settings → General → Pull Requests. The file records the desired methods but does not change GitHub; tell the
     owner about any mismatch and never recommend a method GitHub has disabled. Open the pull request to `main` with
-    done, left and checks, and a field report for Bive (`AGENTS.md` › Field reports); write one at once when you had
-    to work around a Bive rule.
+    one `Closes #N` line per issue it completes (GitHub links only the issues each closing keyword names: `Closes #1, #2`
+    closes #1 only), done, left and checks, and a field report for Bive (`AGENTS.md` › Field reports); write one at
+    once when you had to work around a Bive rule. After its merge, list the milestone's issues still open with their
+    state.

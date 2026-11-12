@@ -4,6 +4,21 @@ What `.bive/prompts/COORDINATOR.md` steps 5, 7 and 9 mean at the shell, for a co
 commands. `<n>` is the issue, `<slug>` a short name, `<base>` the integration branch, `<model>` the delegate's
 `provider/model`.
 
+## Before a milestone (issue #116)
+
+Run these three checks before gate 1, before the first delegate starts. If one fails, tell the owner and do not
+start delegates.
+
+1. **Runners online**: the runners the project's workflows use are online.
+   - Self-hosted runners: `gh api repos/<owner>/<repo>/actions/runners` (needs admin rights; without them, ask the
+     owner to check the runner status in GitHub's settings).
+   - Hosted runners: no check needed; GitHub provides them.
+2. **Local environment version**: the runtime version of the project's local environment equals the one installed now.
+   The project fills the command in `AGENTS.md` › Before committing (Bive's own: `node --version` is 22). A mismatch
+   means the environment was built with another interpreter version.
+3. **Fast checks green on the base**: the fast checks have been seen green once on the milestone's base, in CI, before
+   the first delegate starts. A red base blocks all other merges until green.
+
 ## Session start
 
 The label the owner applies to authorize a merge must exist that day (owner, 2026-11-10). Create it, never rename an
@@ -80,11 +95,21 @@ The supervisor merges (`gh pr merge <pr> --merge --match-head-commit <sha>`, aft
 to `<base>`. To be told when a pull request is merged without a watcher plugin: `gh pr checks` for the checks, then
 `until [ "$(gh pr view <pr> --json state --jq .state)" != OPEN ]; do sleep 60; done` in the shell, when a session
 really needs to wait; most of the time the next session reads `gh pr list` instead.
-Once merged, if the issue is still open (GitHub closes on the default branch only):
+Once merged, if the issue is still open (GitHub closes on the default branch only), close it only after
+checking that the pull request's merge commit is reachable from the base:
 
 ```bash
-gh issue close <n> --comment "Done in <base> (PR #<pr>)"
+merge_commit="$(gh pr view <pr> --json mergeCommit --jq .mergeCommit.oid)"
+git fetch origin <base>
+if git merge-base --is-ancestor "$merge_commit" "origin/<base>"; then
+  gh issue close <n> --comment "Done in <base> at $merge_commit (PR #<pr>)"
+else
+  echo "refusing to close: PR #<pr> is not merged into <base>"
+fi
 ```
+
+Never write "Done" in an issue, a checklist or a report for an issue whose pull request is not merged;
+`Part of #N` issues stay open with what is left.
 
 `bive-merge-gate / merge-gate` stays red on every pull request until the owner applies the dated label
 `bive-merge-authorized-until-YYYY-MM-DD` (`docs/REQUIRED-CHECKS.md`): read that red as "waiting for the owner's label",
@@ -113,8 +138,10 @@ opened as a pull request labelled `coordinator` and merged by the supervisor lik
 
 ## Two coordinators at once
 
-The supervisor may run one coordinator per milestone, at most two at once (`AGENTS.md` › Roles). Each works in its own
-clone, because `.worktrees/`, `.bive/state/` and the guard belong to one checkout:
+The supervisor may run one coordinator per milestone, at most as many as the runners able to take the fast checks (and
+never more than two) (`AGENTS.md` › Roles). Each coordinator keeps at most one CI run in flight (a new push waits for
+the previous run). Each works in its own clone, because `.worktrees/`, `.bive/state/` and the guard belong to one
+checkout:
 
 ```bash
 git clone <repository> <dir> && cd <dir> && git switch milestone/<name>
