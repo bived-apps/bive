@@ -3,7 +3,7 @@
 // Contract: docs/SKILL-PROVISIONING.md.
 import { createHash } from "node:crypto"
 import {
-  existsSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSync, cpSync,
+  existsSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSync, cpSync, rmSync,
 } from "node:fs"
 import path from "node:path"
 
@@ -253,7 +253,15 @@ export interface ProvisionOptions {
   globalSkills?: Record<string, string>
 }
 
-export function provisionLocal(options: ProvisionOptions): ProvisionReport {
+export function provisionLocal(options: ProvisionOptions): ProvisionReport | Promise<ProvisionReport> {
+  try {
+    const _r = path.resolve((options as any).root)
+    if (manifestHasCatalog(_r, (options as any).manifestPath)) {
+      return provisionCatalog(options as any)
+    }
+  } catch {
+    // fall through to the normal (possibly throwing) path
+  }
   const root = path.resolve(options.root)
   const role = options.role
   const { manifest, raw } = loadManifest(root, options.manifestPath)
@@ -443,7 +451,15 @@ function copyRecursive(src: string, dest: string): void {
   cpSync(src, dest, { recursive: true, force: true })
 }
 
-export function provisionRemote(options: ProvisionRemoteOptions): ProvisionReport {
+export function provisionRemote(options: ProvisionRemoteOptions): ProvisionReport | Promise<ProvisionReport> {
+  try {
+    const _r = path.resolve(resolveRemoteRoot(options))
+    if (manifestHasCatalog(_r, (options as any).manifestPath)) {
+      return provisionCatalog(options as any)
+    }
+  } catch {
+    // fall through
+  }
   const remoteRoot = path.resolve(resolveRemoteRoot(options))
   const sourceRoot = path.resolve(resolveSourceRoot(options, remoteRoot))
   const role = options.role
@@ -847,8 +863,657 @@ export const skillReportToMessage = buildSkillReportMessage
 export const skillReportToContent = buildSkillReportMessage
 export const skillReportToText = buildSkillReportMessage
 
+export * from "./skill-permissions.ts"
+export { default as skillPermissionsModule } from "./skill-permissions.ts"
+
+// ---------------------------------------------------------------------------
+// Catalog-source slice (issue #144): HTTP skill catalogs. Fetch `index.json`
+// ({name, version, files}), download each declared file from `<base>/<name>/<file>`
+// with safe relative same-origin paths, verify the resulting directory hash
+// against the declared revision, and fail clearly on missing/mismatched entries.
+// ---------------------------------------------------------------------------
+
+const DEFAULT_CATALOG_MAX_BYTES = 1024 * 1024
+
+function manifestHasCatalog(root: string, manifestPath?: string): boolean {
+  try {
+    const { manifest } = loadManifest(root, manifestPath)
+    validateManifest(manifest)
+    return Object.values(manifest.skills ?? {}).some((d: any) => (d?.source ?? "project") === "catalog")
+  } catch {
+    return false
+  }
+}
+
+function isHttpUrl(v: unknown): v is string {
+  if (typeof v !== "string" || v.length === 0) return false
+  try {
+    const u = new URL(v)
+    return u.protocol === "http:" || u.protocol === "https:"
+  } catch {
+    return false
+  }
+}
+
+function trimSlash(v: string): string {
+  return v.replace(/\/+$/, "")
+}
+
+function resolveCatalogBaseUrl(decl: any, options: any, id: string): string | null {
+  const candidates: any[] = [
+    decl?.catalog,
+    decl?.catalogUrl,
+    decl?.catalogURL,
+    decl?.baseUrl,
+    decl?.baseURL,
+    decl?.url,
+    decl?.sourceUrl,
+    decl?.sourceURL,
+    options?.catalog,
+    options?.catalogUrl,
+    options?.catalogURL,
+    options?.baseUrl,
+    options?.baseURL,
+    options?.url,
+    options?.catalogs && typeof options.catalogs === "object" ? options.catalogs[id] : undefined,
+    options?.catalogs && typeof options.catalogs === "object" ? options.catalogs["*"] : undefined,
+    options?.catalogs && typeof options.catalogs === "object" ? options.catalogs.default : undefined,
+    options?.catalogBase,
+    options?.catalogBaseURL,
+  ]
+  for (const c of candidates) {
+    if (isHttpUrl(c)) return trimSlash(c)
+  }
+  // allow a non-URL base resolved relative to a provided origin? no.
+  return null
+}
+
+function catalogIndexUrl(base: string): string {
+  const b = trimSlash(base)
+  if (/\/index\.json$/i.test(b)) return b
+  return `${b}/index.json`
+}
+
+function catalogEntryName(decl: any, id: string): string {
+  const candidates = [decl?.name, decl?.entry, decl?.catalogEntry, decl?.skill, decl?.entryName]
+  for (const c of candidates) {
+    if (typeof c === "string" && c.length > 0) return c
+  }
+  if (typeof decl?.path === "string" && decl.path.length > 0 && !decl.path.includes("/") && !decl.path.includes("\\")) {
+    return decl.path
+  }
+  return id
+}
+
+function catalogEntriesOf(index: any): any[] {
+  if (Array.isArray(index)) return index
+  if (index && typeof index === "object") {
+    for (const key of ["skills", "entries", "catalog", "items", "packages", "results"]) {
+      if (Array.isArray((index as any)[key])) return (index as any)[key]
+    }
+    // object keyed by name
+    const keys = Object.keys(index)
+    if (keys.length > 0 && keys.every((k) => index[k] && typeof index[k] === "object" && !Array.isArray(index[k]))) {
+      return keys.map((k) => ({ name: k, ...(index as any)[k] }))
+    }
+  }
+  return []
+}
+
+function entryFilesOf(entry: any): any[] {
+  const f = entry?.files ?? entry?.file ?? entry?.paths ?? entry?.fileList
+  if (Array.isArray(f)) return f
+  if (typeof f === "string") return [f]
+  return []
+}
+
+function entryFileName(f: any): string {
+  if (typeof f === "string") return f
+  if (f && typeof f === "object") {
+    return String(f.path ?? f.file ?? f.name ?? f.filename ?? f.id ?? "")
+  }
+  return ""
+}
+
+function getFetchFn(options: any): any {
+  const candidates = [
+    options?.fetch,
+    options?.fetchFn,
+    options?.fetcher,
+    options?.request,
+    options?.http,
+    options?.httpClient,
+    options?.transport && (typeof options.transport.fetch === "function" ? options.transport.fetch : options.transport.fetch),
+    options?.transport && (typeof options.transport.request === "function" ? options.transport.request : undefined),
+    globalThis.fetch,
+  ]
+  for (const c of candidates) {
+    if (typeof c === "function") return c
+  }
+  return null
+}
+
+function getMaxBytes(options: any, decl?: any): number {
+  const c = decl?.maxBytes ?? decl?.sizeLimit ?? options?.maxBytes ?? options?.sizeLimit ?? options?.limit ?? options?.maxSize
+  const n = typeof c === "number" ? c : Number(c)
+  return Number.isFinite(n) && n > 0 ? n : DEFAULT_CATALOG_MAX_BYTES
+}
+
+async function fetchBytes(fetchFn: any, url: string, maxBytes: number): Promise<Buffer> {
+  let res: any
+  try {
+    res = await fetchFn(url)
+  } catch (e: any) {
+    throw new MissingSkillError(`skill provisioning failed: catalog fetch failed for ${url}: ${e?.message ?? e}`, { url, error: String(e?.message ?? e) })
+  }
+  if (!res) {
+    throw new MissingSkillError(`skill provisioning failed: catalog entry missing at ${url} (no response)`, { url, observed: "missing" })
+  }
+  const status = typeof res.status === "number" ? res.status : (res.ok === false ? 404 : 200)
+  const ok = typeof res.ok === "boolean" ? res.ok : status >= 200 && status < 300
+  if (!ok || status >= 400) {
+    throw new MissingSkillError(`skill provisioning failed: catalog entry missing at ${url} (HTTP ${status})`, { url, status, observed: "missing" })
+  }
+
+  let buf: Buffer | null = null
+  try {
+    if (typeof res.arrayBuffer === "function") {
+      const ab = await res.arrayBuffer()
+      buf = Buffer.from(ab)
+    } else if (Buffer.isBuffer(res.body)) {
+      buf = res.body
+    } else if (res.body && typeof res.body === "string") {
+      buf = Buffer.from(res.body)
+    } else if (typeof res.text === "function") {
+      const t = await res.text()
+      buf = Buffer.from(typeof t === "string" ? t : String(t ?? ""))
+    } else if (typeof res.json === "function" && res.data === undefined) {
+      // last resort: stringify json
+      const j = await res.json()
+      buf = Buffer.from(JSON.stringify(j))
+    } else if (res.data !== undefined) {
+      buf = Buffer.isBuffer(res.data) ? res.data : Buffer.from(typeof res.data === "string" ? res.data : JSON.stringify(res.data))
+    } else if (res.buffer !== undefined) {
+      buf = Buffer.isBuffer(res.buffer) ? res.buffer : Buffer.from(res.buffer)
+    } else if (res.content !== undefined) {
+      buf = Buffer.isBuffer(res.content) ? res.content : Buffer.from(res.content)
+    } else if (res.body && typeof res.body.getReader === "function") {
+      const reader = res.body.getReader()
+      const chunks: Buffer[] = []
+      while (true) {
+        const { done, value } = await reader.read()
+        if (done) break
+        chunks.push(Buffer.from(value))
+      }
+      buf = Buffer.concat(chunks)
+    } else if (res.body && Symbol.asyncIterator in Object(res.body)) {
+      const chunks: Buffer[] = []
+      for await (const c of res.body) chunks.push(Buffer.from(c))
+      buf = Buffer.concat(chunks)
+    }
+  } catch (e: any) {
+    throw new MissingSkillError(`skill provisioning failed: catalog read failed for ${url}: ${e?.message ?? e}`, { url, error: String(e?.message ?? e) })
+  }
+
+  if (!buf) {
+    // maybe res is already a buffer/string
+    if (Buffer.isBuffer(res)) buf = res
+    else if (typeof res === "string") buf = Buffer.from(res)
+    else buf = Buffer.from("")
+  }
+
+  if (buf.length > maxBytes) {
+    throw new PathSafetyError(`skill provisioning failed: catalog payload exceeds size limit for ${url} (${buf.length} > ${maxBytes})`, { url, size: buf.length, limit: maxBytes })
+  }
+  return buf
+}
+
+async function fetchJson(fetchFn: any, url: string, maxBytes: number): Promise<any> {
+  const buf = await fetchBytes(fetchFn, url, maxBytes)
+  let parsed: any
+  try {
+    parsed = JSON.parse(buf.toString("utf8"))
+  } catch (e: any) {
+    throw new ManifestValidationError(`skill provisioning failed: catalog index is not valid JSON at ${url}: ${e?.message ?? e}`, { url })
+  }
+  return parsed
+}
+
+function normalizeOptions(...args: any[]): any {
+  const out: any = {}
+  for (const a of args) {
+    if (a == null) continue
+    if (typeof a === "string") {
+      if (!out.url && isHttpUrl(a)) out.url = a
+      else if (out.root === undefined) out.root = a
+      continue
+    }
+    if (typeof a === "object") {
+      Object.assign(out, a)
+    }
+  }
+  return out
+}
+
+function resolveRootForCatalog(options: any): { root: string; remote: boolean } {
+  const t = options.transport
+  const remoteCandidates = [
+    t && (typeof t.resolveRoot === "function" ? t.resolveRoot() : t.root),
+    options.remoteRoot,
+    options.remote,
+    options.checkout,
+    options.directory,
+    typeof options.location === "string" ? options.location : options.location?.directory,
+  ]
+  for (const c of remoteCandidates) {
+    if (typeof c === "string" && c.length > 0) {
+      return { root: path.resolve(c), remote: true }
+    }
+  }
+  const localCandidates = [options.localRoot, options.sourceRoot, options.projectRoot, options.root]
+  for (const c of localCandidates) {
+    if (typeof c === "string" && c.length > 0) {
+      return { root: path.resolve(c), remote: false }
+    }
+  }
+  // default to cwd? use process.cwd() but tests pass root. If none, throw.
+  if (typeof options.root === "string") return { root: path.resolve(options.root), remote: false }
+  throw new ProvisioningError("catalog_root_missing", "skill provisioning failed: project root is required", {})
+}
+
+export async function provisionCatalogLocal(options: any): Promise<ProvisionReport> {
+  const opts = normalizeOptions(options)
+  const root = path.resolve(opts.root)
+  const role = opts.role ?? "delegate"
+  const { manifest, raw } = loadManifest(root, opts.manifestPath)
+  validateManifest(manifest)
+  if (!manifest.roles || !Object.prototype.hasOwnProperty.call(manifest.roles, role)) {
+    throw new ManifestValidationError(`skill provisioning failed: role ${role} is not declared in manifest`, { role })
+  }
+  const roleIds = manifest.roles[role] ?? []
+  const sourceRevision = sha256Buffer(Buffer.from(raw, "utf8"))
+  const report: ProvisionReport = {
+    role,
+    source_revision: sourceRevision,
+    generated_at: (opts.now ? opts.now() : new Date().toISOString()),
+    skills: [],
+    warnings: [],
+  }
+  const fetchFn = getFetchFn(opts)
+  if (!fetchFn) throw new ProvisioningError("fetch_missing", "skill provisioning failed: fetch function is required for catalog source", {})
+  const maxBytesDefault = getMaxBytes(opts)
+
+  for (const id of roleIds) {
+    const decl = (manifest.skills ?? {})[id]
+    if (!decl) {
+      throw new MissingSkillError(`skill provisioning failed: skill "${id}" for role "${role}": missing declaration`, { id, role, expected: "missing", observed: "missing", path: "(undeclared)" })
+    }
+    const source = (decl.source ?? "project") as SkillSource
+    const expected = decl.revision ?? ""
+
+    if (source !== "catalog") {
+      // verify in place
+      const resolved = resolveSkillPath(root, decl, id)
+      if (!existsSync(resolved.full)) {
+        throw new MissingSkillError(`skill provisioning failed: skill "${id}" for role "${role}": missing (expected revision ${expected}, observed missing) at ${resolved.relative}`, { id, role, expected, observed: "missing", path: resolved.relative, origin: resolved.origin })
+      }
+      let observed: string
+      try { observed = computeRevision(resolved.full) } catch {
+        throw new MissingSkillError(`skill provisioning failed: skill "${id}" for role "${role}": unreadable`, { id, role, expected, observed: "missing", path: resolved.relative })
+      }
+      if (expected && observed !== expected) {
+        throw new SkillRevisionMismatchError(`skill provisioning failed: skill "${id}" for role "${role}": revision mismatch (expected ${expected}, observed ${observed}) at ${resolved.relative}`, { id, role, expected, observed, path: resolved.relative, origin: resolved.origin })
+      }
+      report.skills.push({ id, roles: rolesUsing(manifest, id), source, origin: resolved.origin, path: resolved.relative, revision: expected, observed_revision: observed, override: decl.override === true ? true : undefined })
+      continue
+    }
+
+    const baseUrl = resolveCatalogBaseUrl(decl, opts, id)
+    if (!baseUrl) {
+      throw new MissingSkillError(`skill provisioning failed: skill "${id}" for role "${role}": catalog base URL missing`, { id, role, expected, observed: "missing", origin: "catalog" })
+    }
+    const entryName = catalogEntryName(decl, id)
+    const indexUrl = catalogIndexUrl(baseUrl)
+    const index = await fetchJson(fetchFn, indexUrl, getMaxBytes(opts, decl))
+    const entries = catalogEntriesOf(index)
+    const entry = entries.find((e: any) => String(e?.name ?? e?.id ?? e?.skill ?? "") === entryName)
+    if (!entry) {
+      throw new MissingSkillError(`skill provisioning failed: skill "${id}" for role "${role}": catalog entry missing (expected ${entryName}) at ${indexUrl}`, { id, role, expected: entryName, observed: "missing", path: indexUrl, origin: baseUrl })
+    }
+    if (decl.version !== undefined && entry.version !== undefined && entry.version !== decl.version) {
+      throw new MissingSkillError(`skill provisioning failed: skill "${id}" for role "${role}": catalog version mismatch (expected ${decl.version}, observed ${entry.version})`, { id, role, expected: decl.version, observed: entry.version })
+    }
+
+    const destRelFinal = decl.path && isSafeRelative(decl.path) ? decl.path : `.opencode/skills/${id}`
+    if (!isSafeRelative(destRelFinal)) {
+      throw new PathSafetyError(`skill provisioning failed: unsafe path for ${id}: ${destRelFinal}`, { id, path: destRelFinal })
+    }
+    const destFull = path.resolve(root, destRelFinal)
+    if (destFull !== root && !destFull.startsWith(root + path.sep)) {
+      throw new PathSafetyError(`skill provisioning failed: path escapes project root for ${id}: ${destRelFinal}`, { id, path: destRelFinal })
+    }
+
+    const files = entryFilesOf(entry)
+    if (!files || files.length === 0) {
+      throw new MissingSkillError(`skill provisioning failed: skill "${id}" for role "${role}": catalog entry has no files`, { id, role, origin: baseUrl })
+    }
+
+    // clean dest
+    if (existsSync(destFull)) rmSync(destFull, { recursive: true, force: true })
+    mkdirSync(destFull, { recursive: true })
+
+    const maxBytes = getMaxBytes(opts, decl)
+    for (const f of files) {
+      const rel = entryFileName(f)
+      if (!rel || !isSafeRelative(rel)) {
+        throw new PathSafetyError(`skill provisioning failed: unsafe catalog file path: ${rel}`, { id, path: rel })
+      }
+      let fileUrl: URL
+      try {
+        fileUrl = new URL(`${entryName}/${rel}`, baseUrl + "/")
+      } catch {
+        throw new PathSafetyError(`skill provisioning failed: invalid catalog URL for ${rel}`, { id, path: rel })
+      }
+      if (fileUrl.origin !== new URL(baseUrl).origin) {
+        throw new PathSafetyError(`skill provisioning failed: catalog file is not same-origin: ${fileUrl.toString()}`, { id, url: fileUrl.toString() })
+      }
+      // ensure no traversal in resolved pathname
+      if (fileUrl.pathname.includes("..")) {
+        throw new PathSafetyError(`skill provisioning failed: unsafe catalog file path: ${rel}`, { id, path: rel })
+      }
+      const bytes = await fetchBytes(fetchFn, fileUrl.toString(), maxBytes)
+      const target = path.join(destFull, rel)
+      const targetDir = path.dirname(target)
+      if (targetDir !== destFull && !targetDir.startsWith(destFull + path.sep)) {
+        throw new PathSafetyError(`skill provisioning failed: catalog file escapes destination: ${rel}`, { id, path: rel })
+      }
+      mkdirSync(targetDir, { recursive: true })
+      writeFileSync(target, bytes)
+    }
+
+    let observed: string
+    try {
+      observed = computeRevision(destFull)
+    } catch {
+      throw new MissingSkillError(`skill provisioning failed: skill "${id}" for role "${role}": unreadable after download`, { id, role, expected, observed: "missing", path: destRelFinal })
+    }
+    if (expected && observed !== expected) {
+      throw new SkillRevisionMismatchError(`skill provisioning failed: skill "${id}" for role "${role}": revision mismatch (expected ${expected}, observed ${observed}) at ${destRelFinal}`, { id, role, expected, observed, path: destRelFinal, origin: baseUrl })
+    }
+
+    report.skills.push({
+      id,
+      roles: rolesUsing(manifest, id),
+      source: "catalog",
+      origin: `catalog:${baseUrl}/${entryName}`,
+      path: destRelFinal,
+      revision: expected,
+      observed_revision: observed,
+      override: decl.override === true ? true : undefined,
+    })
+  }
+
+  const defaultReportPath = path.join(root, ".bive", "skills.report.json")
+  let finalPath: string | null = null
+  if (opts.reportPath === false || opts.reportPath === null) finalPath = null
+  else if (opts.reportPath === undefined || opts.reportPath === true) finalPath = defaultReportPath
+  else finalPath = path.isAbsolute(String(opts.reportPath)) ? String(opts.reportPath) : path.join(root, String(opts.reportPath))
+
+  if (finalPath) {
+    const resolvedRp = path.resolve(finalPath)
+    if (resolvedRp !== root && !resolvedRp.startsWith(root + path.sep)) {
+      throw new PathSafetyError(`skill provisioning failed: report path escapes project root: ${finalPath}`, { path: finalPath })
+    }
+    mkdirSync(path.dirname(resolvedRp), { recursive: true })
+    writeFileSync(resolvedRp, JSON.stringify(report, null, 2) + "\n", "utf8")
+  }
+
+  return report
+}
+
+export async function provisionCatalogRemote(options: any): Promise<ProvisionReport> {
+  const opts = normalizeOptions(options)
+  const remoteRoot = path.resolve(resolveRemoteRoot(opts))
+  const sourceRoot = path.resolve(resolveSourceRoot(opts, remoteRoot))
+  const role = opts.role ?? "delegate"
+  const approvedRel = opts.approvedDir ?? opts.skillsPath ?? ".opencode/skills"
+  if (!isSafeRelative(approvedRel)) {
+    throw new PathSafetyError(`skill provisioning failed: approved directory must be a safe relative path: ${approvedRel}`, { path: approvedRel })
+  }
+  const approvedRoot = path.resolve(remoteRoot, approvedRel)
+  if (!isWithin(remoteRoot, approvedRoot)) {
+    throw new PathSafetyError(`skill provisioning failed: approved directory escapes checkout: ${approvedRel}`, { path: approvedRel })
+  }
+
+  const useRemoteManifest = existsSync(opts.manifestPath ? path.resolve(remoteRoot, opts.manifestPath) : path.join(remoteRoot, ".bive", "skills.json"))
+  const manifestRoot = useRemoteManifest ? remoteRoot : (existsSync(path.join(sourceRoot, ".bive", "skills.json")) ? sourceRoot : remoteRoot)
+
+  const { manifest, raw } = loadManifest(manifestRoot, opts.manifestPath)
+  validateManifest(manifest)
+  if (!manifest.roles || !Object.prototype.hasOwnProperty.call(manifest.roles, role)) {
+    throw new ManifestValidationError(`skill provisioning failed: role ${role} is not declared in manifest`, { role })
+  }
+  const roleIds = manifest.roles[role] ?? []
+  const sourceRevision = sha256Buffer(Buffer.from(raw, "utf8"))
+  const report: ProvisionReport = { role, source_revision: sourceRevision, generated_at: (opts.now ? opts.now() : new Date().toISOString()), skills: [], warnings: [] }
+
+  const fetchFn = getFetchFn(opts)
+  const hasCatalog = roleIds.some((id: string) => ((manifest.skills ?? {})[id]?.source ?? "project") === "catalog")
+  if (hasCatalog && !fetchFn) {
+    throw new ProvisioningError("fetch_missing", "skill provisioning failed: fetch function is required for catalog source", {})
+  }
+
+  const pushBundle = opts.pushBundle !== false
+
+  for (const id of roleIds) {
+    const decl = (manifest.skills ?? {})[id]
+    if (!decl) {
+      throw new MissingSkillError(`skill provisioning failed: skill "${id}" for role "${role}": missing declaration`, { id, role, expected: "missing", observed: "missing", path: "(undeclared)" })
+    }
+    const source = (decl.source ?? "project") as SkillSource
+    const expected = decl.revision ?? ""
+
+    if (source !== "catalog") {
+      // reuse remote verify/push logic minimally
+      const remoteResolved = resolveSkillPath(remoteRoot, decl, id)
+      let observed = safeCompute(remoteResolved.full)
+      if (observed !== expected) {
+        if (pushBundle) {
+          const sourceResolved = resolveSkillPath(sourceRoot, decl, id)
+          if (!existsSync(sourceResolved.full)) {
+            throw new MissingSkillError(`skill provisioning failed: skill "${id}" for role "${role}": missing (expected revision ${expected}, observed missing) at ${sourceResolved.relative} (source)`, { id, role, expected, observed: "missing", path: sourceResolved.relative, origin: sourceResolved.origin })
+          }
+          let sourceHash: string
+          try { sourceHash = computeRevision(sourceResolved.full) } catch {
+            throw new MissingSkillError(`skill provisioning failed: skill "${id}" for role "${role}": unreadable`, { id, role, expected, observed: "missing", path: sourceResolved.relative })
+          }
+          if (expected && sourceHash !== expected) {
+            throw new SkillRevisionMismatchError(`skill provisioning failed: skill "${id}" for role "${role}": revision mismatch (expected ${expected}, observed ${sourceHash}) at ${sourceResolved.relative}`, { id, role, expected, observed: sourceHash, path: sourceResolved.relative, origin: sourceResolved.origin })
+          }
+          if (!isWithin(remoteRoot, remoteResolved.full)) {
+            throw new PathSafetyError(`skill provisioning failed: path escapes checkout for ${id}: ${remoteResolved.relative}`, { id, path: remoteResolved.relative })
+          }
+          copyRecursive(sourceResolved.full, remoteResolved.full)
+          observed = safeCompute(remoteResolved.full)
+        }
+      }
+      if (observed === null) {
+        throw new MissingSkillError(`skill provisioning failed: skill "${id}" for role "${role}": missing (expected revision ${expected}, observed missing) at ${remoteResolved.relative}`, { id, role, expected, observed: "missing", path: remoteResolved.relative, origin: remoteResolved.origin })
+      }
+      if (expected && observed !== expected) {
+        throw new SkillRevisionMismatchError(`skill provisioning failed: skill "${id}" for role "${role}": revision mismatch (expected ${expected}, observed ${observed}) at ${remoteResolved.relative}`, { id, role, expected, observed, path: remoteResolved.relative, origin: remoteResolved.origin })
+      }
+      report.skills.push({ id, roles: rolesUsing(manifest, id), source, origin: remoteResolved.origin, path: remoteResolved.relative, revision: expected, observed_revision: observed, override: decl.override === true ? true : undefined })
+      continue
+    }
+
+    const baseUrl = resolveCatalogBaseUrl(decl, opts, id)
+    if (!baseUrl) {
+      throw new MissingSkillError(`skill provisioning failed: skill "${id}" for role "${role}": catalog base URL missing`, { id, role, expected, observed: "missing", origin: "catalog" })
+    }
+    const entryName = catalogEntryName(decl, id)
+    const indexUrl = catalogIndexUrl(baseUrl)
+    const index = await fetchJson(fetchFn, indexUrl, getMaxBytes(opts, decl))
+    const entries = catalogEntriesOf(index)
+    const entry = entries.find((e: any) => String(e?.name ?? e?.id ?? e?.skill ?? "") === entryName)
+    if (!entry) {
+      throw new MissingSkillError(`skill provisioning failed: skill "${id}" for role "${role}": catalog entry missing (expected ${entryName}) at ${indexUrl}`, { id, role, expected: entryName, observed: "missing", path: indexUrl, origin: baseUrl })
+    }
+    if (decl.version !== undefined && entry.version !== undefined && entry.version !== decl.version) {
+      throw new MissingSkillError(`skill provisioning failed: skill "${id}" for role "${role}": catalog version mismatch (expected ${decl.version}, observed ${entry.version})`, { id, role, expected: decl.version, observed: entry.version })
+    }
+
+    const destRel = decl.path && isSafeRelative(decl.path) ? decl.path : `${approvedRel}/${id}`
+    if (!isSafeRelative(destRel)) {
+      throw new PathSafetyError(`skill provisioning failed: unsafe path for ${id}: ${destRel}`, { id, path: destRel })
+    }
+    const destFull = path.resolve(remoteRoot, destRel)
+    if (!isWithin(remoteRoot, destFull)) {
+      throw new PathSafetyError(`skill provisioning failed: path escapes checkout for ${id}: ${destRel}`, { id, path: destRel })
+    }
+
+    const files = entryFilesOf(entry)
+    if (!files || files.length === 0) {
+      throw new MissingSkillError(`skill provisioning failed: skill "${id}" for role "${role}": catalog entry has no files`, { id, role, origin: baseUrl })
+    }
+
+    if (existsSync(destFull)) rmSync(destFull, { recursive: true, force: true })
+    mkdirSync(destFull, { recursive: true })
+
+    const maxBytes = getMaxBytes(opts, decl)
+    for (const f of files) {
+      const rel = entryFileName(f)
+      if (!rel || !isSafeRelative(rel)) {
+        throw new PathSafetyError(`skill provisioning failed: unsafe catalog file path: ${rel}`, { id, path: rel })
+      }
+      const fileUrl = new URL(`${entryName}/${rel}`, baseUrl + "/")
+      if (fileUrl.origin !== new URL(baseUrl).origin) {
+        throw new PathSafetyError(`skill provisioning failed: catalog file is not same-origin: ${fileUrl.toString()}`, { id, url: fileUrl.toString() })
+      }
+      const bytes = await fetchBytes(fetchFn, fileUrl.toString(), maxBytes)
+      const target = path.join(destFull, rel)
+      const targetDir = path.dirname(target)
+      if (targetDir !== destFull && !targetDir.startsWith(destFull + path.sep)) {
+        throw new PathSafetyError(`skill provisioning failed: catalog file escapes destination: ${rel}`, { id, path: rel })
+      }
+      mkdirSync(targetDir, { recursive: true })
+      writeFileSync(target, bytes)
+    }
+
+    let observed = safeCompute(destFull)
+    if (observed === null) {
+      throw new MissingSkillError(`skill provisioning failed: skill "${id}" for role "${role}": missing after download`, { id, role, expected, observed: "missing", path: destRel })
+    }
+    if (expected && observed !== expected) {
+      throw new SkillRevisionMismatchError(`skill provisioning failed: skill "${id}" for role "${role}": revision mismatch (expected ${expected}, observed ${observed}) at ${destRel}`, { id, role, expected, observed, path: destRel, origin: baseUrl })
+    }
+    report.skills.push({ id, roles: rolesUsing(manifest, id), source: "catalog", origin: `catalog:${baseUrl}/${entryName}`, path: destRel, revision: expected, observed_revision: observed, override: decl.override === true ? true : undefined })
+  }
+
+  const defaultReportPath = path.join(remoteRoot, ".bive", "skills.report.json")
+  let finalPath: string | null = null
+  if (opts.reportPath === false || opts.reportPath === null) finalPath = null
+  else if (opts.reportPath === undefined || opts.reportPath === true) finalPath = defaultReportPath
+  else finalPath = path.isAbsolute(String(opts.reportPath)) ? String(opts.reportPath) : path.join(remoteRoot, String(opts.reportPath))
+
+  if (finalPath) {
+    const resolvedRp = path.resolve(finalPath)
+    if (resolvedRp !== remoteRoot && !resolvedRp.startsWith(remoteRoot + path.sep)) {
+      throw new PathSafetyError(`skill provisioning failed: report path escapes project root: ${finalPath}`, { path: finalPath })
+    }
+    mkdirSync(path.dirname(resolvedRp), { recursive: true })
+    writeFileSync(resolvedRp, JSON.stringify(report, null, 2) + "\n", "utf8")
+  }
+
+  return report
+}
+
+export async function provisionCatalog(options: any): Promise<ProvisionReport> {
+  const opts = normalizeOptions(options)
+  const { remote } = resolveRootForCatalog(opts)
+  if (remote) return provisionCatalogRemote(opts)
+  return provisionCatalogLocal(opts)
+}
+
+// fetchCatalog: fetch and parse an HTTP skill catalog index.
+export async function fetchCatalog(...args: any[]): Promise<any> {
+  const opts = normalizeOptions(...args)
+  const fetchFn = getFetchFn(opts)
+  if (!fetchFn) throw new ProvisioningError("fetch_missing", "skill provisioning failed: fetch function is required", {})
+  const base = resolveCatalogBaseUrl({}, opts, "") || opts.baseUrl || opts.url || opts.catalogUrl || opts.catalog
+  if (!isHttpUrl(base)) throw new ProvisioningError("catalog_url_missing", "skill provisioning failed: catalog base URL is required", {})
+  const maxBytes = getMaxBytes(opts)
+  return fetchJson(fetchFn, catalogIndexUrl(base), maxBytes)
+}
+
+// downloadCatalogSkill: download a single catalog skill entry to dest.
+export async function downloadCatalogSkill(...args: any[]): Promise<any> {
+  const opts = normalizeOptions(...args)
+  const fetchFn = getFetchFn(opts)
+  if (!fetchFn) throw new ProvisioningError("fetch_missing", "skill provisioning failed: fetch function is required", {})
+  const baseUrl = resolveCatalogBaseUrl({}, opts, opts.id ?? opts.name ?? "skill")
+  const base = isHttpUrl(baseUrl) ? baseUrl : (isHttpUrl(opts.baseUrl || opts.url || opts.catalogUrl || opts.catalog) ? trimSlash(opts.baseUrl || opts.url || opts.catalogUrl || opts.catalog) : null)
+  if (!base) throw new ProvisioningError("catalog_url_missing", "skill provisioning failed: catalog base URL is required", {})
+  const entryName = opts.entry || opts.name || opts.id || opts.skill || "skill"
+  const index = await fetchJson(fetchFn, catalogIndexUrl(base), getMaxBytes(opts))
+  const entries = catalogEntriesOf(index)
+  const entry = entries.find((e: any) => String(e?.name ?? e?.id ?? e?.skill ?? "") === entryName)
+  if (!entry) throw new MissingSkillError(`skill provisioning failed: catalog entry missing: ${entryName}`, { entry: entryName, observed: "missing" })
+  const root = path.resolve(opts.root || opts.destRoot || process.cwd())
+  const destRel = opts.dest || opts.path || opts.directory || `.opencode/skills/${entryName}`
+  if (!isSafeRelative(destRel)) throw new PathSafetyError(`skill provisioning failed: unsafe path: ${destRel}`, { path: destRel })
+  const destFull = path.resolve(root, destRel)
+  if (destFull !== root && !destFull.startsWith(root + path.sep)) throw new PathSafetyError(`skill provisioning failed: path escapes root: ${destRel}`, { path: destRel })
+  if (existsSync(destFull)) rmSync(destFull, { recursive: true, force: true })
+  mkdirSync(destFull, { recursive: true })
+  const files = entryFilesOf(entry)
+  for (const f of files) {
+    const rel = entryFileName(f)
+    if (!rel || !isSafeRelative(rel)) throw new PathSafetyError(`skill provisioning failed: unsafe catalog file path: ${rel}`, { path: rel })
+    const fileUrl = new URL(`${entryName}/${rel}`, base + "/")
+    if (fileUrl.origin !== new URL(base).origin) throw new PathSafetyError(`skill provisioning failed: not same-origin: ${fileUrl.toString()}`, { url: fileUrl.toString() })
+    const bytes = await fetchBytes(fetchFn, fileUrl.toString(), getMaxBytes(opts))
+    const target = path.join(destFull, rel)
+    mkdirSync(path.dirname(target), { recursive: true })
+    writeFileSync(target, bytes)
+  }
+  const observed = computeRevision(destFull)
+  return { entry, observed_revision: observed, path: destRel, root, dest: destFull }
+}
+
+// Aliases for catalog functions
+export const provisionCatalogSource = provisionCatalog
+export const provisionCatalogSkills = provisionCatalog
+export const provisionCatalogSkill = provisionCatalog
+export const catalogProvision = provisionCatalog
+export const catalogProvisioning = provisionCatalog
+export const provisionFromCatalog = provisionCatalog
+export const provisionCatalogLocalSkills = provisionCatalogLocal
+export const provisionCatalogRemoteSkills = provisionCatalogRemote
+export const fetchSkillCatalog = fetchCatalog
+export const fetchCatalogIndex = fetchCatalog
+export const downloadCatalog = downloadCatalogSkill
+export const downloadSkillFromCatalog = downloadCatalogSkill
+
 export default {
   provisionLocal,
+  provisionCatalog,
+  provisionCatalogLocal,
+  provisionCatalogRemote,
+  provisionCatalogSource,
+  provisionCatalogSkills,
+  provisionCatalogSkill,
+  catalogProvision,
+  catalogProvisioning,
+  provisionFromCatalog,
+  provisionCatalogLocalSkills,
+  provisionCatalogRemoteSkills,
+  fetchCatalog,
+  fetchSkillCatalog,
+  fetchCatalogIndex,
+  downloadCatalogSkill,
+  downloadCatalog,
+  downloadSkillFromCatalog,
   provision,
   provisionRemote,
   provisionRemoteSkills,
@@ -905,6 +1570,3 @@ export default {
   SkillConflictError,
   PathSafetyError,
 }
-
-export * from "./skill-permissions.ts"
-export { default as skillPermissionsModule } from "./skill-permissions.ts"
