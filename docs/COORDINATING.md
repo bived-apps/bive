@@ -160,6 +160,24 @@ The delegate's prompt (`DELEGATE.md`) carries the matching rule: on refusal, sto
 rewriting the command, do not continue with other commands, do not push, preserve uncommitted work, and report the
 refusal with the exact command, message, and worktree state.
 
+## Your own refusals (issue #201)
+
+The coordinator is also guarded. Same rule as a delegate's: do not rerun the effect another way before reporting. Post
+a comment on the issue with the command and the refusal message, and say what you were doing; only then continue.
+
+A refusal about the command's **shape** (`invalid-structure`) may be rephrased, in the same comment, into one of
+these forms, all seen on 2026-11-12:
+
+| Refused | Why | Use instead |
+| --- | --- | --- |
+| a redirect to a parent-directory path after a `cd` | redirects are resolved against the session root, not the directory after the `cd` | run from the root; give absolute paths inside the worktree |
+| `$(...)` in a call whose workdir is a delegate's worktree | any call there is checked as that delegate's | run from the root with `cd .worktrees/issue-<n> && ...` |
+| a `gh ... --body "..."` whose text has a parent-directory path | the quoted text is scanned | write the text to a file with the write tool, pass `--body-file` |
+| a pipe into anything but `tail`, `head`, `grep` (a delegate) | the scanner cannot read it | the command's own switches, or one command per step |
+
+A refusal about **where** (a path outside the worktree, an inviolable file, an external directory) is a boundary, not
+a shape: stop and ask through the chain (skill `bive-ask-owner`). Never reach the same path or file another way.
+
 ## After the batch (step 9)
 
 The core checks once, after the last merge, then `HANDOFF.md` and `ROADMAP.md` in one commit on a coordinator branch,
