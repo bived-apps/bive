@@ -4,7 +4,7 @@ Closes #<N>
 
 **Changed**: <!-- files and what each change does -->
 
-**Checks**: <!-- each command and its result -->
+**Checks**: <!-- each command and its result; name which markers ran and which were skipped (issue #122) -->
 
 **Left**: <!-- not done and why; what the coordinator must decide. If blocked on a bug, include measured expected
 and observed values along input → mapping → event → result, and identify the first link that diverges. -->
