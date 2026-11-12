@@ -115,7 +115,7 @@ Never write "Done" in an issue, a checklist or a report for an issue whose pull 
 `bive-merge-authorized-until-YYYY-MM-DD` (`docs/REQUIRED-CHECKS.md`): read that red as "waiting for the owner's label",
 not as a failure to brief again. The coordinator never applies the label.
 
-## Refusal and resume (issue #146)
+## Refusal and resume (issues #146, #147)
 
 When a delegate reports a refusal (guard, scanner, or any check):
 
@@ -125,6 +125,12 @@ When a delegate reports a refusal (guard, scanner, or any check):
 4. Before any subsequent delegate starts, require a clear supervisor decision on how to proceed: resume the same
    delegate with a corrected brief, split the work, or stop.
 5. Do not normalize retries as a workaround.
+
+**Recording the authorization (issue #147):** before resuming after a refusal, post a comment on the issue recording
+the refusal (command, message, worktree state) and the supervisor's explicit authorization to resume (or the
+decision to split or stop). The coordinator does not resume on its own authority; the supervisor's decision must be
+visible in the issue's comment thread before any delegate starts. If the supervisor's decision is not recorded, the
+refusal stands and no subsequent delegate starts.
 
 The delegate's prompt (`DELEGATE.md`) carries the matching rule: on refusal, stop immediately, do not retry by
 rewriting the command, do not continue with other commands, do not push, preserve uncommitted work, and report the

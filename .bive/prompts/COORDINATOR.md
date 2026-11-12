@@ -74,6 +74,11 @@ it: only the owner puts it on a pull request.
     uncommitted work (do not discard or push it). Before any subsequent delegate starts, require a clear supervisor
     decision on how to proceed: resume the same delegate with a corrected brief, split the work, or stop. Do not
     normalize retries as a workaround; a refusal is a hard stop, not a prompt to rewrite the command.
+7b. **Record the authorization**: before resuming after a refusal, post a comment on the issue recording the refusal
+    (command, message, worktree state) and the supervisor's explicit authorization to resume (or the decision to
+    split or stop). The coordinator does not resume on its own authority; the supervisor's decision must be visible
+    in the issue's comment thread before any delegate starts. If the supervisor's decision is not recorded, the
+    refusal stands and no subsequent delegate starts.
 8. **Failed twice**: ask the owner (gate 2): split it again, re-brief it on another model, or drop it. Never do the
    work yourself.
 9. **After each batch**: the core checks once, after the last merge of the batch, never after each merge
