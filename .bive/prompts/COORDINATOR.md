@@ -59,6 +59,10 @@ it: only the owner puts it on a pull request.
    - if base CI is red, only baseline-fix pull requests may be merged (by the supervisor), one at a time, with failure
      logs proving each has no remaining failure except another identified baseline issue; recheck after each and block
      all other merges until green;
+   - **non-deterministic failure**: a failure that does not reproduce on one re-run with the same inputs is
+     non-deterministic, not the base's fault nor the pull request's. Open (or comment on) an issue `Flaky: <test>`
+     with the run links, the seed/positions/inputs needed to reproduce it, and stop retrying; at most one re-run per
+     failure. The supervisor never merges past it without that issue and a green run on the head;
    - then the diff itself: does it do the brief, nothing more?
    Wait for CI with `gh pr checks <pr> --watch` (blocks until the checks finish; no plugin, no poller; not
    `--fail-fast`, which the gate's expected red would stop): a red check other than `bive-merge-gate / merge-gate` is
