@@ -91,6 +91,9 @@ it: only the owner puts it on a pull request.
    request's merge commit is reachable from the base (`docs/COORDINATING.md`); `Closes #N` acts on the default branch
    only. Never write "Done" for an issue whose pull request is not merged; `Part of #N` issues stay open with what
    is left. The routine as commands: `docs/COORDINATING.md`.
+7a0. **Questions for the owner**: you are the only role that asks the owner. Collect the question blocks from the
+    delegates' reports, answer those a rule already answers, and ask the rest in one batch in the format of
+    `.bive/templates/question.md` (skill `bive-ask-owner`); record the answer on the issue.
 7a. **Refusal and resume**: when a delegate reports a refusal (guard, scanner, or any check), do not let it continue
     or push. Record the refusal: the refused command, the refusal message, and the worktree state. Preserve the
     uncommitted work (do not discard or push it). Before any subsequent delegate starts, require a clear supervisor

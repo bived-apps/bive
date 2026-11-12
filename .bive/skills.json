@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "roles": {
+    "supervisor": [
+      "bive-ask-owner"
+    ],
+    "coordinator": [
+      "bive-ask-owner"
+    ],
+    "delegate": [
+      "bive-ask-owner"
+    ]
+  },
+  "skills": {
+    "bive-ask-owner": {
+      "source": "project",
+      "path": ".opencode/skills/bive-ask-owner",
+      "revision": "2f730073da8f4fdac677e9e362763612ad9a6eed5d35211a0e52bdc3982310e1"
+    }
+  }
+}
