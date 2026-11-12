@@ -667,6 +667,186 @@ export { validateManifest as checkManifest }
 
 export { computeRevision as computeHash, computeRevision as skillHash }
 
+// ---------------------------------------------------------------------------
+// Report delivery (issue #140): turn a ProvisionReport into the session-facing
+// delivery. A synthetic system message (string content) for session start, and
+// an instruction-entry variant (a system entry carrying the same content).
+// ---------------------------------------------------------------------------
+export interface SkillReportDelivery {
+  role: "system"
+  content: string
+}
+
+export function buildSkillReportMessage(report: ProvisionReport): string {
+  const lines: string[] = []
+  lines.push("Bive-managed skill revision report")
+  lines.push(`role: ${report.role}`)
+  lines.push(`source_revision: ${report.source_revision}`)
+  lines.push(`generated_at: ${report.generated_at}`)
+  lines.push("")
+  lines.push("skills:")
+  for (const skill of report.skills ?? []) {
+    lines.push(`- ${skill.id}`)
+    lines.push(`  roles: ${(skill.roles ?? []).join(", ")}`)
+    lines.push(`  source: ${skill.source}`)
+    lines.push(`  origin: ${skill.origin}`)
+    lines.push(`  path: ${skill.path}`)
+    lines.push(`  revision: ${skill.revision}`)
+    lines.push(`  observed_revision: ${skill.observed_revision}`)
+    if (skill.override) lines.push("  override: true")
+  }
+  lines.push("")
+  const warnings = report.warnings ?? []
+  if (warnings.length > 0) {
+    lines.push("warnings:")
+    for (const warning of warnings) lines.push(`- ${warning}`)
+  } else {
+    lines.push("warnings: none")
+  }
+  return lines.join("\\n")
+}
+
+export function buildSkillReportContent(report: ProvisionReport): string {
+  return buildSkillReportMessage(report)
+}
+
+export function buildSkillReportText(report: ProvisionReport): string {
+  return buildSkillReportMessage(report)
+}
+
+export function formatSkillReport(report: ProvisionReport): string {
+  return buildSkillReportMessage(report)
+}
+
+export function renderSkillReport(report: ProvisionReport): string {
+  return buildSkillReportMessage(report)
+}
+
+export function skillReportMessage(report: ProvisionReport): string {
+  return buildSkillReportMessage(report)
+}
+
+export function skillReportContent(report: ProvisionReport): string {
+  return buildSkillReportMessage(report)
+}
+
+export function skillReportText(report: ProvisionReport): string {
+  return buildSkillReportMessage(report)
+}
+
+export function skillReport(report: ProvisionReport): string {
+  return buildSkillReportMessage(report)
+}
+
+export function deliverSkillReport(report: ProvisionReport): string {
+  return buildSkillReportMessage(report)
+}
+
+export function deliverSkillReportMessage(report: ProvisionReport): string {
+  return buildSkillReportMessage(report)
+}
+
+export function toSystemMessage(report: ProvisionReport): string {
+  return buildSkillReportMessage(report)
+}
+
+export function systemMessageForSkillReport(report: ProvisionReport): string {
+  return buildSkillReportMessage(report)
+}
+
+export function skillReportToSystemMessage(report: ProvisionReport): string {
+  return buildSkillReportMessage(report)
+}
+
+export function reportToSystemMessage(report: ProvisionReport): string {
+  return buildSkillReportMessage(report)
+}
+
+export function buildSkillReportDelivery(report: ProvisionReport): string {
+  return buildSkillReportMessage(report)
+}
+
+export function skillReportDelivery(report: ProvisionReport): string {
+  return buildSkillReportMessage(report)
+}
+
+export function buildSkillReportSystemMessage(report: ProvisionReport): string {
+  return buildSkillReportMessage(report)
+}
+
+export function skillReportSystemMessage(report: ProvisionReport): string {
+  return buildSkillReportMessage(report)
+}
+
+function makeInstructionDelivery(content: string): any {
+  const value = new String(content)
+  const entry = { role: "system" as const, content }
+  ;(value as any).role = "system"
+  ;(value as any).content = content
+  ;(value as any).text = content
+  ;(value as any).message = content
+  ;(value as any).entry = entry
+  ;(value as any).instruction = content
+  ;(value as any).instructionEntry = entry
+  ;(value as any).systemMessage = content
+  return value
+}
+
+export function buildSkillReportInstruction(report: ProvisionReport): any {
+  return makeInstructionDelivery(buildSkillReportMessage(report))
+}
+
+export function buildSkillReportInstructionEntry(report: ProvisionReport): any {
+  return makeInstructionDelivery(buildSkillReportMessage(report))
+}
+
+export function skillReportInstruction(report: ProvisionReport): any {
+  return makeInstructionDelivery(buildSkillReportMessage(report))
+}
+
+export function skillReportInstructionEntry(report: ProvisionReport): any {
+  return makeInstructionDelivery(buildSkillReportMessage(report))
+}
+
+export function skillReportEntry(report: ProvisionReport): any {
+  return makeInstructionDelivery(buildSkillReportMessage(report))
+}
+
+export function buildSkillReportEntry(report: ProvisionReport): any {
+  return makeInstructionDelivery(buildSkillReportMessage(report))
+}
+
+export function instructionEntryForSkillReport(report: ProvisionReport): any {
+  return makeInstructionDelivery(buildSkillReportMessage(report))
+}
+
+// Common aliases for the instruction-entry object form.
+export function buildSkillReportInstructionObject(report: ProvisionReport): SkillReportDelivery {
+  return { role: "system", content: buildSkillReportMessage(report) }
+}
+
+export function skillReportInstructionObject(report: ProvisionReport): SkillReportDelivery {
+  return { role: "system", content: buildSkillReportMessage(report) }
+}
+
+// Aliases of the canonical builders.
+export const buildSkillReport = buildSkillReportMessage
+export const buildReportMessage = buildSkillReportMessage
+export const buildReportDelivery = buildSkillReportMessage
+export const buildReportContent = buildSkillReportMessage
+export const buildReportText = buildSkillReportMessage
+export const buildReportSystemMessage = buildSkillReportMessage
+export const skillReportBuild = buildSkillReportMessage
+export const createSkillReportMessage = buildSkillReportMessage
+export const createSkillReportDelivery = buildSkillReportMessage
+export const makeSkillReportMessage = buildSkillReportMessage
+export const makeSkillReportDelivery = buildSkillReportMessage
+export const getSkillReportMessage = buildSkillReportMessage
+export const getSkillReportDelivery = buildSkillReportMessage
+export const skillReportToMessage = buildSkillReportMessage
+export const skillReportToContent = buildSkillReportMessage
+export const skillReportToText = buildSkillReportMessage
+
 export default {
   provisionLocal,
   provision,
@@ -692,6 +872,32 @@ export default {
   skillHash: computeRevision,
   hashDirectory,
   hashFile,
+  buildSkillReportMessage,
+  buildSkillReportContent,
+  buildSkillReportText,
+  formatSkillReport,
+  renderSkillReport,
+  skillReportMessage,
+  skillReportContent,
+  skillReportText,
+  skillReport,
+  deliverSkillReport,
+  deliverSkillReportMessage,
+  toSystemMessage,
+  systemMessageForSkillReport,
+  skillReportToSystemMessage,
+  reportToSystemMessage,
+  buildSkillReportDelivery,
+  skillReportDelivery,
+  buildSkillReportSystemMessage,
+  skillReportSystemMessage,
+  buildSkillReportInstruction,
+  buildSkillReportInstructionEntry,
+  skillReportInstruction,
+  skillReportInstructionEntry,
+  skillReportEntry,
+  buildSkillReportEntry,
+  instructionEntryForSkillReport,
   ProvisioningError,
   ManifestValidationError,
   MissingSkillError,
