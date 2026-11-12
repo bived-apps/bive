@@ -3,7 +3,7 @@ import { describe, test } from "node:test"
 import assert from "node:assert/strict"
 import os from "node:os"
 import path from "node:path"
-import { isDelegate, makeGuard, violations, type Check } from "../.opencode/plugins/worktree-guard/check.ts"
+import { isDelegate, isSupervisor, makeGuard, violations, type Check } from "../.opencode/plugins/worktree-guard/check.ts"
 
 // Fake paths under the home folder, never created: /tmp is a system prefix the guard lets through.
 const base = path.join(os.homedir(), ".bive-guard-test")
@@ -187,8 +187,50 @@ describe("delegate detection (child sessions inherit the coordinator's environme
   })
 })
 
+describe("author override and the supervisor's commits (#197)", () => {
+  const c = makeGuard({ root: main, delegate: false })
+  const s = makeGuard({ root: main, delegate: false, supervisor: true })
+  test("no role overrides the commit author for one command", () => {
+    for (const g of [c, delegate, s]) {
+      refused(shell(g, "git -c user.name='delegate x/y' commit -m m"), /author-override/)
+      refused(shell(g, 'git -c user.email="a@b.c" commit -m m'), /author-override/)
+      refused(shell(g, "git commit --author='A <a@b.c>' -m m"), /author-override/)
+      refused(shell(g, "git commit --author 'A <a@b.c>' -m m"), /author-override/)
+      refused(shell(g, "GIT_AUTHOR_NAME=x git commit -m m"), /author-override/)
+      refused(shell(g, "GIT_COMMITTER_EMAIL=x@y.z git commit -m m"), /author-override/)
+    }
+    refused(shell(c, "ssh host 'git -c user.name=\"delegate x\" commit -m m'"), /author-override/)
+  })
+  test("setting the worktree identity once is allowed, and so is an ordinary commit", () => {
+    passes(shell(c, 'git -C .worktrees/issue-5 config --worktree user.name "delegate claude-agent/sonnet"'))
+    passes(shell(c, "git config --worktree user.email delegate@bive.invalid"))
+    passes(shell(c, "git commit -F msg.txt"))
+    passes(shell(delegate, "git commit -F msg.txt"))
+    passes(shell(c, "git log --format=%an -1"))
+  })
+  test("a supervisor never commits or pushes, also over ssh", () => {
+    refused(shell(s, "git commit -m m"), /supervisor does not commit/)
+    refused(shell(s, "git push origin bived"), /supervisor does not commit/)
+    refused(shell(s, "git -C other commit -am m"), /supervisor does not commit/)
+    refused(shell(s, "ssh machine-a 'cd repo && git commit -m fix && git push'"), /supervisor does not commit/)
+    refused(shell(s, 'ssh machine-a "git push origin x"'), /supervisor does not commit/)
+    passes(shell(s, "git status"))
+    passes(shell(s, "git log --oneline -n 5"))
+    passes(shell(s, "gh pr view 5"))
+    passes(shell(s, "ssh machine-a 'git status'"))
+    passes(shell(c, "git commit -m ok"))   // a coordinator still commits its own pull requests
+  })
+  test("who is a supervisor: the variable, the role file or the agent", () => {
+    assert.equal(isSupervisor("supervisor", undefined), true)
+    assert.equal(isSupervisor(undefined, "supervisor\n"), true)
+    assert.equal(isSupervisor(undefined, undefined, "supervisor"), true)
+    assert.equal(isSupervisor("coordinator", "coordinator", "coordinator"), false)
+    assert.equal(isSupervisor(undefined, undefined), false)
+  })
+})
+
 describe("violations", () => {
   test("every refusal above was counted", () => {
-    assert.equal(violations(), 39)      // every `refused(...)` call above contributes one violation
+    assert.equal(violations(), 63)      // every `refused(...)` call above contributes one violation
   })
 })
