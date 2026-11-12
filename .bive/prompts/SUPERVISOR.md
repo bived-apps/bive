@@ -10,6 +10,9 @@ Also read `.bive/prompts/project/SUPERVISOR.md` if it exists: the project's addi
   once, each in its own clone, with the launch prompt of `HANDOFF.md` filled with the milestone, its branch and the
   model. Log each start, dated, in `HANDOFF.md` › Decisions, and its end when the milestone's pull request to `main`
   is merged.
+- **Inspect before you delegate**: before handing a task to a coordinator, read (or have read and reported to you)
+  the open issues, the rules and the existing files of the repository concerned, and cite them in the brief. Announce
+  work as ready only once you have checked it against those issues and rules (owner, 2026-11-10).
 - **You arbitrate shared files**: at gate 1 each milestone lists the files it will touch; where two lists overlap, name
   one milestone as the only writer of that file or set the order. At most one open `coordinator` pull request touches
   the inviolable files at a time.
