@@ -103,8 +103,10 @@ const DELEGATE_WORKTREE = /^\.worktrees\/issue-\d+(?=\/|$)/
 // Whether the session rooted at `root` is a delegate's: BIVE_ROLE=delegate, a root that is a delegate's worktree, or
 // the role file `.bive/state/role` the coordinator writes there (its text, undefined when missing). A delegate
 // started as a child session inherits the coordinator's environment, so the variable alone misses it.
-export function isDelegate(root: string, role: string | undefined, roleFile: string | undefined): boolean {
-  return role === "delegate" || /[\\/]\.worktrees[\\/]issue-\d+$/.test(path.resolve(root))
+export function isDelegate(root: string, role: string | undefined, roleFile: string | undefined, agent?: string): boolean {
+  // `agent` is the session's agent as the tool event carries it (0.2 part 2): an API-created session has no BIVE_ROLE
+  // and may sit in a worktree not named issue-<n>, but its agent is still `delegate`.
+  return role === "delegate" || agent === "delegate" || /[\\/]\.worktrees[\\/]issue-\d+$/.test(path.resolve(root))
     || roleFile?.trim() === "delegate"
 }
 
