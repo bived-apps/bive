@@ -95,11 +95,21 @@ The supervisor merges (`gh pr merge <pr> --merge --match-head-commit <sha>`, aft
 to `<base>`. To be told when a pull request is merged without a watcher plugin: `gh pr checks` for the checks, then
 `until [ "$(gh pr view <pr> --json state --jq .state)" != OPEN ]; do sleep 60; done` in the shell, when a session
 really needs to wait; most of the time the next session reads `gh pr list` instead.
-Once merged, if the issue is still open (GitHub closes on the default branch only):
+Once merged, if the issue is still open (GitHub closes on the default branch only), close it only after
+checking that the pull request's merge commit is reachable from the base:
 
 ```bash
-gh issue close <n> --comment "Done in <base> (PR #<pr>)"
+merge_commit="$(gh pr view <pr> --json mergeCommit --jq .mergeCommit.oid)"
+git fetch origin <base>
+if git merge-base --is-ancestor "$merge_commit" "origin/<base>"; then
+  gh issue close <n> --comment "Done in <base> at $merge_commit (PR #<pr>)"
+else
+  echo "refusing to close: PR #<pr> is not merged into <base>"
+fi
 ```
+
+Never write "Done" in an issue, a checklist or a report for an issue whose pull request is not merged;
+`Part of #N` issues stay open with what is left.
 
 `bive-merge-gate / merge-gate` stays red on every pull request until the owner applies the dated label
 `bive-merge-authorized-until-YYYY-MM-DD` (`docs/REQUIRED-CHECKS.md`): read that red as "waiting for the owner's label",

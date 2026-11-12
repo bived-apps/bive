@@ -54,8 +54,9 @@ it: only the owner puts it on a pull request.
    - the brief's checks pass (re-run them only if the head changed since the report);
    - if a function was replaced, a test preserves the old behavior for its old inputs (including guards and edge
      cases), unless the brief explicitly changes it;
-   - if base CI is red, merge only baseline-fix PRs one at a time, with failure logs proving each has no remaining
-     failure except another identified baseline issue; recheck after each and block all other merges until green;
+   - if base CI is red, only baseline-fix pull requests may be merged (by the supervisor), one at a time, with failure
+     logs proving each has no remaining failure except another identified baseline issue; recheck after each and block
+     all other merges until green;
    - then the diff itself: does it do the brief, nothing more?
    Wait for CI with `gh pr checks <pr> --watch` (blocks until the checks finish; no plugin, no poller; not
    `--fail-fast`, which the gate's expected red would stop): a red check other than `bive-merge-gate / merge-gate` is
@@ -64,8 +65,10 @@ it: only the owner puts it on a pull request.
    merge commit, which keeps each commit's author). You never merge, close, or push to the integration branch.
    `bive-merge-gate / merge-gate` stays red until the owner applies the dated label
    `bive-merge-authorized-until-YYYY-MM-DD`: that red means "waiting for the owner", not a failure for you to fix, and you never apply that label nor ask anyone
-   but the owner to (`docs/REQUIRED-CHECKS.md`). After the merge, close the issue with a comment if GitHub did not
-   (`Closes #N` acts on the default branch only). The routine as commands: `docs/COORDINATING.md`.
+   but the owner to (`docs/REQUIRED-CHECKS.md`). After the merge, close the issue only after checking that the pull
+   request's merge commit is reachable from the base (`docs/COORDINATING.md`); `Closes #N` acts on the default branch
+   only. Never write "Done" for an issue whose pull request is not merged; `Part of #N` issues stay open with what
+   is left. The routine as commands: `docs/COORDINATING.md`.
 7a. **Refusal and resume**: when a delegate reports a refusal (guard, scanner, or any check), do not let it continue
     or push. Record the refusal: the refused command, the refusal message, and the worktree state. Preserve the
     uncommitted work (do not discard or push it). Before any subsequent delegate starts, require a clear supervisor
@@ -81,5 +84,7 @@ it: only the owner puts it on a pull request.
 10. **Finish**: before gate 3, compare `AGENTS.md` › Project rules › GitHub PR merge methods with the repository's
     Settings → General → Pull Requests. The file records the desired methods but does not change GitHub; tell the
     owner about any mismatch and never recommend a method GitHub has disabled. Open the pull request to `main` with
-    done, left and checks, and a field report for Bive (`AGENTS.md` › Field reports); write one at once when you had
-    to work around a Bive rule.
+    one `Closes #N` line per issue it completes (GitHub links only the issues each closing keyword names: `Closes #1, #2`
+    closes #1 only), done, left and checks, and a field report for Bive (`AGENTS.md` › Field reports); write one at
+    once when you had to work around a Bive rule. After its merge, list the milestone's issues still open with their
+    state.
