@@ -68,7 +68,6 @@ export function validateMergeAuthorization({ labels = [], baseRef, now = Date.no
   return { ok: true }
 }
 
-// A check bucket counts as "red" (never allowed, even under override).
 function isRedBucket(bucket) {
   return bucket !== "pass" && bucket !== "pending" && bucket !== undefined && bucket !== null && bucket !== ""
 }
@@ -84,23 +83,20 @@ export function evaluateMergeGate({ labels = [], baseRef, checks = [], now = Dat
   const coordinator = labels.includes("coordinator")
   const actionableChecks = checks.filter((check) => identity(check) !== "bive-merge-gate / merge-gate")
 
-  // Under override, missing/pending required checks are allowed, but red checks are not.
   for (const required of REQUIRED_CHECKS) {
     const found = actionableChecks.filter((check) => identity(check) === identity(required))
     if (found.length === 0) {
-      if (override) continue // missing allowed under override
+      if (override) continue
       return { ok: false, reason: `expected exactly one ${identity(required)} check` }
     }
     if (found.length > 1) return { ok: false, reason: `expected exactly one ${identity(required)} check` }
     const bucket = found[0].bucket
     const expectedSkip = coordinator && identity(required) === "bive-inviolable / check" && bucket === "skipping"
     if (bucket === "pass" || expectedSkip) continue
-    if (override && bucket === "pending") continue // pending allowed under override
-    // red (fail, cancel, etc.) never allowed
+    if (override && bucket === "pending") continue
     return { ok: false, reason: `${identity(required)} is ${bucket || "missing a result"}` }
   }
 
-  // Any other red check (not pending, not the coordinator skip) is refused, override or not.
   const redUnexpected = actionableChecks.find((check) => {
     if (identity(check) === "bive-tests / tests" || identity(check) === "bive-inviolable / check") return false
     const bucket = check.bucket

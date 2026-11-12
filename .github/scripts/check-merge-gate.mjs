@@ -173,12 +173,9 @@ export async function runMergeGate({
   if (!authorization.ok) throw new Error(authorization.reason)
 
   const checks = await readChecks({ number: request.number, repository })
-  if (checksArePending(checks)) {
-    // Under override, pending/missing checks are allowed; otherwise fail immediately.
-    const override = (pr.labels || []).some((l) => l.startsWith(OVERRIDE_LABEL_PREFIX))
-    if (!override) {
-      throw new Error("required CI checks have not finished yet; the gate runs again when they complete")
-    }
+  const override = (pr.labels || []).some((l) => l.startsWith(OVERRIDE_LABEL_PREFIX))
+  if (checksArePending(checks) && !override) {
+    throw new Error("required CI checks have not finished yet; the gate runs again when they complete")
   }
 
   // Refresh PR metadata after the checks read so a removed grant or updated head cannot pass on stale event data.
