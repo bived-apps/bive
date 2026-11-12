@@ -88,6 +88,18 @@ const UNPARSEABLE = [
   { re: /<\(/, name: "process substitution (<(...))" },
   { re: /(?<![<>])>\(/, name: "process substitution (>(...))" },
 ]
+// Every role (issue #197): a commit is signed by the identity set once with `git config --worktree`, never overridden
+// for one command (`git -c user.name=...`, `--author`, GIT_AUTHOR_NAME and the like): an override lets a session sign
+// under another role's or model's name. Seen in the text too, so one inside an `ssh '...'` string is caught.
+const AUTHOR_OVERRIDE = [/(?:^|\s)-c\s*['"]?user\.(?:name|email)\s*=/, /(?:^|\s)--author(?:[=\s]|$)/,
+                         /\bGIT_(?:AUTHOR|COMMITTER)_(?:NAME|EMAIL)\s*=/]
+// A supervisor never commits or pushes (AGENTS.md › Roles: whoever merges did not write): `git commit`, `git push`,
+// also inside an `ssh` command string.
+const SUPERVISOR_WRITES = /\bgit\b[^;&|\n]*?\b(?:commit|push)\b/
+// Whether the session is a supervisor's: BIVE_ROLE=supervisor, the role file, or the tool event's agent.
+export function isSupervisor(role: string | undefined, roleFile: string | undefined, agent?: string): boolean {
+  return role === "supervisor" || agent === "supervisor" || roleFile?.trim() === "supervisor"
+}
 // Read-only filters at the end of a statement (issue #204): `| tail [-n N | -N]`, `| head [-n N | -N]` and
 // `| grep [-flags] PATTERN`. They read the pipe, never a file: no operand but the pattern, and a pattern carries no
 // `$`, backtick or backslash, so the shell cannot expand it into something else. They are removed before the check
@@ -131,6 +143,7 @@ export type GuardOptions = {
   root: string          // the session's worktree: every write stays under it
   directory?: string    // where relative paths resolve from (default: root)
   delegate: boolean     // a delegate's session (isDelegate): inviolable files and any path outside are refused too
+  supervisor?: boolean  // a supervisor's session (isSupervisor): `git commit` and `git push` are refused, also over ssh
   home?: string         // what `~` and $HOME expand to (default: the user's home)
 }
 export type ToolInput = Record<string, unknown>
@@ -204,6 +217,14 @@ export function makeGuard(options: GuardOptions): Check {
       const checked = delegate ? withoutTrailingFilters(shellSyntax) : shellSyntax
       const redirected = [...shellSyntax.matchAll(REDIRECT)].map((m) => m[1])
       for (const t of redirected) if (!inside(t) && !system(t)) refuse(t)
+      if (AUTHOR_OVERRIDE.some((re) => re.test(shellSyntax))) {
+        violation("worktree-guard: author-override: a commit is signed by the identity set with `git config --worktree`; "
+          + "it is never overridden for one command (-c user.name=, -c user.email=, --author, GIT_AUTHOR_*, GIT_COMMITTER_*).")
+      }
+      if (options.supervisor && SUPERVISOR_WRITES.test(shellSyntax)) {
+        violation("worktree-guard: a supervisor does not commit or push (whoever merges did not write); ask the coordinator "
+          + "for the change, on its own branch.")
+      }
       // A delegate: the portable scanner cannot safely parse pipes, command substitution or process substitution,
       // so it refuses them rather than risk missing a path escape. The message names the construct and does not
       // suggest retrying by rewriting the command (issue #148).
