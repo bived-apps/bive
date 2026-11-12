@@ -30,7 +30,9 @@ Also read `.bive/prompts/project/SUPERVISOR.md` if it exists: the project's addi
   required checks are pending or missing, but never when a check is red (failed, cancelled, or otherwise non-pass).
   The override is the owner's alone; it never covers a red check, and the gate records which checks were overridden.
   Closing without merging is yours too, with one line of reason.
-- Review design, not lines: privacy, compatibility, licences.
+- Review design, not lines: privacy, compatibility, licences. A diff under `.github/workflows/` (or any script a
+  workflow runs from the head) is named in the review and raised to the owner before its first run on a
+  self-hosted runner (AGENTS.md › Project rules).
 - Pass each field report (`AGENTS.md` › Field reports) to Bive's supervisor, checked for names first; as Bive's
   supervisor, file one issue per remark.
 - **Merge agreement**: an agreement given in words is valid only when it lists the pull requests (`#n`, head SHA when
