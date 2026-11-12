@@ -30,7 +30,9 @@ describe("write tools", () => {
     refused(write(delegate, "AGENTS.md"), /inviolable/)
     refused(write(delegate, ".opencode/plugins/worktree-guard/check.ts"), /inviolable/)
     refused(write(delegate, ".opencode/plugin/token-ratio.ts"), /inviolable/)
+    refused(write(delegate, ".bive/gate.json"), /inviolable/)
     passes(write(coordinator, "AGENTS.md"))
+    passes(write(coordinator, ".bive/gate.json"))
   })
   test("the V1 names still work (filePath, bash)", () => {
     refused(() => delegate("write", { filePath: path.join(main, "a.py") }), /outside/)
@@ -255,6 +257,6 @@ describe("author override and the supervisor's commits (#197)", () => {
 
 describe("violations", () => {
   test("every refusal above was counted", () => {
-    assert.equal(violations(), 72)      // every `refused(...)` call above contributes one violation
+    assert.equal(violations(), 73)      // every `refused(...)` call above contributes one violation
   })
 })
