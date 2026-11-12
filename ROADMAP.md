@@ -74,7 +74,8 @@ group, so no two milestones' PRs collide):
   - #197 refuse a commit author override (`-c user.name=`, `--author`) in every role, and `git commit` / `git push`
     from a supervisor session, also inside `ssh`.
   - #202 a launch brief the supervisor may write: a GitHub comment, or a file in the coordinator's clone handed over
-    by the launcher. **Owner decision** (which of the two), asked with `.bive/templates/question.md`.
+    by the launcher. **Owner decision, 2026-11-12: a GitHub comment** on the epic issue, read by the launcher with
+    `gh`; no file crosses machines and the guard stays strict.
 - **Gate track** (inviolable `bive-*` workflows and `.github/scripts`; own PRs, self-hosted runner rule applies):
   - #198 `bive-inviolable` passes when an inviolable file is byte-identical to the default branch (a sync).
   - #200 a project declares which checks may be skipped, instead of "skipped is red" everywhere. **Owner decision**:
