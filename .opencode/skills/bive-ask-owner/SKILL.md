@@ -5,7 +5,8 @@ description: How a Bive role asks the owner a yes/no/other question: the premade
 
 # Asking the owner
 
-The owner answers one of four ways: **yes**, **no**, **other** (free text) or **coordinator** ("you decide"). Make every question answerable in one
+The owner answers one of five ways: **yes**, **no**, **other** (free text), **supervisor** ("ask the supervisor") or
+**coordinator** ("you decide"). Make every question answerable in one
 line. The block to fill is `.bive/templates/question.md`.
 
 ## The ladder: nobody skips a rung
@@ -14,7 +15,7 @@ line. The block to fill is `.bive/templates/question.md`.
 |---|---|---|
 | **Delegate** | Writes each question as a filled block under `**Left**` of its report (or in its final commit body), says what it will assume meanwhile only if *Reversible* is yes, then **stops that part**. | Asks the owner, opens an issue, comments on a pull request, or guesses on something irreversible. |
 | **Coordinator** | Collects the delegates' blocks, answers what the rules already answer (cite `AGENTS.md` / prompt section instead of asking), merges duplicates, and asks the rest in **one batch**. | Sends the owner the same question twice, or a question a rule answers. |
-| **Supervisor / owner** | Answers `Q<n> yes`, `Q<n> no`, `Q<n> other: <text>` or `Q<n> coordinator`. | |
+| **Supervisor / owner** | Answers `Q<n> yes`, `Q<n> no`, `Q<n> other: <text>`, `Q<n> supervisor` or `Q<n> coordinator`. | |
 
 A delegate's report is the only channel from a delegate; the coordinator is the only one who talks to the owner.
 
@@ -35,6 +36,14 @@ A delegate's report is the only channel from a delegate; the coordinator is the 
   "Answer with one line per question."
 - Batch at the end of a part or when a delegate is blocked, not one by one. More than 5 in a batch means the split was
   wrong: raise that instead.
+
+## When the owner answers "supervisor"
+
+The coordinator forwards the same block, unchanged, to the supervisor (a person, or an agent that holds a published
+bench pass) as one comment on the issue naming the supervisor, and waits. The supervisor answers yes, no or other like
+the owner. The supervisor may not answer what is the owner's alone: the dated merge label, who may merge before a
+bench pass (#120), promoting an agent to a role; those come back to the owner. While no agent is qualified, the
+supervisor is the owner or a person the owner named, so "supervisor" then means that person.
 
 ## When the owner answers "coordinator"
 

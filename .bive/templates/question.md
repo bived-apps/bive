@@ -8,6 +8,7 @@
 - [ ] **Yes** — <!-- what happens if yes -->
 - [ ] **No** — <!-- what happens if no -->
 - [ ] **Other** — <!-- the owner writes it; say what kinds of answer are possible -->
+- [ ] **Ask supervisor** — <!-- the owner forwards it to the supervisor (a person or a qualified agent) -->
 - [ ] **Coordinator decides** — <!-- the owner hands it over; only offer it when the coordinator can decide safely -->
 
 **Recommended**: <!-- Yes | No | Other, and why in one line -->
@@ -18,4 +19,4 @@
 
 **Default if unanswered**: <!-- "none" (wait), or an action; an action only if Reversible is yes -->
 
-<!-- Answer format: "Q<n> yes", "Q<n> no", "Q<n> other: <text>" or "Q<n> coordinator". One line per question. -->
+<!-- Answer format: "Q<n> yes", "Q<n> no", "Q<n> other: <text>" "Q<n> supervisor" or "Q<n> coordinator". One line per question. -->

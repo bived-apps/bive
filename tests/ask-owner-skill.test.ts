@@ -18,7 +18,7 @@ test("every role gets the bive-ask-owner skill at the declared revision", () => 
 
 test("the question template offers yes, no and other, with a recommendation and reversibility", () => {
   const t = read(".bive/templates/question.md")
-  for (const k of ["**Yes**", "**No**", "**Other**", "**Coordinator decides**", "**Recommended**", "**Blocks**", "**Reversible**", "**Default if unanswered**"]) {
+  for (const k of ["**Yes**", "**No**", "**Other**", "**Ask supervisor**", "**Coordinator decides**", "**Recommended**", "**Blocks**", "**Reversible**", "**Default if unanswered**"]) {
     assert.ok(t.includes(k), `template lacks ${k}`)
   }
 })
