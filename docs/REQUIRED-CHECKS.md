@@ -27,7 +27,9 @@ These run on GitHub and appear as commit statuses on a pull request.
 - **Condition (job `if`)**: runs only when `github.head_ref` starts with `issue/` **and** the pull request does not
   carry the `coordinator` label:
   `startsWith(github.head_ref, 'issue/') && !contains(github.event.pull_request.labels.*.name, 'coordinator')`.
-- **What it checks**: compares the changed files against the base branch and fails if any inviolable path changed.
+- **What it checks**: compares the changed files against the base branch and fails if any inviolable path changed,
+  unless that file is byte-identical to the default branch's (issue #198: a sync of the default branch into a milestone
+  carries the default branch's own inviolable files; any other difference from the default branch still fails).
   The matched paths are: `.bive/registry-id`, `.bive/gate.json`, anything under `.bive/prompts/` or `.bive/templates/`, anything under
   `.opencode/plugins/` or `.opencode/plugin/`, files matching `.github/workflows/bive-*`, `opencode.jsonc`, and
   `AGENTS.md`.

@@ -88,6 +88,23 @@ const UNPARSEABLE = [
   { re: /<\(/, name: "process substitution (<(...))" },
   { re: /(?<![<>])>\(/, name: "process substitution (>(...))" },
 ]
+// Read-only filters at the end of a statement (issue #204): `| tail [-n N | -N]`, `| head [-n N | -N]` and
+// `| grep [-flags] PATTERN`. They read the pipe, never a file: no operand but the pattern, and a pattern carries no
+// `$`, backtick or backslash, so the shell cannot expand it into something else. They are removed before the check
+// for unparseable constructs, which still runs on everything left (`cat a | sed -i ...` stays refused).
+const FILTER_END = String.raw`(?=\s*(?:;|&&|\|\||$))`
+const TRAILING_FILTERS = [
+  new RegExp(String.raw`\s*(?<!\|)\|(?!\|)\s*(?:tail|head)(?:\s+-n\s*\d+|\s+-\d+)?` + FILTER_END, "g"),
+  new RegExp(String.raw`\s*(?<!\|)\|(?!\|)\s*grep(?:\s+-[A-Za-z]+)*\s+(?:'[^']*'|"[^"$\`\\]*"|[^\s|;&<>()$\`'"\\]+)` + FILTER_END, "g"),
+]
+export function withoutTrailingFilters(syntax: string): string {
+  let s = syntax
+  for (let prev = ""; prev !== s;) {
+    prev = s
+    for (const re of TRAILING_FILTERS) s = s.replace(re, "")
+  }
+  return s
+}
 const PATCH_FILE = /^\*\*\* (?:Add|Update|Delete) File: (.+)$|^\*\*\* Move to: (.+)$/gm
 
 // Each refusal is a violation: counted in this process for the token-ratio plugin, which reports the count to the registry.
@@ -183,18 +200,20 @@ export function makeGuard(options: GuardOptions): Check {
       const cmd = str("command") ?? ""
       // Every role: a redirection never lands outside the worktree (/dev/null and the system prefixes excepted).
       const shellSyntax = withoutHeredocBodies(cmd)
+      // What the delegate checks below see: the same text without its allowed trailing filters (issue #204).
+      const checked = delegate ? withoutTrailingFilters(shellSyntax) : shellSyntax
       const redirected = [...shellSyntax.matchAll(REDIRECT)].map((m) => m[1])
       for (const t of redirected) if (!inside(t) && !system(t)) refuse(t)
       // A delegate: the portable scanner cannot safely parse pipes, command substitution or process substitution,
       // so it refuses them rather than risk missing a path escape. The message names the construct and does not
       // suggest retrying by rewriting the command (issue #148).
       if (delegate) {
-        const hit = UNPARSEABLE.find((u) => u.re.test(shellSyntax))
+        const hit = UNPARSEABLE.find((u) => u.re.test(checked))
         if (hit) violation(`worktree-guard: invalid-structure: ${hit.name} cannot be safely parsed by the portable `
           + "shell scanner, so the guard cannot verify which paths this command touches; it is refused.")
       }
       // A delegate: no path outside its worktree at all, read or write, but the system prefixes.
-      if (delegate) for (const w of pathWords(shellSyntax)) if (!inside(w) && !system(w)) refuse(w)
+      if (delegate) for (const w of pathWords(checked)) if (!inside(w) && !system(w)) refuse(w)
       if (delegate) {
         const hit = PROTECTED_WORDS.find((w) => redirected.some((t) => t.includes(w))
                                                  || (SHELL_WRITE.test(shellSyntax) && shellSyntax.includes(w)))
