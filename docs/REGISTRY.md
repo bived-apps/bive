@@ -1,6 +1,6 @@
 # Registry
 
-Bive keeps a public, live, anonymous registry of the projects built with it: **[the registry](https://bive-registry.jcherfils.workers.dev/)**.
+Bive keeps a public, live, anonymous registry of the projects built with it: **[the registry](https://bive-registry.bive.workers.dev/)**.
 It is **off by default** (opt-in): nothing leaves the machine until the owner turns it on. Joining is the one thing
 Bive asks in return; the licence (MIT) does not require it.
 

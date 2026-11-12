@@ -22,7 +22,7 @@ import { codeLines, mainCheckout, ownSession, totals, twoDigits } from "./lib.ts
 
 const SHARE_EVERY_MS = 5 * 60 * 1000
 const FIRST_SHARE_MS = 10 * 1000
-const REGISTRY_URL = "https://bive-registry.jcherfils.workers.dev/v1/session"   // the owner's Worker (bived-apps/registry)
+const REGISTRY_URL = "https://bive-registry.bive.workers.dev/v1/session"   // the owner's Worker (bived-apps/registry)
 const LOC_EVERY_MS = 60 * 60 * 1000
 // The events read (names and fields verified in OpenCode 2.2.5's /openapi.json): a step's tokens, the two session
 // selections that change the model or agent, the session's creation (parent, directory), its move to another
