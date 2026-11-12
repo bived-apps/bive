@@ -44,6 +44,9 @@ For projects using Bive, configure the project's own CI checks to run on pull re
 and integration branches. This makes a red base visible promptly; adapt the workflow to the project's test command.
 Projects on a self-hosted runner follow `docs/SELF-HOSTED.md`.
 
+Not a developer? `docs/FOR-HUMANS.md` lists the three things you do (agree the plan, answer questions, apply the
+dated merge label) and the optional registry choice.
+
 ## The flow
 
 1. You agree the plan in `ROADMAP.md` and the split of an epic into issues (gate 1).
