@@ -57,6 +57,11 @@ Generic, whatever the language (owner, 2026-11-08, taken from the practice of th
   *core* (the coordinator, once per batch of merges, never after each merge), *full* (before a release).
   CI is separate: run automated checks on pull requests and pushes to the default and integration branches, so a red
   base is visible quickly; this does not replace the coordinator's once-per-batch local core run.
+- **Tests declare the machine they need** (owner, 2026-11-12): a test that needs hardware, an installed application,
+  or a time budget carries a marker naming it (the project's test framework's own mechanism: a pytest marker, a
+  `node:test` `skip` condition, a tag), and skips with that reason where the dependency is absent, never passes.
+  The fast tier runs no marked test. The project lists its markers and, for each, the runner label that provides it,
+  in `AGENTS.md` › Project rules.
 - **Docs change in the same commit** as the code they describe (README, reference pages, HANDOFF, ROADMAP).
 - **Commits are authored by the agent that made them, under an explicit name** (owner, 2026-11-08): in its working
   copy an agent sets `git config --worktree user.name "<role> <provider/model>"`, the model's name **and version**,
@@ -107,6 +112,9 @@ Nothing enters the template that is not read by one of the three roles, or by a 
 
 - **Runtime (owner, 2026-11-08)**: Node 22 on the owner's machine; it runs the TypeScript tests directly
   (`node --test`), no bun. The plugins run inside OpenCode 2 (v2.2.5 verified), which supplies `@opencode/plugin`.
+- **Test markers (owner, 2026-11-12)**: (none yet; a project lists its markers here, each with the runner label that
+  provides it, e.g. `gpu` → `self-hosted, gpu`). Marked tests run only on a runner with the matching label, alone on
+  it; the fast tier runs no marked test.
 - **GitHub PR merge methods (owner, 2026-11-09)**: `merge` only. The desired repository setting, not an automatic
   one: the owner keeps Settings → General → Pull Requests aligned (squash and rebase off), so that a merge keeps
   each delegate's commits under its name.

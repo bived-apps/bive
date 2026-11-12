@@ -113,6 +113,19 @@ A failing check belongs to one of three categories, each with one action:
   without that issue and a green run on the head. Skipping or quarantining a test is forbidden; retrying in a loop
   is forbidden.
 
+## Marked tests (issue #122)
+
+A test that needs hardware, an installed application, or a time budget carries a marker naming it (the project's
+test framework's own mechanism: a pytest marker, a `node:test` `skip` condition, a tag), and skips with that reason
+where the dependency is absent, never passes. The fast tier runs no marked test.
+
+- **Routing**: a job for marked tests runs only on a runner with the matching label, alone on it (no other job at
+  the same time, so a timing threshold is not skewed).
+- **Reporting**: the report template's Checks section names which markers ran and which were skipped, so a skipped
+  marker shows instead of a silent green.
+- **Project rules**: `AGENTS.md` › Project rules lists the project's markers and, for each, the runner label that
+  provides it.
+
 ## Branch protection (owner, in GitHub's settings)
 
 The workflows report checks; they do not make GitHub enforce them. For the gate to block GitHub's merge button and
