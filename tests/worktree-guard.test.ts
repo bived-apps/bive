@@ -110,6 +110,18 @@ describe("shell, delegate", () => {
     refused(shell(delegate, "sed -i 's/a/b/' opencode.jsonc"), /inviolable/)
     refused(shell(delegate, "cp x.ts .opencode/plugins/worktree-guard/index.ts"), /inviolable/)
   })
+  test("a pipe is refused as invalid-structure", () => {
+    refused(shell(delegate, "git status | grep foo"), /invalid-structure/)
+  })
+  test("command substitution is refused as invalid-structure", () => {
+    refused(shell(delegate, "echo $(cat /etc/passwd)"), /invalid-structure/)
+  })
+  test("backticks are refused as invalid-structure", () => {
+    refused(shell(delegate, "echo `cat /etc/passwd`"), /invalid-structure/)
+  })
+  test("process substitution is refused as invalid-structure", () => {
+    refused(shell(delegate, "diff <(ls a) <(ls b)"), /invalid-structure/)
+  })
 })
 
 describe("nested worktree (.worktrees/issue-<n>, AGENTS.md › Rules)", () => {
@@ -155,6 +167,6 @@ describe("delegate detection (child sessions inherit the coordinator's environme
 
 describe("violations", () => {
   test("every refusal above was counted", () => {
-    assert.equal(violations(), 31)      // every `refused(...)` call above contributes one violation
+    assert.equal(violations(), 35)      // every `refused(...)` call above contributes one violation
   })
 })
