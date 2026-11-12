@@ -25,18 +25,46 @@ here is committed with the code it describes (an item started → `doing`, finis
 
 ## Epics
 
-### 0.2 — Bive provisions its own skills (epic #132)
+### 0.2 — Delegates as sessions (planned; owner chose it 2026-11-12; waiting for gate 1)
 
-**Make project-scoped OpenCode skills available by Bive role** (M; epic #132, the first bivedream epic, owner decision
-2026-11-08, started 2026-11-12): a project declares its OpenCode skills in `.bive/skills.json`; Bive provisions them to
-the managed roles (supervisor, coordinator, delegate) on local and remote sessions, reports the source and revision /
-hash used, and fails clearly on missing or conflicting skills, without global install or overwriting user-authored
-skills.
+Done when a delegate issue runs end to end with no OpenCode process started by hand and no `cd` by the coordinator.
+The coordinator creates the delegate's session through OpenCode's API (`POST /api/session`: `location.directory` =
+the worktree, `agent`, `model`, `parentID`, session-scoped `permissions`), prompts it with the brief, waits on it and
+reads the branch it pushed. The API shape was verified on OpenCode 2.2.5 (2026-11-09); installed versions are now
+2.2.5 (CLI) and 2.2.7 (desktop), so part 0 re-verifies it. Proposed split, each part one session of at most 3 source
+files and 1 test file; owner validates it (gate 1):
 
-- Slices implemented and merged on 2026-11-12: local (#136, PR #137), remote (#138, PR #139), report delivery (#140,
-  PR #141), role permissions (#142, PR #143), catalog source (#144, PR #145).
-- Remaining: activation of provisioning in managed sessions; owner decisions D1–D10 (contract §10, drafted in #134)
-  pending.
+- **Part 0 — spike (coordinator)**: re-verify on the installed version that a session can be created in a worktree
+  with an agent, a model and permissions, prompted with `delivery: "queue"` and awaited; note what changed.
+- **Part 1 — agents (coordinator, inviolable `opencode.jsonc`)**: add the `coordinator` agent next to `delegate`,
+  with `external_directory` allowed for `.worktrees/issue-*` so the coordinator no longer stops at `cd ..`.
+- **Part 2 — role by agent (coordinator, inviolable plugin)**: the worktree guard recognises a delegate from the
+  session's agent, not only `BIVE_ROLE`, the worktree path or the role file; tests keep the old cases passing.
+- **Part 3 — session start (delegate, `lib/delegate-session.ts` + test)**: pure functions that build the create and
+  prompt requests from a brief, a canonical model, its local alias and a worktree path.
+- **Part 4 — wait, read, fall back (delegate, same module + test)**: wait for the session, read the pushed branch and
+  report, and on a model error restart on the next model of `.bive/models.json` (alias resolved, canonical name kept
+  for the Git identity).
+- **Part 5 — procedure (coordinator)**: `docs/COORDINATING.md` and `COORDINATOR.md` describe the session start; the
+  process start stays as the documented fallback.
+- **Part 6 — pilot (coordinator + one delegate)**: one real issue through the new path; field report.
+
+Risks: the free models ran out of usage on 2026-11-12 (`big-pickle` still answered), so the pilot may need a paid or
+fallback model; an API-created session carries no `BIVE_ROLE`, hence part 2 comes before the pilot.
+
+### Done in bivedream so far (2026-11-12)
+
+- **Bive-managed skill provisioning** (epic #132): contract (#134, accepted D1–D10), local, remote, report delivery,
+  role permissions, catalog source and activation (#136–#151); code in `lib/skill-provisioning.ts` and
+  `lib/skill-permissions.ts`.
+- **The rules, from field reports** (#110, #114–#131, #146–#148): the merge gate decides in one pass and reruns
+  (#129), checks the label's date and actor and refuses Bot/App actors (#114, #130), takes an owner override and opens
+  a `Base red` issue (#115); guard refusals are a hard stop with a readable reason (#146–#148); runner, environment and
+  workflow rules for self-hosted CI (#116, #121–#124, #126); one source for the rules and a contradiction test
+  (#118, #119, #125); fresh branches, hotspots, headless plugin check, generated docs (#69, #72, #73, #75).
+- **Registry live**: Worker at `bive-registry.bive.workers.dev`, page at `bived-apps.github.io/registry/`; Pages is
+  off on this repository; the plugin reported 4 sessions on 2026-11-12 after it was fixed to report on
+  `session.execution.succeeded` (#183).
 
 ### 0.1 — Bive installs itself (done 2026-11-10)
 

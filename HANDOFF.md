@@ -118,24 +118,19 @@ there and in AGENTS.md, not here.
 
 ## Tasks
 
-ROADMAP.md › 0.1 is done (2026-11-10, #80; field report #110). bivedream is no longer frozen: its first epic gets
-the next milestone number (0.2) when it starts. GitHub issues are the source of truth once the coordinator has split
-them. Open work at the handoff of 2026-11-10 (night), in order:
+ROADMAP.md › 0.1 is done (2026-11-10, #80). The backlog of 2026-11-12 is closed except two issues. Open work, in order:
 
-1. **Owner**: close #74 (superseded by #78). Deploy the registry Worker from bived-apps/registry when wanted (Watch out).
-2. **Field report #110**: seven manual steps of the first project's run; the coordinator splits the ones worth a
-   change into issues. The largest is one GitHub account for every role (#86): the coordinator's "Ready to merge"
-   was refused by the machine's own agent safety check as self-approval, so that run was merged with no written
-   hand-over.
-3. **Supervisor test v2, in bived-apps/bench**: issue bench#1 (harder test, scoring on the rule cited); the three
-   draws of v1 are recorded in bench (none qualified). Promotion only from bench (Decisions). Until a model passes,
-   only the owner (or a person) supervises.
-4. **Coordinator qualification test**: wanted by the owner, not written yet; its author must not be a candidate.
-5. **Two coordinators at once (#88)**: written, not yet run; log the first parallel run here.
-6. **bivedream → 0.2**: the owner picks the first epic.
-7. **Epic #132 — project-scoped OpenCode skills by Bive role** (2026-11-12): implementation slices merged (#136 local
-   PR #137, #138 remote PR #139, #140 delivery PR #141, #142 permissions PR #143, #144 catalog PR #145); open: activation
-   of provisioning into managed sessions, owner decisions D1–D10 pending.
+1. **Gate 1 for 0.2 — Delegates as sessions** (owner chose it, 2026-11-12): validate the split in ROADMAP › 0.2; then
+   the coordinator files the issues and runs part 0 first.
+2. **#120, who merges before a bench pass**: the owner will be asked again later; nothing recorded in the rules.
+3. **#110, remark 6**: whether the gate should require a coordinator hand-over before the label counts; weak while one
+   GitHub account serves every role (#130 only refuses Bot/App actors; no App exists yet).
+4. **Registry**: Bive is project #1 once it has 3 sessions on 2 days (4 sessions on 2026-11-12; the second day is
+   2026-11-13). Check `https://bived-apps.github.io/registry/` then.
+5. **Models**: `opencode/beam-free`, `flint-40b-free` and `nemotron-3.5-lightning-free` hit their free usage limit on
+   2026-11-12; `opencode/big-pickle` still answered (owner: lean on it).
+6. **Supervisor test v2, in bived-apps/bench** (bench#1): none qualified; until a model passes, only the owner (or a
+   person) supervises. **Coordinator qualification test**: wanted, not written.
 
 ## Watch out
 
@@ -194,6 +189,13 @@ them. Open work at the handoff of 2026-11-10 (night), in order:
 
 ## Session log
 
+- **2026-11-12, coordinator opencode/beam-free — backlog closed, registry live**: ~45 issues solved in one day:
+  epic #132 (skills) with its seven slices, the merge gate (#114, #115, #129, #130), guard refusals (#146–#148), the
+  self-hosted CI rules (#116, #121–#124, #126), one source for the rules (#117–#119, #125, #127, #131), #69, #72, #73,
+  #75, then the field report #110 (triage by a delegate, five follow-ups). The owner deployed the Worker; the plugin
+  reported nothing until #183 (OpenCode 2.2.5 runs emit `session.execution.succeeded`, not `session.idle`; found with
+  a local sink via `BIVE_REGISTRY_URL`), and a long-running app keeps the old plugin in memory until restarted.
+  PRs that conflicted after other merges were redone on a fresh branch from `origin/bived` (#170 → #176).
 - **2026-11-12, coordinator opencode/beam-free — epic #132 batch (Bive-managed skill provisioning)**: delegates #136
   (local), #138 (remote), #140 (report delivery), #142 (role permissions) and #144 (catalog source) implemented the
   slices of epic #132 on `lib/skill-provisioning.ts` (plus re-exports and the permission helpers); the coordinator
