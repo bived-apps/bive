@@ -4,7 +4,7 @@ A repository template for building software with LLM agents in three roles, on O
 
 ```mermaid
 flowchart LR
-  S(["supervisor<br/>you + your Claude project"])
+  S(["supervisor<br/>you, in OpenCode"])
   C["coordinator<br/>one agent: splits, reviews, never merges"]
   D1["delegate<br/>issue 12, its own worktree"]
   D2["delegate<br/>issue 13, its own worktree"]
@@ -27,7 +27,7 @@ New project: **Use this template** on GitHub, open OpenCode in the clone, and st
 `.bive/prompts/COORDINATOR.md`: its first step replaces this README, `HANDOFF.md` and `ROADMAP.md` with the skeletons
 of `.bive/templates/`.
 
-Existing project: paste this into OpenCode (or Claude Code) at the root of your repository:
+Existing project: paste this into OpenCode at the root of your repository:
 
 ```text
 Install https://github.com/jcherfils/bive here, in two turns. Turn 1, read only: write nothing. List what you would
