@@ -62,6 +62,38 @@ files and 1 test file; owner validates it (gate 1):
 Risks: the free models ran out of usage on 2026-11-12 (`big-pickle` still answered), so the pilot may need a paid or
 fallback model; an API-created session carries no `BIVE_ROLE`, hence part 2 comes before the pilot.
 
+**Second batch, from a field report of 2026-11-12 evening (issues #197–#204, in milestone 0.2)**. They come from
+another project running Bive for a day (supervisor, two coordinators, three free or cheap delegate models) and sit on
+the same files as the parts above, so they are sequenced with them rather than after them. The milestone is done when
+each is closed or deferred with the owner's word. Grouped by the file they touch (one coordinator at a time per
+group, so no two milestones' PRs collide):
+
+- **Guard track** (inviolable `worktree-guard`, coordinator PRs, after part 2 because they share `check.ts`):
+  - #204 allow a short list of read-only filters at the end of a pipeline (`| tail -n N`, `| head -n N`,
+    `| grep PATTERN`), or document the replacements; first, because delegates hit it every session.
+  - #197 refuse a commit author override (`-c user.name=`, `--author`) in every role, and `git commit` / `git push`
+    from a supervisor session, also inside `ssh`.
+  - #202 a launch brief the supervisor may write: a GitHub comment, or a file in the coordinator's clone handed over
+    by the launcher. **Owner decision, 2026-11-12: a GitHub comment** on the epic issue, read by the launcher with
+    `gh`; no file crosses machines and the guard stays strict.
+- **Gate track** (inviolable `bive-*` workflows and `.github/scripts`; own PRs, self-hosted runner rule applies):
+  - #198 `bive-inviolable` passes when an inviolable file is byte-identical to the default branch (a sync).
+  - #200 a project declares which checks may be skipped, instead of "skipped is red" everywhere. **Owner decision, 2026-11-12:
+    `.bive/gate.json`**, an inviolable file with `skippable: [check names]`; Bive's own list is empty, so Bive stays
+    strict.
+- **Prompt and doc track** (coordinator PRs; with part 5 so `COORDINATOR.md` and `COORDINATING.md` change once):
+  - #201 the hard stop on a refusal in `COORDINATOR.md`, or the stated reason a coordinator may rephrase and how it
+    reports; part 1 removes the `cd ..` refusal, not the rule.
+  - #203 ordered fallbacks per role in `.bive/models.json` and a minimum capability for the coordinator role in
+    `docs/PROVIDERS.md`; the switching code is part 4, the file format and the prompt are here. **Owner decision, 2026-11-12:
+    a published bench pass** on the milestone-run case is the minimum; until one exists the owner names the allowed
+    coordinator models in `.bive/models.json`.
+  - #199 an update procedure for installed projects (read-only diff, then one coordinator PR; never copy
+    `.bive/registry-id`; keep `opencode.jsonc`, `.bive/prompts/project/` and the project's gate adaptations).
+
+Order: parts 1–2, then #204 and #198 (small, unblock other projects), then parts 3–4 with #203's file format, then
+#201 and #199 with part 5, then #197, #200 and #202 once the owner has decided, and the pilot (part 6) last.
+
 ### Done in bivedream so far (2026-11-12)
 
 - **Bive-managed skill provisioning** (epic #132): contract (#134, accepted D1–D10), local, remote, report delivery,
