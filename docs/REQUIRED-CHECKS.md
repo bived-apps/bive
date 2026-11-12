@@ -56,6 +56,11 @@ These run on GitHub and appear as commit statuses on a pull request.
   date, valid through 23:59:59 UTC of that date and only while the base is `bived` or `milestone/<name>` (one path
   segment). Only the owner applies it, after the coordinator's approval and when the supervisor is about to merge;
   the coordinator never does, also on its own pull requests. Adding or removing it re-runs the gate.
+- **Owner override (issue #115)**: an optional label `bive-owner-override-YYYY-MM-DD` (same date rules and actor
+  check as the authorization label). With it, the gate passes even when required checks are pending or missing, but
+  never when a check is red (failed, cancelled, or otherwise non-pass). The override is the only way to merge past a
+  gate that is not green; it is the owner's, and it never covers a red check. The gate records which checks were
+  missing/overridden. At most one override label.
 - **Red before the label is expected**: on every pull request without the label the gate fails with "exactly one
   dated merge-authorization label is required". It means "waiting for the owner", not a failure to fix.
 - **What it checks**: the authorization above; exactly one `bive-tests / tests` and one `bive-inviolable / check`,

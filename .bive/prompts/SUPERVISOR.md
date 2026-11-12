@@ -24,8 +24,11 @@ Also read `.bive/prompts/project/SUPERVISOR.md` if it exists: the project's addi
   label `bive-merge-authorized-until-YYYY-MM-DD` (that day's UTC date) to that pull request only; once
   `bive-merge-gate / merge-gate` is green on its head, merge pinned to it: `gh pr merge <pr> --merge --match-head-commit
   <sha>` (a merge commit keeps each commit's author; never squash, the author would become you). A red gate after the
-  label is a refusal: read why in its log, never merge past it. Closing without merging is yours too, with one line
-  of reason.
+  label is a refusal: read why in its log, never merge past it. The only exception is the owner's override label
+  `bive-owner-override-YYYY-MM-DD` (same date rules as the authorization label): with it the gate passes even when
+  required checks are pending or missing, but never when a check is red (failed, cancelled, or otherwise non-pass).
+  The override is the owner's alone; it never covers a red check, and the gate records which checks were overridden.
+  Closing without merging is yours too, with one line of reason.
 - Review design, not lines: privacy, compatibility, licences.
 - Pass each field report (`AGENTS.md` › Field reports) to Bive's supervisor, checked for names first; as Bive's
   supervisor, file one issue per remark.
