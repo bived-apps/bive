@@ -28,6 +28,8 @@ test("the skill states the ladder and the delegate and coordinator prompts point
   assert.match(s, /^---\nname: bive-ask-owner\n/)
   assert.match(s, /Delegate.*Coordinator.*Supervisor.*Owner/s)
   assert.match(s, /Bypass/)
+  assert.match(s, /GitHub record/)
+  assert.match(s, /unanswered after 1/)
   assert.match(s, /transmit/i)
   assert.match(read(".bive/prompts/DELEGATE.md"), /bive-ask-owner/)
   assert.match(read(".bive/prompts/COORDINATOR.md"), /bive-ask-owner/)

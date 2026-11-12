@@ -34,6 +34,22 @@ delegates are API sessions (ROADMAP 0.2), the coordinator may also prompt it; be
 rule instead of asking when a rule answers, and merges duplicates. A role answering sends the answer to the asker
 (comment on the issue) and records it as below.
 
+## The GitHub record: always, even when answered live
+
+Whatever the transport (a prompt to an API session, the question tool, a chat), **every question and every answer is
+also posted on the issue**, so the thread is the permanent record:
+
+- **Question**: the asker posts the filled block as one comment (`To`, `Path` filled), before or at the moment it asks.
+- **Answer**: the role that answers posts it as a reply naming the question: `Q2 yes`, `Q2 other: ...` (with its
+  role, model and date). An answer given live is mirrored by the answering role, or by the coordinator if the answer
+  came from the owner in a session.
+- **Transmission**: when a role passes a question up, it posts a one-line comment: `Q2 passed to supervisor: <reason>`.
+- **No answer after one day** (or the wait the block states): the asker posts a status comment, `Q2 unanswered after 1
+  day: asked <rung> on <date>, blocks <what>, next: <bypass to X | still waiting, reversible default Y>`, and then does
+  what that line says. This comment is also the record of a bypass. Repeat it each day while the question blocks work.
+- **Report**: the delegate's report and the coordinator's pull request body list the questions of the issue as
+  `Q<n>: asked <rung>, answered <answer> | unanswered | passed up`, with a link to the comment.
+
 ## Writing a good question
 
 1. **One decision per block.** Two decisions, two blocks.
