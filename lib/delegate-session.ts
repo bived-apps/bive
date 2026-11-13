@@ -44,6 +44,13 @@ export function resolveModel(canonical: string, aliases: Record<string, string>)
   return { canonical, resolved, ref: parseModel(resolved) }
 }
 
+export function resolveFromFile(text: string | undefined, canonical: string): ResolvedModel {
+  // A malformed alias file must stop the start, never silently route to the canonical (often paid) provider (#258).
+  const { aliases, warning } = loadAliases(text)
+  if (warning) throw new Error(`.bive/state/models.local.json: ${warning}; fix it before starting a delegate (#258)`)
+  return resolveModel(canonical, aliases)
+}
+
 function assertAbsolute(path: string): void {
   if (typeof path !== "string" || (!path.startsWith("/") && !/^[A-Za-z]:[\\/]/.test(path))) {
     throw new Error(`worktree "${path}" must be an absolute path`)
