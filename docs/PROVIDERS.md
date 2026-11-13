@@ -18,11 +18,11 @@ skill `bive-pick-model` says when to run it).
 
 ## Owner route constraints (issue #262)
 
-An explicit route the owner sets (the `coordinator` allow-list in `.bive/models.json`, a named coordinator model, a
-dated merge-authorization label, or any other owner-named constraint) supersedes any generic fallback or
-recommendation, including an advisor's. Fallback applies only where the owner has not fixed the route. Qualification
-(a published bench pass) is capability evidence only; it never authorizes work, teams, gates or merges, and an
-advisor's text is not authorization.
+An explicit route the owner sets (the `coordinator` allow-list in `.bive/models.json`, a named coordinator model, or any
+other owner-named model or route constraint) supersedes any generic fallback or recommendation, including an advisor's.
+Fallback applies only where the owner has not fixed the route. Qualification (a published bench pass) is capability
+evidence only; it never authorizes work, teams, gates or merges, and an advisor's text is not authorization. This
+section concerns models and routes only; dated merge-authorization labels are governed by `docs/REQUIRED-CHECKS.md`.
 
 ## Switching mid-work (issue #203)
 
