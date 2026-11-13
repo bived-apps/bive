@@ -44,26 +44,55 @@ export function resolveModel(canonical: string, aliases: Record<string, string>)
   return { canonical, resolved, ref: parseModel(resolved) }
 }
 
+function assertAbsolute(path: string): void {
+  if (typeof path !== "string" || (!path.startsWith("/") && !/^[A-Za-z]:[\\/]/.test(path))) {
+    throw new Error(`worktree "${path}" must be an absolute path`)
+  }
+}
+
+export function buildMoveRequest(opts: { sessionID: string; worktree: string }): HttpRequest {
+  if (typeof opts.sessionID !== "string" || !opts.sessionID.startsWith("ses")) {
+    throw new Error(`session id "${opts.sessionID}" must start with "ses"`)
+  }
+  assertAbsolute(opts.worktree)
+  return { method: "POST", path: `/api/session/${opts.sessionID}/move`, body: { directory: opts.worktree } }
+}
+
+export function isInWorktree(session: unknown, worktree: string): boolean {
+  // Fail-safe: anything malformed is false; the comparison is exact (no prefix or slash tricks).
+  if (session === null || typeof session !== "object") return false
+  const s = session as { data?: unknown; location?: unknown }
+  // The server answers {data: {...}}; accept the bare session too.
+  const inner = s.data !== null && typeof s.data === "object" ? (s.data as { location?: unknown }) : s
+  const loc = inner.location
+  if (loc === null || typeof loc !== "object") return false
+  const dir = (loc as { directory?: unknown }).directory
+  return typeof dir === "string" && dir !== "" && dir === worktree
+}
+
 export function buildCreateRequest(opts: {
   worktree: string
   model: ModelRef
   agent?: string
   title?: string
   coordinator?: { session: string; issue: number }
+  parentID?: string
 }): HttpRequest {
-  if ("parentID" in opts) {
-    throw new Error(
-      "parentID is refused: OpenCode runs a child session in its parent's directory, not the delegate's worktree (#256); record the coordinator in metadata instead",
-    )
-  }
   // The session runs in the delegate's worktree, so its directory must be absolute.
-  if (!opts.worktree.startsWith("/") && !/^[A-Za-z]:[\\/]/.test(opts.worktree)) {
-    throw new Error(`worktree "${opts.worktree}" must be an absolute path`)
-  }
+  assertAbsolute(opts.worktree)
   const body: Record<string, unknown> = {
     agent: opts.agent ?? "delegate",
     model: { providerID: opts.model.providerID, id: opts.model.id },
-    location: { directory: opts.worktree },
+  }
+  if (opts.parentID !== undefined) {
+    // A child session lands in its parent's directory and OpenCode ignores `location` (#256):
+    // the caller moves it to the worktree afterwards (buildMoveRequest).
+    if (typeof opts.parentID !== "string" || !opts.parentID.startsWith("ses")) {
+      throw new Error(`parent session id "${opts.parentID}" must start with "ses"`)
+    }
+    body.parentID = opts.parentID
+  } else {
+    body.location = { directory: opts.worktree }
   }
   if (opts.title !== undefined) body.title = opts.title
   if (opts.coordinator !== undefined) {

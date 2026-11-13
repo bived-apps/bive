@@ -5,6 +5,8 @@ import {
   loadAliases,
   resolveModel,
   buildCreateRequest,
+  buildMoveRequest,
+  isInWorktree,
   buildPromptRequest,
   authHeader,
   gitIdentity,
@@ -65,10 +67,36 @@ test("buildCreateRequest body", () => {
   assert.equal(r2.body.agent, "x")
 })
 
-test("buildCreateRequest refuses parentID (#256)", () => {
+test("buildCreateRequest with parentID has parentID and no location (#256)", () => {
   const model = { providerID: "p", id: "m" }
-  const opts = { worktree: "/tmp/wt", model, parentID: "ses_1" } as unknown as Parameters<typeof buildCreateRequest>[0]
-  assert.throws(() => buildCreateRequest(opts), /parentID is refused/)
+  const r = buildCreateRequest({ worktree: "/tmp/wt", model, parentID: "ses_1" })
+  assert.deepEqual(r.body, { agent: "delegate", model, parentID: "ses_1" })
+  assert.ok(!("location" in r.body))
+  assert.throws(() => buildCreateRequest({ worktree: "/tmp/wt", model, parentID: "abc" }), /ses/)
+  assert.throws(() => buildCreateRequest({ worktree: "rel", model, parentID: "ses_1" }), /absolute/)
+})
+
+test("buildMoveRequest", () => {
+  assert.deepEqual(buildMoveRequest({ sessionID: "ses_a", worktree: "/x/issue-2" }), {
+    method: "POST",
+    path: "/api/session/ses_a/move",
+    body: { directory: "/x/issue-2" },
+  })
+  assert.throws(() => buildMoveRequest({ sessionID: "abc", worktree: "/x" }), /ses/)
+  assert.throws(() => buildMoveRequest({ sessionID: "ses_a", worktree: "x/y" }), /absolute/)
+})
+
+test("isInWorktree is exact and fail-safe", () => {
+  const at = (directory: unknown) => ({ data: { location: { directory } } })
+  assert.equal(isInWorktree(at("/x/issue-2"), "/x/issue-2"), true)
+  assert.equal(isInWorktree({ location: { directory: "/x/issue-2" } }, "/x/issue-2"), true)
+  assert.equal(isInWorktree(at("/x"), "/x/issue-2"), false)
+  assert.equal(isInWorktree(at("/x/issue-2"), "/x/issue-24"), false)
+  assert.equal(isInWorktree(at("/x/issue-24"), "/x/issue-2"), false)
+  assert.equal(isInWorktree(at("/x/issue-2/"), "/x/issue-2"), false)
+  for (const bad of [null, undefined, 1, "s", {}, { data: null }, { data: {} }, at(5), at(""), { location: null }]) {
+    assert.equal(isInWorktree(bad, "/x/issue-2"), false)
+  }
 })
 
 test("buildCreateRequest records the coordinator in metadata", () => {
