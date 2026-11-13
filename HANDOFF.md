@@ -223,6 +223,26 @@ ROADMAP.md › 0.1 is done (2026-11-10, #80). The backlog of 2026-11-12 is close
 
 ## Session log
 
+- **2026-11-13, coordinator openai/gpt-6.1-sol — passation, #262 advisor role and owner-only authority**: branch
+  `coordinator/advisor-role` (draft PR #263), last commit `bdaa622`. Done: question-only read-only `ADVISOR.md`,
+  `SUPERVISOR.md` retired to a pointer, legacy supervisor markers fail closed as advisor (guard, config, skills),
+  docs/templates/README/ROADMAP aligned, plan in `docs/OWNER-ADVISOR-REWORK.md`, exception contract in
+  `docs/COORDINATOR-MERGES.md`. `main` is the owner's alone: no agent approves or merges into it (code refuses it,
+  `tests/coordinator-approval.test.ts` 6/6). Owner opt-in = grant in `.bive/gate.json` on the base (parent coordinator
+  approves its direct child's PR into `bived`/`milestone/*`, signed short-lived comment, no label per PR; authority
+  and enforcement files stay owner-merged). Open: (1) `merge-tool.ts` and `check-merge-gate.mjs` are not wired to
+  `coordinator-approval-lib.mjs`, so the tool refuses every request (fails closed), opt-in off, no grant exists;
+  (2) who holds the signing key (recommended: a per-grant key given by the owner); (3) the gate still needs the dated
+  label until its script changes, which must reach `main` and `bived` together; (4) delegate branches not yet
+  cherry-picked: `issue/264-advisor-merge-tests` (`8e93e72`, `db7e473`: 35+35 tests of the merge state machine and
+  adapter, written for the earlier snapshot, to adapt) and `issue/265-advisor-role-tests` (`aa4c7a0`, guard test
+  migrated to advisor; other old supervisor tests in `ask-owner-skill`, `launch-handover`, `rules-consistency`,
+  `merge-authority` still to align); (5) full `node --test tests/*.test.ts` not yet run on this branch. Haiku Part A
+  (`38f8e03`) is integrated. Other apps (bench, workspace template, registry, university, grooms) wait for the owner's
+  review of this reference; bench has PRs #72/#74 to avoid. Delegates: only free Beam through the tested route
+  `opencode-go/beam-free` (`opencode/beam-free` and `ollama-cloud/beam` were blocked by quota/credit); no fallback,
+  no billing change. No grant, label, merge, test release or draw was done.
+
 - **2026-11-12, coordinator opencode/beam-free — backlog closed, registry live**: ~45 issues solved in one day:
   epic #132 (skills) with its seven slices, the merge gate (#114, #115, #129, #130), guard refusals (#146–#148), the
   self-hosted CI rules (#116, #121–#124, #126), one source for the rules (#117–#119, #125, #127, #131), #69, #72, #73,
