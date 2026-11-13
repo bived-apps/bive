@@ -9,8 +9,24 @@ commands. `<n>` is the issue, `<slug>` a short name, `<base>` the integration br
 The owner alone authorizes work and merges, approves teams and the three gates, and arbitrates shared files. An advisor
 answers questions about the current worktree read-only and prepares decision or handoff text; that is advice, not
 authorization. No advisor text, bench pass, shared account or collaborator association counts as the owner's approval.
-A bench pass is capability evidence only. A coordinator approves pull requests based on its branch but never merges or
-closes one. Historical supervisor qualifications grant no authority.
+A bench pass is capability evidence only. By default a coordinator approves pull requests based on its branch but never
+merges or closes one. An explicitly scoped owner grant may let a named coordinator execute specific sub-coordinator
+pull-request merges; see *Coordinator merge exception (design, not implemented)* below. Historical supervisor
+qualifications grant no authority.
+
+## Coordinator merge exception (design, not implemented)
+
+Default: a coordinator never merges or closes a pull request. The owner may, by an explicit opt-in grant, let a named
+coordinator execute the merge of specific sub-coordinator pull requests. This is a design requirement only; it is not
+implemented and no grant is issued by this task. Current enforcement remains the blanket denial above. The proposed
+contract lives in [docs/OWNER-ADVISOR-REWORK.md](OWNER-ADVISOR-REWORK.md).
+
+A grant, if ever issued, would be bound to: the repository; the executor (coordinator session); the pull request; the
+exact head commit; the base; and a UTC expiry. It would be single use, with no inheritance or onward delegation, and
+would carry none of the coordinator's other powers (no pull-request close, no team or gate approval, no test release).
+It would never cover a pull request the coordinator authored or whose work it owns. A revoked, expired or
+head-changed grant would be rejected. Green checks and the owner's authorization would still be required. Until an
+implementation exists, treat every coordinator as unable to merge.
 
 ## Before a milestone (issue #116)
 
@@ -45,16 +61,20 @@ gh label list --search "$label" --json name --jq '.[].name' | grep -qx "$label" 
 
 The guard keeps every agent's writes inside its own worktree, so a hand-over file outside it cannot be written by an
 agent. The hand-over (`.bive/templates/launch.md`, filled) is therefore posted by the owner (or a person outside the
-guard) as **one comment on the milestone's epic issue**, whose first line is `# Launch #<milestone> <title>`. The
-launcher (the owner, or a person or script outside the guard) takes the newest such comment from the owner's own
-account and hands it to the coordinator. An advisor may prepare or quote the hand-over text, but that text is advice,
-not authorization: a hand-over taken from a collaborator's or shared account, or carrying an advisor's signature, does
-not count as the owner's approval. Only the owner's own account and decision count:
+guard) as **one comment on the milestone's epic issue**, whose first line is `# Launch #<milestone> <title>`. Retrieval
+is read-only and uses the app-configured named human owner: `gate.json`'s `owner` when configured, otherwise the human
+personal repository owner's login. It is never automatic execution from a comment's origin, account association or
+shared account alone. An advisor may prepare or quote the hand-over text, but that text is advice, not authorization:
+a hand-over taken from a collaborator's or shared account, or carrying an advisor's signature, does not count as the
+owner's approval. Before handing it to the coordinator, the launcher records the human owner's explicit approval of
+the scope and team in the issue thread; only that recorded approval permits execution. The retrieval filter below only
+selects comments by the named owner's login for review; it does not authorize execution:
 
 ```bash
 gh api repos/<owner>/<repo>/issues/<epic>/comments --paginate --jq \
-  '[.[] | select(.body | startswith("# Launch #")) | select(.author_association == "OWNER")] | last | .body' \
+  '[.[] | select(.body | startswith("# Launch #")) | select(.user.login == "<named-owner>")] | last | .body' \
   > <coordinator clone>/.bive/state/launch.md
+# review the retrieved hand-over and confirm the recorded owner approval of scope/team before running:
 (cd <coordinator clone> && opencode run --agent coordinator --model <model> "$(cat .bive/state/launch.md)")
 ```
 
@@ -174,8 +194,9 @@ gh pr review <pr> --approve --body "Ready to merge: <the checks you ran>"
 ```
 
 The owner merges (`gh pr merge <pr> --merge --match-head-commit <sha>`, after the label); its queue is
-`gh pr list --base <base> --search "review:approved"`. The coordinator never merges, closes or pushes
-to `<base>`. To be told when a pull request is merged without a watcher plugin: `gh pr checks` for the checks, then
+`gh pr list --base <base> --search "review:approved"`. By default the coordinator never merges, closes or pushes
+to `<base>`; the only possible exception is the explicitly scoped owner grant described in *Coordinator merge
+exception (design, not implemented)*, which is not available today. To be told when a pull request is merged without a watcher plugin: `gh pr checks` for the checks, then
 `until [ "$(gh pr view <pr> --json state --jq .state)" != OPEN ]; do sleep 60; done` in the shell, when a session
 really needs to wait; most of the time the next session reads `gh pr list` instead.
 Once merged, if the issue is still open (GitHub closes on the default branch only), close it only after

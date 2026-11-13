@@ -216,12 +216,24 @@ commit checks on a pull request.
   `../outside.txt` is refused by the guard and `.bive/state/tokens.jsonl` fills.
 - **`opencode plugin list`** is a local/manual check; it is not a GitHub required status.
 
+## Coordinator merge exception (design, not implemented)
+
+Default: a coordinator does not merge or close pull requests. A future, explicitly scoped owner grant may let a named
+coordinator execute the merge of specific sub-coordinator pull requests, bound to repository, executor (session), pull
+request, exact head, base and UTC expiry, single use, with no inheritance or onward delegation and no
+pull-request-close, team, gate or test-release powers. It would never cover a pull request the coordinator authored or
+owns. Revoked, expired or head-changed grants would be rejected, and green checks plus the owner's authorization would
+still be required. This is a design requirement only; it is not implemented and no grant is issued. Current enforcement
+remains the blanket denial. Proposed contract: [docs/OWNER-ADVISOR-REWORK.md](OWNER-ADVISOR-REWORK.md).
+
 ## What this document does not say
 
 - It does not prove which checks GitHub branch protection currently requires, nor that any check is marked
   "required" in repository settings. Branch protection and rulesets are configured under the repository's settings;
   compare them against the checks listed here.
-- It does not say who merges: the owner alone, after the coordinator's approval (`AGENTS.md` › Roles). An advisor's
-  text or a collaborator/shared account is not approval; a bench pass is capability evidence only.
+- It does not say who merges: by default the owner alone, after the coordinator's approval (`AGENTS.md` › Roles). An
+  advisor's text or a collaborator/shared account is not approval; a bench pass is capability evidence only. A future,
+  explicitly scoped owner grant may let a named coordinator merge specific sub-coordinator pull requests, but that is a
+  design requirement, not implemented today (see [docs/OWNER-ADVISOR-REWORK.md](OWNER-ADVISOR-REWORK.md)).
 - Workflow job names are part of the check identity. If a workflow or job is renamed, update this document and the
   repository's branch-protection configuration together so they keep matching.
