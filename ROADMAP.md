@@ -25,12 +25,13 @@ here is committed with the code it describes (an item started → `doing`, finis
 
 ## Epics
 
-### 0.2 — Delegates as sessions (planned; owner chose it 2026-11-12; waiting for gate 1)
+### 0.2 — Delegates as sessions (done 2026-11-13: pilot #192 through #255; next: 0.3, #254)
 
 Done when a delegate issue runs end to end with no OpenCode process started by hand and no `cd` by the coordinator.
-The coordinator creates the delegate's session through OpenCode's API (`POST /api/session`: `location.directory` =
-the worktree, `agent`, `model`, `parentID`, session-scoped `permissions`), prompts it with the brief, waits on it and
-reads the branch it pushed. The API shape was verified on OpenCode 2.2.5 (2026-11-09); installed versions are now
+The coordinator creates the delegate's session through OpenCode's API (`POST /api/session` with `agent`, `model` and
+`parentID` = its own session, then `POST /api/session/{id}/move` into the worktree, because a child lands in its
+parent's directory, #256), prompts it with the brief, waits on it and reads the branch it pushed. The API shape was
+verified on OpenCode 2.2.5 (2026-11-09); installed versions are now
 2.2.5 (CLI) and 2.2.7 (desktop), so part 0 re-verifies it. Proposed split, each part one session of at most 3 source
 files and 1 test file; owner validates it (gate 1):
 
@@ -58,6 +59,11 @@ files and 1 test file; owner validates it (gate 1):
 - **Part 5 — procedure (coordinator)**: `docs/COORDINATING.md` and `COORDINATOR.md` describe the session start; the
   process start stays as the documented fallback.
 - **Part 6 — pilot (coordinator + one delegate)**: one real issue through the new path; field report.
+  **Done 2026-11-13** (#192, field report there): #246 ran end to end through an API-created session (delegate
+  anthropic/claude-sonnet-5-5, 45 s, no question, no correction), PR #255. Two more issues went the same way, #256 and
+  #258. Findings fixed in this milestone: the parent link by create-then-move (#256), a malformed alias file now stops
+  the start (#258), the setup order is checked (#246). Left to 0.3 (#254): the owner-side wait (labels, merges), and a
+  guard that refuses pipes it cannot parse (delegates run single test files instead).
 
 Risks: the free models ran out of usage on 2026-11-12 (`big-pickle` still answered), so the pilot may need a paid or
 fallback model; an API-created session carries no `BIVE_ROLE`, hence part 2 comes before the pilot.

@@ -87,13 +87,26 @@ where it says it was not. Bive ships no script (HANDOFF › *No machinery*): `li
 1. **A server, once**: `opencode serve --port <p>` prints a password; the requests use basic auth `opencode:<password>`
    (`authHeader`). Keep it running. **Restart it after any change to a plugin or the guard merges**: a running server
    keeps the old plugin code in memory (seen on 2026-11-12: a delegate was refused a pipe the merged guard allows).
+   A running local OpenCode service reached with `opencode api` (no password) works as well as a fresh `opencode serve`.
 2. **The worktree, identity and role file**: exactly as *Start a delegate* above (steps 1-6 of that block, not the
-   `opencode run` line).
-3. **The model**: `loadAliases(<text of .bive/state/models.local.json>)`, then `resolveModel(<canonical>, aliases)`.
+   `opencode run` line). Run them **one after another, never in one parallel batch**: create the worktree, then
+   `checkWorktree({list: <git worktree list --porcelain>, checkout, issue, branch})`; only when it is ok write the role
+   file and the identity, then `checkReady({role, userName, canonical})`; only when it is ok launch. `planSetup` gives
+   the one next step and never says `launch` before both checks are ok (`lib/delegate-setup.ts`). On any failure
+   `planRecovery({markerCreatedByThisAttempt, sessionActive, dirty})` decides: it clears the marker only when this
+   attempt made it, the session is known inactive and nothing is dirty. Never clear an active or pre-existing marker
+   to retry.
+3. **The model**: `resolveFromFile(<text of .bive/state/models.local.json, or undefined>, <canonical>)` (it calls
+   `loadAliases`, then `resolveModel`), which stops on a malformed file instead of falling back to the canonical route
+   (#258).
    The alias is what the server is asked for; the canonical name is what the identity and the pull request say.
-4. **Create the session**: `buildCreateRequest({worktree: <absolute path of .worktrees/issue-<n>>, model: ref})` is
-   `POST /api/session` with the agent `delegate` (the guard recognises it by its agent even in a worktree not named
-   `issue-<n>`, #188). The answer is `{data: {id, ...}}`.
+4. **Create, move, check**: `buildCreateRequest({worktree: <absolute path of .worktrees/issue-<n>>, model: ref,
+   parentID: $OPENCODE_SESSION_ID, coordinator: {session: $OPENCODE_SESSION_ID, issue}})` is `POST /api/session` with the
+   agent `delegate` (the guard recognises it by its agent, #188); `$OPENCODE_SESSION_ID` is the coordinator's own session
+   id, set in its shell. The answer is `{data: {id, ...}}`. A child session lands in its parent's directory, so then send
+   `buildMoveRequest({sessionID, worktree})` (`POST /api/session/<id>/move`), then `GET /api/session/<id>` and test it
+   with `isInWorktree(answer, worktree)`. **Prompt only when it is true**; otherwise remove the session and stop (#256).
+   The session then shows under the coordinator's session (#243).
 5. **Prompt it with the brief**: `buildPromptRequest({sessionID, brief})` is `POST /api/session/<id>/prompt` with
    `delivery: "queue"`, which is also how to talk to a busy delegate.
 6. **Wait**: `buildWaitRequest(sessionID)` is `POST /api/experimental/session/<id>/wait` (204 when it finishes). It is
@@ -101,7 +114,8 @@ where it says it was not. Bive ships no script (HANDOFF › *No machinery*): `li
    `isSessionDone(event, sessionID)` is true (`session.execution.succeeded`; the event shape was read loosely and not
    fully verified).
 7. **Read the result**: `readBranch({branch, base, git})` says whether the branch is pushed, lists its commits and
-   returns the report when the last commit's body starts `Closes #` or `Part of #`. Then review as in step 7 of the
+   returns the report when the last commit's body starts `Closes #` or `Part of #`. `base` is the bare base name
+   (`bived`); `readBranch` adds `origin/` itself. Then review as in step 7 of the
    prompt.
 8. **A model error** (`needsFallback({text, status})`): `planFallback({models, failed, aliases, worktree, issue,
    committed, left})` returns the next model, the identity to set (`git ... config --worktree user.name`, canonical
