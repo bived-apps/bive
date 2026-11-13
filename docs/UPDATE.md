@@ -10,6 +10,7 @@ its own `.bive/registry-id`, and a project adapts `opencode.jsonc`, the gate and
 | --- | --- |
 | `.bive/registry-id` | It is **Bive's** id; a copy makes your project report under it (`docs/REGISTRY.md`). Keep your own file, or none: no file means no reporting. To join, use skill `bive-registry-optin`. |
 | `.bive/state/` | Run-time state of your agents (briefs, role file, local model aliases, tokens). |
+| `.bive/gate.json` merge opt-in, grants or old approvals | Never copy another app's `coordinatorMerges` opt-in, coordinator merge grants, or old approval state. The opt-in ships disabled (`false`) and stays disabled until the app's own owner decides. |
 | `HANDOFF.md`, `ROADMAP.md`, `README.md` | They describe Bive, then your project. |
 | `tests/` of Bive, `lib/` of Bive | Your tests and code are yours; Bive's tests check Bive. |
 | `docs/TRIAGE-110.md` and other docs about Bive's own history | Not rules. |
@@ -21,15 +22,17 @@ its own `.bive/registry-id`, and a project adapts `opencode.jsonc`, the gate and
 - `AGENTS.md`: take Bive's core sections (Roles, Rules, Coding rules, Inviolable prompts, Field reports); keep your
   *Project rules* and *Before committing* exactly as they are.
 - `.bive/prompts/project/`: your additions to the role prompts.
-- `.bive/models.json` and `.bive/gate.json`: your models, your skippable checks and your named owner (never Bive's).
+- `.bive/models.json` and `.bive/gate.json`: your models, your skippable checks, your named owner and your merge
+  opt-in (never Bive's; the opt-in defaults to disabled and is not copied between apps).
 - `.github/workflows/bive-*.yml`: take Bive's logic, keep your own `runs-on` labels and your project's test command
   (`docs/SELF-HOSTED.md`).
 
 ## What you take from Bive
 
-The core role prompts (`.bive/prompts/COORDINATOR.md`, `DELEGATE.md`, `SUPERVISOR.md`), `.bive/templates/`,
+The core role prompts (`.bive/prompts/COORDINATOR.md`, `DELEGATE.md`, `ADVISOR.md`), `.bive/templates/`,
 `.opencode/plugins/`, `.opencode/skills/` and `.bive/skills.json` (re-check each skill's revision), the Bive scripts of
-`.github/scripts/`, and the pages of `docs/` that describe the rules.
+`.github/scripts/`, and the pages of `docs/` that describe the rules (including `docs/COORDINATOR-MERGES.md`,
+design only, not implemented).
 
 ## Turn 1: read only
 
@@ -49,7 +52,7 @@ Then stop and wait for the owner's answer.
 Only after the owner says yes: one branch `update/bive-<date>` and one pull request labelled `coordinator`, so
 `bive-inviolable` accepts the inviolable files. The body starts with the line `Bive: <commit sha of Bive's branch you
 took it from>` (the next update starts there), then lists the gate and guard changes of turn 1 and the project's own
-checks run. The supervisor merges it like any other.
+checks run. The owner merges it like any other.
 
 ## Paste into OpenCode at the project's root
 

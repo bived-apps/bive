@@ -15,7 +15,8 @@ question, in the session or as a comment on the issue:
 
 - `Q2 yes` or `Q2 no`
 - `Q2 other: <what you want>`
-- `Q2 supervisor`: forward it to the supervisor (you, a person you name, or a qualified agent)
+- `Q2 advisor`: get read-only advice (the advisor answers, then returns the decision to you; advice is not
+  authorization)
 - `Q2 coordinator`: let the coordinator decide (never accepted for merges, the label, gates, or rule changes)
 
 A question with no answer after one day gets a public status comment on the issue and may move up or around as the
@@ -30,7 +31,9 @@ authorize it. That red means "waiting for the owner", not "broken". To authorize
 2. Add the label `bive-merge-authorized-until-YYYY-MM-DD`, with **today's date in UTC** (on GitHub: the pull request's
    Labels box; or `gh pr edit <n> --add-label bive-merge-authorized-until-YYYY-MM-DD`; create the label first if it does
    not exist: `gh label create <that name>`).
-3. The gate turns green by itself. The supervisor then merges, with a merge commit, never squash.
+3. The gate turns green by itself. The owner then merges, with a merge commit, never squash. By default the
+   coordinator cannot merge; an explicitly scoped owner grant is required and is not enabled by default. See
+   `docs/COORDINATOR-MERGES.md` (design; not implemented yet).
 
 Rules of the label: it is valid until 23:59:59 UTC of its date; the date must be the day you apply it (a future date
 is refused); the coordinator never applies it. Remove it to withdraw the authorization. A pull request that changes the
