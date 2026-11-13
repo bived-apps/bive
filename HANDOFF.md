@@ -123,6 +123,21 @@ there and in AGENTS.md, not here.
 
 ## Tasks
 
+**Planning checkpoint (2026-11-13, #262):** the owner requested the cross-app rework plan in Bive:
+[`docs/OWNER-ADVISOR-REWORK.md`](docs/OWNER-ADVISOR-REWORK.md), linked from ROADMAP. Owner-only supervisory authority;
+the advisor only answers a read-only question about the current worktree, then stops. This new direction supersedes
+older grants of agent supervisory powers below; historical decisions and draw results are retained as history.
+The owner then directed execution to start, with only free Beam delegates and Sol for inviolable changes/review.
+Start with Bive; dependent repositories wait for its reviewed reference and owner merge.
+`coordinator/advisor-role` has a partial, unverified Bive code
+draft; Haiku Part A is separate on `issue/262-advisor-code` at `38f8e03b52c7c478c8453514af7a1c3b661c7201`, not yet
+integrated/reviewed. Do not treat either as complete. No merges, authorization labels/actions, test releases or draws
+have been performed for this work.
+The free Beam delegate launch (`opencode/beam-free`, canonical `reflection/beam-1.0-501b-a23b`, version and zero
+rates verified in provider metadata) failed immediately with "Free usage limit reached", before work was returned.
+No fallback/provider/billing change. Preserve the partial draft; ordinary implementation is blocked pending free
+availability or explicit owner direction. The planning commit excludes the unverified code/prompt/config draft.
+
 ROADMAP.md › 0.1 is done (2026-11-10, #80). The backlog of 2026-11-12 is closed except two issues. Open work, in order:
 
 1. **0.2 — Delegates as sessions** (owner chose it, 2026-11-12; part 0 done; issues #187–#192 are parts 1–6, #196 is

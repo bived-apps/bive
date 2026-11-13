@@ -25,6 +25,20 @@ here is committed with the code it describes (an item started → `doing`, finis
 
 ## Epics
 
+### Cross-app owner/advisor rework — started, blocked (2026-11-13, #262)
+
+Plan: [`docs/OWNER-ADVISOR-REWORK.md`](docs/OWNER-ADVISOR-REWORK.md). The human owner alone supervises; an advisor
+answers a read-only question about the current worktree, then stops. No qualification grants supervisory powers.
+The owner said to start this plan, using only free Beam delegates; Sol handles inviolable changes and review.
+Start with Bive; dependent repositories wait for the reviewed reference and owner merge.
+
+Order: Bive reference contract → bench and workspace template → registry/help, university and Grooms inspection →
+owner-approved installed-project rollout. Preserve all historical draws, scores and frozen fixtures. Coordinator and
+delegate remain separate. No merges, owner-authorization actions, test releases or benchmark draws under this plan.
+The existing Bive implementation is a partial, unverified draft, not done or deployed.
+The first free Beam launch hit "Free usage limit reached"; no provider fallback or billing change was attempted.
+Ordinary implementation waits for the approved free route to become available or explicit owner direction.
+
 ### 0.2 — Delegates as sessions (done 2026-11-13: pilot #192 through #255; next: 0.3, #254)
 
 Done when a delegate issue runs end to end with no OpenCode process started by hand and no `cd` by the coordinator.
