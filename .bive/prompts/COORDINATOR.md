@@ -47,6 +47,8 @@ it: only the owner puts it on a pull request.
    environment). One delegate in it: a subagent, or its own OpenCode process with `BIVE_ROLE=delegate`. Your own
    work (inviolable files) goes on a branch in your checkout, never under `.worktrees/issue-*`, which the guard
    treats as a delegate's.
+   A delegate may also be a session of an OpenCode server (`docs/COORDINATING.md` › *Start a delegate as a session*);
+   the process start stays the documented fallback.
    At most three at once, never two on overlapping files. Record each delegate process PID when starting it; to
    continue a busy process-based delegate, wait for that PID to exit, then run `opencode run --continue` (or target its
    session with `--session <id>`).

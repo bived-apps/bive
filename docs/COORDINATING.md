@@ -77,6 +77,41 @@ The `delegate` agent of `opencode.jsonc` gives the session `.bive/prompts/DELEGA
 A project whose checks need a local environment links it into the worktree (for example
 `ln -s "$PWD/.venv" .worktrees/issue-<n>/.venv`).
 
+## Start a delegate as a session (0.2; the process start above stays the fallback)
+
+A delegate can be a session of an OpenCode server instead of a process you started: the owner then sees it in the same
+OpenCode, and it needs no `cd`. Everything below was verified on OpenCode 2.2.5 (`ROADMAP.md` › 0.2, part 0), except
+where it says it was not. Bive ships no script (HANDOFF › *No machinery*): `lib/delegate-session.ts` and
+`lib/delegate-run.ts` are pure helpers that **build** the requests and **plan** the fallback; you send them.
+
+1. **A server, once**: `opencode serve --port <p>` prints a password; the requests use basic auth `opencode:<password>`
+   (`authHeader`). Keep it running. **Restart it after any change to a plugin or the guard merges**: a running server
+   keeps the old plugin code in memory (seen on 2026-11-12: a delegate was refused a pipe the merged guard allows).
+2. **The worktree, identity and role file**: exactly as *Start a delegate* above (steps 1-6 of that block, not the
+   `opencode run` line).
+3. **The model**: `loadAliases(<text of .bive/state/models.local.json>)`, then `resolveModel(<canonical>, aliases)`.
+   The alias is what the server is asked for; the canonical name is what the identity and the pull request say.
+4. **Create the session**: `buildCreateRequest({worktree: <absolute path of .worktrees/issue-<n>>, model: ref})` is
+   `POST /api/session` with the agent `delegate` (the guard recognises it by its agent even in a worktree not named
+   `issue-<n>`, #188). The answer is `{data: {id, ...}}`.
+5. **Prompt it with the brief**: `buildPromptRequest({sessionID, brief})` is `POST /api/session/<id>/prompt` with
+   `delivery: "queue"`, which is also how to talk to a busy delegate.
+6. **Wait**: `buildWaitRequest(sessionID)` is `POST /api/experimental/session/<id>/wait` (204 when it finishes). It is
+   *experimental*; the fallback is to follow `GET /api/event` and stop at an event for which
+   `isSessionDone(event, sessionID)` is true (`session.execution.succeeded`; the event shape was read loosely and not
+   fully verified).
+7. **Read the result**: `readBranch({branch, base, git})` says whether the branch is pushed, lists its commits and
+   returns the report when the last commit's body starts `Closes #` or `Part of #`. Then review as in step 7 of the
+   prompt.
+8. **A model error** (`needsFallback({text, status})`): `planFallback({models, failed, aliases, worktree, issue,
+   committed, left})` returns the next model, the identity to set (`git ... config --worktree user.name`, canonical
+   name), a new create request in the same worktree and a short resume message to send as the prompt. The work already
+   committed stays; the next commit names the next model (`docs/PROVIDERS.md` › *Switching mid-work*).
+9. **A guard refusal** is a hard stop here too: read the session's last messages, record the refusal on the issue
+   (*Refusal and resume*), and resume it with one prompt.
+
+Not verified live end to end yet: the whole path with a real delegate is the pilot (issue #192).
+
 ## Open and review a pull request (step 7)
 
 The delegate pushes its branch and returns the filled report; it never opens a pull request. The coordinator creates
