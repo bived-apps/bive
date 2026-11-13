@@ -11,22 +11,24 @@ answers questions about the current worktree read-only and prepares decision or 
 authorization. No advisor text, bench pass, shared account or collaborator association counts as the owner's approval.
 A bench pass is capability evidence only. By default a coordinator approves pull requests based on its branch but never
 merges or closes one. An explicitly scoped owner grant may let a named coordinator execute specific sub-coordinator
-pull-request merges; see *Coordinator merge exception (design, not implemented)* below. Historical supervisor
+pull-request merges; see *Coordinator merge exception (default off)* below. Historical supervisor
 qualifications grant no authority.
 
-## Coordinator merge exception (design, not implemented)
+## Coordinator merge exception (default off, guarded path)
 
-Default: a coordinator never merges or closes a pull request. The owner may, by an explicit opt-in grant, let a named
-coordinator execute the merge of specific sub-coordinator pull requests. This is a design requirement only; it is not
-implemented and no grant is issued by this task. Current enforcement remains the blanket denial above. The proposed
-contract lives in [docs/OWNER-ADVISOR-REWORK.md](OWNER-ADVISOR-REWORK.md).
+Default: a coordinator never merges or closes a pull request. A guarded, default-off path now exists as a protected
+tool (`bive_coordinator_merge`): it requires the base repository opt-in (`coordinatorMerges: true` in
+`.bive/gate.json`) and a fresh per-call OpenCode owner permission. It is bound to the exact repository, executor
+session, direct child coordinator session, pull request, head commit and base, with a two-minute expiry; it revalidates
+scope and authorization after approval and merges only the pinned head with `--merge --match-head-commit`. It is single
+use, with no saved grant and no onward delegation, and grants no pull-request-close, team, gate or test-release power.
+It refuses a pull request the coordinator authored or owns, an ambiguous or self-authored branch, a missing coordinator
+label or non-green checks, and any expired or changed head. Agents must use the protected tool, never `gh` or the API.
+No actual grant or merge is performed by this task. Live end-to-end acceptance is a separate, owner-run step that has
+not been verified yet. The contract lives in [docs/COORDINATOR-MERGES.md](COORDINATOR-MERGES.md).
 
-A grant, if ever issued, would be bound to: the repository; the executor (coordinator session); the pull request; the
-exact head commit; the base; and a UTC expiry. It would be single use, with no inheritance or onward delegation, and
-would carry none of the coordinator's other powers (no pull-request close, no team or gate approval, no test release).
-It would never cover a pull request the coordinator authored or whose work it owns. A revoked, expired or
-head-changed grant would be rejected. Green checks and the owner's authorization would still be required. Until an
-implementation exists, treat every coordinator as unable to merge.
+The tool relies on recorded session identity rather than on an account proving a human: shared accounts and the absence
+of an OS-level sandbox remain caveats.
 
 ## Before a milestone (issue #116)
 
@@ -196,7 +198,8 @@ gh pr review <pr> --approve --body "Ready to merge: <the checks you ran>"
 The owner merges (`gh pr merge <pr> --merge --match-head-commit <sha>`, after the label); its queue is
 `gh pr list --base <base> --search "review:approved"`. By default the coordinator never merges, closes or pushes
 to `<base>`; the only possible exception is the explicitly scoped owner grant described in *Coordinator merge
-exception (design, not implemented)*, which is not available today. To be told when a pull request is merged without a watcher plugin: `gh pr checks` for the checks, then
+exception (default off, guarded path)*, which is disabled by default and requires owner opt-in and a fresh permission.
+To be told when a pull request is merged without a watcher plugin: `gh pr checks` for the checks, then
 `until [ "$(gh pr view <pr> --json state --jq .state)" != OPEN ]; do sleep 60; done` in the shell, when a session
 really needs to wait; most of the time the next session reads `gh pr list` instead.
 Once merged, if the issue is still open (GitHub closes on the default branch only), close it only after

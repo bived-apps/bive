@@ -216,15 +216,22 @@ commit checks on a pull request.
   `../outside.txt` is refused by the guard and `.bive/state/tokens.jsonl` fills.
 - **`opencode plugin list`** is a local/manual check; it is not a GitHub required status.
 
-## Coordinator merge exception (design, not implemented)
+## Coordinator merge exception (default off, guarded path)
 
-Default: a coordinator does not merge or close pull requests. A future, explicitly scoped owner grant may let a named
-coordinator execute the merge of specific sub-coordinator pull requests, bound to repository, executor (session), pull
-request, exact head, base and UTC expiry, single use, with no inheritance or onward delegation and no
-pull-request-close, team, gate or test-release powers. It would never cover a pull request the coordinator authored or
-owns. Revoked, expired or head-changed grants would be rejected, and green checks plus the owner's authorization would
-still be required. This is a design requirement only; it is not implemented and no grant is issued. Current enforcement
-remains the blanket denial. Proposed contract: [docs/OWNER-ADVISOR-REWORK.md](OWNER-ADVISOR-REWORK.md).
+Default: a coordinator does not merge or close pull requests. A guarded, default-off path now exists as a protected
+tool (`bive_coordinator_merge`): it requires the base repository opt-in (`coordinatorMerges: true` in
+`.bive/gate.json`) and a fresh per-call OpenCode owner permission. It is bound to the exact repository, executor
+session, direct child coordinator session, pull request, head commit and base, with a two-minute expiry; it
+revalidates scope and authorization after approval and merges only the pinned head with `--merge --match-head-commit`.
+It is single use, with no saved grant and no onward delegation, and grants no pull-request-close, team, gate or
+test-release power. It refuses a pull request the coordinator authored or owns, an ambiguous or self-authored branch,
+a missing coordinator label or non-green checks, and any expired or changed head. Agents must use the protected tool,
+never `gh` or the API. No actual grant or merge is performed by this task. Live end-to-end acceptance is a separate,
+owner-run step that has not been verified yet. The contract lives in
+[docs/COORDINATOR-MERGES.md](COORDINATOR-MERGES.md).
+
+The tool relies on recorded session identity rather than on an account proving a human: shared accounts and the absence
+of an OS-level sandbox remain caveats.
 
 ## What this document does not say
 
@@ -232,8 +239,8 @@ remains the blanket denial. Proposed contract: [docs/OWNER-ADVISOR-REWORK.md](OW
   "required" in repository settings. Branch protection and rulesets are configured under the repository's settings;
   compare them against the checks listed here.
 - It does not say who merges: by default the owner alone, after the coordinator's approval (`AGENTS.md` › Roles). An
-  advisor's text or a collaborator/shared account is not approval; a bench pass is capability evidence only. A future,
-  explicitly scoped owner grant may let a named coordinator merge specific sub-coordinator pull requests, but that is a
-  design requirement, not implemented today (see [docs/OWNER-ADVISOR-REWORK.md](OWNER-ADVISOR-REWORK.md)).
+  advisor's text or a collaborator/shared account is not approval; a bench pass is capability evidence only. A guarded,
+  default-off exception may let a named coordinator merge specific sub-coordinator pull requests, subject to owner
+  opt-in and a fresh permission (see [docs/COORDINATOR-MERGES.md](COORDINATOR-MERGES.md)).
 - Workflow job names are part of the check identity. If a workflow or job is renamed, update this document and the
   repository's branch-protection configuration together so they keep matching.
