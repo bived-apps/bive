@@ -5,6 +5,8 @@ import {
   loadAliases,
   resolveModel,
   buildCreateRequest,
+  buildMoveRequest,
+  isInWorktree,
   buildPromptRequest,
   authHeader,
   gitIdentity,
@@ -59,10 +61,54 @@ test("buildCreateRequest body", () => {
   assert.deepEqual(r.body, { agent: "delegate", model, location: { directory: "/tmp/wt" } })
   assert.ok(!("parentID" in r.body))
   assert.ok(!("title" in r.body))
-  const r2 = buildCreateRequest({ worktree: "/tmp/wt", model, agent: "x", parentID: "ses_1", title: "T" })
-  assert.equal(r2.body.parentID, "ses_1")
+  const r2 = buildCreateRequest({ worktree: "/tmp/wt", model, agent: "x", title: "T" })
+  assert.ok(!("parentID" in r2.body))
   assert.equal(r2.body.title, "T")
   assert.equal(r2.body.agent, "x")
+})
+
+test("buildCreateRequest with parentID has parentID and no location (#256)", () => {
+  const model = { providerID: "p", id: "m" }
+  const r = buildCreateRequest({ worktree: "/tmp/wt", model, parentID: "ses_1" })
+  assert.deepEqual(r.body, { agent: "delegate", model, parentID: "ses_1" })
+  assert.ok(!("location" in r.body))
+  assert.throws(() => buildCreateRequest({ worktree: "/tmp/wt", model, parentID: "abc" }), /ses/)
+  assert.throws(() => buildCreateRequest({ worktree: "rel", model, parentID: "ses_1" }), /absolute/)
+})
+
+test("buildMoveRequest", () => {
+  assert.deepEqual(buildMoveRequest({ sessionID: "ses_a", worktree: "/x/issue-2" }), {
+    method: "POST",
+    path: "/api/session/ses_a/move",
+    body: { directory: "/x/issue-2" },
+  })
+  assert.throws(() => buildMoveRequest({ sessionID: "abc", worktree: "/x" }), /ses/)
+  assert.throws(() => buildMoveRequest({ sessionID: "ses_a", worktree: "x/y" }), /absolute/)
+})
+
+test("isInWorktree is exact and fail-safe", () => {
+  const at = (directory: unknown) => ({ data: { location: { directory } } })
+  assert.equal(isInWorktree(at("/x/issue-2"), "/x/issue-2"), true)
+  assert.equal(isInWorktree({ location: { directory: "/x/issue-2" } }, "/x/issue-2"), true)
+  assert.equal(isInWorktree(at("/x"), "/x/issue-2"), false)
+  assert.equal(isInWorktree(at("/x/issue-2"), "/x/issue-24"), false)
+  assert.equal(isInWorktree(at("/x/issue-24"), "/x/issue-2"), false)
+  assert.equal(isInWorktree(at("/x/issue-2/"), "/x/issue-2"), false)
+  for (const bad of [null, undefined, 1, "s", {}, { data: null }, { data: {} }, at(5), at(""), { location: null }]) {
+    assert.equal(isInWorktree(bad, "/x/issue-2"), false)
+  }
+})
+
+test("buildCreateRequest records the coordinator in metadata", () => {
+  const model = { providerID: "p", id: "m" }
+  const r = buildCreateRequest({ worktree: "/tmp/wt", model, coordinator: { session: "ses_c", issue: 256 } })
+  assert.deepEqual(r.body.metadata, { bive: { coordinator: "ses_c", issue: 256 } })
+  assert.ok(!("parentID" in r.body))
+  assert.deepEqual(r.body.location, { directory: "/tmp/wt" })
+  assert.throws(() => buildCreateRequest({ worktree: "/tmp/wt", model, coordinator: { session: "abc", issue: 1 } }), /ses/)
+  for (const issue of [0, -1, 1.5, Number.NaN]) {
+    assert.throws(() => buildCreateRequest({ worktree: "/tmp/wt", model, coordinator: { session: "ses_c", issue } }), /positive integer/)
+  }
 })
 
 test("buildCreateRequest rejects a relative worktree", () => {

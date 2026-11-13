@@ -97,9 +97,13 @@ where it says it was not. Bive ships no script (HANDOFF › *No machinery*): `li
    to retry.
 3. **The model**: `loadAliases(<text of .bive/state/models.local.json>)`, then `resolveModel(<canonical>, aliases)`.
    The alias is what the server is asked for; the canonical name is what the identity and the pull request say.
-4. **Create the session**: `buildCreateRequest({worktree: <absolute path of .worktrees/issue-<n>>, model: ref})` is
-   `POST /api/session` with the agent `delegate` (the guard recognises it by its agent even in a worktree not named
-   `issue-<n>`, #188). The answer is `{data: {id, ...}}`.
+4. **Create, move, check**: `buildCreateRequest({worktree: <absolute path of .worktrees/issue-<n>>, model: ref,
+   parentID: $OPENCODE_SESSION_ID, coordinator: {session: $OPENCODE_SESSION_ID, issue}})` is `POST /api/session` with the
+   agent `delegate` (the guard recognises it by its agent, #188); `$OPENCODE_SESSION_ID` is the coordinator's own session
+   id, set in its shell. The answer is `{data: {id, ...}}`. A child session lands in its parent's directory, so then send
+   `buildMoveRequest({sessionID, worktree})` (`POST /api/session/<id>/move`), then `GET /api/session/<id>` and test it
+   with `isInWorktree(answer, worktree)`. **Prompt only when it is true**; otherwise remove the session and stop (#256).
+   The session then shows under the coordinator's session (#243).
 5. **Prompt it with the brief**: `buildPromptRequest({sessionID, brief})` is `POST /api/session/<id>/prompt` with
    `delivery: "queue"`, which is also how to talk to a busy delegate.
 6. **Wait**: `buildWaitRequest(sessionID)` is `POST /api/experimental/session/<id>/wait` (204 when it finishes). It is
