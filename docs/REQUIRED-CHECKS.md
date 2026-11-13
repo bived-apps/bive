@@ -56,7 +56,7 @@ These run on GitHub and appear as commit statuses on a pull request.
   behavior) and turns the gate green by itself once the checks pass.
 - **Authorization**: exactly one label `bive-merge-authorized-until-YYYY-MM-DD` on the pull request, a real calendar
   date, valid through 23:59:59 UTC of that date and only while the base is `bived` or `milestone/<name>` (one path
-  segment). Only the owner applies it, after the coordinator's approval and when the supervisor is about to merge;
+  segment). Only the owner applies it, after the coordinator's approval and when the owner is about to merge;
   the coordinator never does, also on its own pull requests. Adding or removing it re-runs the gate.
 - **Label date (issue #114)**: the label's date must equal the UTC day on which the `labeled` event applied it (read
   from the issue timeline). A label dated tomorrow or later (or any day other than the applying day) is refused.
@@ -101,9 +101,9 @@ These run on GitHub and appear as commit statuses on a pull request.
   or any check skipped (other than the exception), failed or cancelled; a pull request whose head or base changed
   during the run.
 - **Several coordinators**: each approves only pull requests based on its own milestone branch; the gate does not
-  check which coordinator approved, the supervisor does (`AGENTS.md` › Roles).
+  check which coordinator approved, the owner does (`AGENTS.md` › Roles).
 - **Expiry is not re-evaluated on its own**: a gate that passed stays green after its date. The owner applies the
-  label dated the day of the merge, and the supervisor merges that day with `gh pr merge --merge
+  label dated the day of the merge, and the owner merges that day with `gh pr merge --merge
   --match-head-commit <sha>`, so a push after the gate's run refuses the merge.
 
 ### `bive-merge-authority / merge-authority`
@@ -130,7 +130,7 @@ A failing check belongs to one of three categories, each with one action:
   request's fault — brief the delegate again or split.
 - **Non-deterministic**: the failure does not reproduce on one re-run with the same inputs (same seed, positions,
   inputs). Action: open (or comment on) an issue `Flaky: <test>` with the run links and the seed/positions/inputs
-  needed to reproduce it, and stop retrying; at most one re-run per failure. The supervisor never merges past it
+  needed to reproduce it, and stop retrying; at most one re-run per failure. The owner never merges past it
   without that issue and a green run on the head. Skipping or quarantining a test is forbidden; retrying in a loop
   is forbidden.
 
@@ -174,7 +174,7 @@ edits a workflow therefore runs that edit on the owner's machine at once. The ru
 - GitHub's "require approval to run workflows" setting applies to pull requests from forks, not to branches of the
   same repository, where every agent pushes; list the project's workflows on self-hosted runners in the project rules
   (`AGENTS.md` › Project rules).
-- The coordinator's review names any diff under `.github/workflows/` and raises it to the owner; the supervisor's
+- The coordinator's review names any diff under `.github/workflows/` and raises it to the owner; the owner's
   review design includes it.
 
 ## Branch protection (owner, in GitHub's settings)
@@ -185,7 +185,7 @@ require the status checks `bive-merge-gate / merge-gate` and `bive-tests / tests
 `bive-inviolable / check`, including its skip on coordinator pull requests. A ruleset names a required check by its
 job (check-run) name alone, `merge-gate` and `tests` with GitHub Actions as source: every workflow's job keeps a
 name of its own, or the requirement matches several checks (#94). Until that configuration exists, the
-gate is only as strong as the supervisor's procedure. No file in this repository proves that it exists; check the
+gate is only as strong as the owner's procedure. No file in this repository proves that it exists; check the
 settings.
 
 ## Headless plugin check (issue #69)
@@ -221,6 +221,7 @@ commit checks on a pull request.
 - It does not prove which checks GitHub branch protection currently requires, nor that any check is marked
   "required" in repository settings. Branch protection and rulesets are configured under the repository's settings;
   compare them against the checks listed here.
-- It does not say who merges: the supervisor alone, after the coordinator's approval (`AGENTS.md` › Roles).
+- It does not say who merges: the owner alone, after the coordinator's approval (`AGENTS.md` › Roles). An advisor's
+  text or a collaborator/shared account is not approval; a bench pass is capability evidence only.
 - Workflow job names are part of the check identity. If a workflow or job is renamed, update this document and the
   repository's branch-protection configuration together so they keep matching.
