@@ -12,7 +12,9 @@ line. A delegate's work that a reviewer rejects is redone by the next model, not
 order is the fallback order: when a model fails (unreachable, unavailable, insufficient credit, 429, quota), the next
 one takes over. The list is per machine's reality: a model with no credit or no free quota left belongs at the end or
 out of the list until it works again. Check that the listed models resolve here before a batch
-(`docs/PROVIDERS.md` › *Per-machine model aliases* below; the automatic check is issue #206).
+with `node lib/models-check-cli.ts` (it prints found / alias / missing per role and sends nothing; `--probe` also
+sends one tiny prompt per role's first usable model, to reveal a used-up quota or a missing credit; the coordinator
+skill `bive-pick-model` says when to run it).
 
 ## Switching mid-work (issue #203)
 
