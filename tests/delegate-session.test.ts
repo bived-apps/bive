@@ -4,6 +4,7 @@ import {
   parseModel,
   loadAliases,
   resolveModel,
+  resolveFromFile,
   buildCreateRequest,
   buildMoveRequest,
   isInWorktree,
@@ -21,6 +22,28 @@ test("parseModel throws on no slash or an empty side", () => {
   assert.throws(() => parseModel("nomodel"), /provider\/model/)
   assert.throws(() => parseModel("/model"), /empty provider/)
   assert.throws(() => parseModel("provider/"), /empty model id/)
+})
+
+test("resolveFromFile throws on the pilot's bad shape and names the file", () => {
+  assert.throws(
+    () => resolveFromFile('{"anthropic/claude-sonnet-5-5":"claude-agent/sonnet"}', "anthropic/claude-sonnet-5-5"),
+    /models\.local\.json.*fix it before starting a delegate/,
+  )
+})
+
+test("resolveFromFile throws on invalid JSON and on a non-string alias", () => {
+  assert.throws(() => resolveFromFile("{nope", "a/b"), /models\.local\.json.*not valid JSON/)
+  assert.throws(() => resolveFromFile('{"aliases": {"a/b": 3}}', "a/b"), /not a string/)
+})
+
+test("resolveFromFile resolves a good file to the alias and a missing file to the canonical", () => {
+  const r = resolveFromFile('{"aliases": {"a/b": "c/d"}}', "a/b")
+  assert.equal(r.canonical, "a/b")
+  assert.equal(r.resolved, "c/d")
+  assert.deepEqual(r.ref, { providerID: "c", id: "d" })
+  const m = resolveFromFile(undefined, "a/b")
+  assert.equal(m.resolved, "a/b")
+  assert.deepEqual(m.ref, { providerID: "a", id: "b" })
 })
 
 test("loadAliases reads a valid file", () => {
