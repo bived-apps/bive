@@ -1,6 +1,6 @@
 # Owner authority and read-only advisors: cross-app rework
 
-Status: started at the owner's request (2026-11-13); ordinary-code execution blocked by the free Beam usage limit.
+Status: Bive first, at the owner's request (2026-11-13); draft implementation and tests in progress, not deployed.
 Tracking: [bive #262](https://github.com/bived-apps/bive/issues/262).
 Owner direction: 2026-11-13. The owner authorized Bive's role change, then requested this cross-app plan.
 The owner subsequently said to start the plan, using only free Beam delegates. Start with the reference change;
@@ -8,8 +8,10 @@ dependent repositories wait for its review and owner merge. No merges, test rele
 
 ## The rule
 
-- The human owner alone authorizes work and merges, merges or closes pull requests, approves teams and gates,
-  arbitrates shared files, and releases tests.
+- The human owner alone holds supervisory authority: authorizes work and merges, approves teams and gates,
+  arbitrates shared files, and releases tests. The owner normally merges or closes PRs. By the owner's subsequent
+  direction, an explicitly designated coordinator may exceptionally execute merges of named sub-coordinator PRs
+  under a narrow opt-in owner grant (below). It never gains general supervisory authority or PR-close powers.
 - An advisor is simply asked a question about the **current worktree**. It reads relevant files, returns an answer
   to the caller, and stops. It is not a standing manager or another rung of authority.
 - Within that answer it may recommend a plan or team, flag risks, or draft decision and handoff text. Advice is not
@@ -20,6 +22,48 @@ dependent repositories wait for its review and owner merge. No merges, test rele
   merge, close PRs, or take over product implementation. Delegates implement one brief in one worktree and report.
 - No qualification, benchmark pass, historical supervisor status, shared login, green check or owner invitation to
   advise confers supervisory authority. Legacy supervisor configuration must not remain an authority bypass.
+
+### Exceptional coordinator merges: owner opt-in only
+
+Owner direction, 2026-11-13: on **any app made with Bive**, the owner must remain able to ask selected coordinators
+to merge sub-coordinator PRs exceptionally. This is a generic Bive template/install/update capability, not an
+organization-specific permission or a hard-coded repository allow-list. Each app's own human owner grants it
+explicitly for that app; a grant in one repository never carries into another.
+This is an exception for executing a specific owner-authorized merge, not a promotion to supervisor.
+The current task does not issue or apply a grant, authorization label or merge.
+
+Proposed fail-closed contract to implement and test:
+
+1. Off by default. The owner explicitly identifies the executing coordinator/session, each sub-coordinator PR number
+   and exact head SHA, target branch, and expiry (UTC time or a precisely bounded batch). An incomplete grant is a
+   proposal to clarify, never permission to merge.
+2. The grant is durably recorded with its owner provenance. Agent-written advice, qualification, collaborator status,
+   a shared account or another coordinator's assertion cannot create it. Reuse reviewed owner-authorization
+   mechanisms where possible; document any shared-account verification limitation.
+3. Only the named coordinator may execute those merges. It must not have authored the work it merges or merge its
+   own PR. Verify the PR is from the designated sub-coordinator and targets the granted base.
+4. The owner-applied PR/head-bound authorization and required gate/checks remain necessary. Recheck grant validity,
+   revocation, base, head and checks immediately before executing a merge commit pinned to that SHA.
+   New commits, a changed base or expired/revoked permission require fresh owner authorization.
+5. A completed merge consumes that PR's grant; grants are not inherited by child sessions or transferable to another
+   coordinator. No onward delegation, automatic renewal, bulk wildcard scope, direct pushes, squash/rebase, PR
+   closure, test release, team/gate approval, or bypass of failed checks.
+6. Keep the general merge denial in place. Design a narrow, validated opt-in execution path rather than broadly
+   allowing `gh pr merge` for coordinators. Audit alternative API/shell paths; a prompt-only exception is not an
+   enforcement mechanism. Bind grants to the repository identity too, so copied templates, forks and installed apps
+   never inherit another app's grants. Ship the contract in Bive's prompts, project-addition guidance, templates and
+   update procedure; project additions may narrow it, never turn it into a standing agent merge right.
+7. Tests must prove default denial, owner provenance, designated executor, sub-coordinator relationship, exact
+   repository/PR/head/base, expiry/revocation, green checks, no self-merge, single use and no delegation/close rights.
+   Include a generic installed-app fixture, not just Bive's own repository.
+
+Draft implementation: `bive_coordinator_merge` in the protected guard plugin, with base `coordinatorMerges` opt-in
+(false in Bive), actual parent/child coordinator sessions and fresh per-call OpenCode owner permission. It derives
+exact repository/executor/PR/head/base scope, expires after two minutes and revalidates after approval. No reusable
+grant is stored or inherited. Details and limitations: `docs/COORDINATOR-MERGES.md`. This one-call design implements
+the bounded expiry and single-invocation grant rather than a persistent or batch grant file.
+Do not enable this exception until its enforcement path and negative tests are reviewed. Owner-only supervisory
+decisions and question-only advisors remain unchanged; no live merge acceptance test is authorized here.
 
 ## Inventory and evidence
 
@@ -62,6 +106,8 @@ Work:
 5. Mark old supervisor qualification material historical/retired, without deleting its cases or changing draw results.
 6. Add consistency and negative regression tests. Document shared-login limitations honestly: prompt wording alone
    does not prove which human or agent acted through a GitHub account.
+7. Add the explicitly owner-opted-in sub-coordinator merge exception through the narrow grant contract above.
+   Keep general agent merge denial; do not simulate a real grant, apply authorization or perform a merge in tests.
 
 Done when: prompts, config, provisioning, templates, guard and docs agree; relevant unit tests and the core suite pass;
 the owner receives a PR with exact model identities, checks, limitations and no authorization labels applied.
@@ -76,6 +122,43 @@ released 2026-10-05, updated 2026-10-16, with zero input/output/cache-read rates
 part through `opencode/beam-free` failed immediately with **"Free usage limit reached"**. No fallback was attempted;
 no provider or billing changes were made. Resume ordinary implementation only when this approved free route is
 available or the owner explicitly changes the routing constraint. Do not infer permission to use a paid route.
+
+### Free-team design and availability smoke checks (2026-11-13)
+
+The owner subsequently requested a free team and its test, and explicitly permitted coordinators on independent
+parts of Bived Apps. This authorizes bounded team testing and coordination, not merges, releases or draws.
+
+- Operational proposal: human owner; Beam coordinators on independent areas; one Beam delegate per active
+  coordinator initially; optional question-only Beam advisor. Sol remains the requested inviolable-file handler and
+  reviewer, but is **not represented as a verified-free member** of the operational team.
+- Candidate assignments: Bive core; bench/workspace; registry/help; university/Grooms inspection. Start at most two
+  coordinators at once, including any active Sol coordinator, and never assign overlapping files. Stage the remaining
+  areas in subsequent batches. Dependent implementation still waits for the owner-merged reference contract.
+- Three independent, explicitly named route probes, each a tiny text-only availability/role-boundary check (no tools,
+  repository mutation, benchmark draw, release or qualification claim):
+
+| Route | Catalog rates | Observed result |
+| --- | --- | --- |
+| `opencode/beam-free` | Zero | Blocked: "Free usage limit reached". |
+| `ollama-cloud/beam` | Zero | Blocked: asks for credits or a subscription; no purchase or configuration change made. |
+| `opencode-go/beam-free` | Zero | Answered. First answer incorrectly assigned PR creation to the delegate; corrected retest preserved separation. Bounded doc work and read-only coordination assessment then completed. |
+
+Go provider metadata (`https://opencode.ai/zen/go/v1/models`) independently confirms canonical
+`reflection/beam-1.0-501b-a23b`, released 2026-10-05, updated 2026-10-16, zero input/output/cache-read rates.
+The candidate reported its exact model unknown; identity evidence is the provider metadata, not its self-report.
+A raw Python metadata fetch returned HTTP 403; the normal web-fetch tool returned the provider document.
+
+Successful availability does not establish coordinator competence, enforce permissions or guarantee future quota.
+Do not conceal the failed role-boundary answer. Before implementation, check a concrete brief/report handoff and
+review the result; a delegate never opens a PR. No automatic provider fallback: selecting a tested route for a named
+team must be explicit, and any later failure stops that assignment.
+
+Owner subsequently specified **Bive first**: no implementation in other apps until this reference is reviewed.
+The coordinator assessments identified bench work collisions (#72 owner-authorization helper and #74 progressive
+delegate work), the workspace template's default supervisor agent, registry/help's old assistant prompt, and no
+current university lesson requiring authority correction. These are inspection reports, not deployment evidence.
+Do not expand university scope with keyword-audit machinery or copy unrelated guard/gate upgrades merely because
+they appeared in an assessment. Preserve historical fixtures and existing owner-authorization work.
 
 ### 2. Bench: capability evidence, never authority
 
@@ -155,6 +238,8 @@ Work: apply Bive's reviewed update procedure separately to each live installatio
 paths, registry identity and gate adaptations. Inventory active sessions using old role prompts; propose a safe
 handoff before new authorized work. Do not stop sessions, edit unrelated worktrees or discard local changes.
 Leave archived synthetic repositories and historical draw workspaces untouched; a future fixture gets a new version.
+The resulting template/update procedure applies to any app made with Bive, including outside `bived-apps`;
+do not infer permission to discover, access or migrate those external projects without their owners' authorization.
 
 Done when: every in-scope live installation has recorded source revision, migration PR and verification evidence,
 or an explicit owner-approved deferral. No active path still treats an agent as the owner.
@@ -165,8 +250,8 @@ or an explicit owner-approved deferral. No active path still treats an agent as 
 | --- | --- |
 | Advisor scope | Reads relevant current-worktree files, returns one answer, cannot edit, execute commands, call mutating tools, launch agents or operate workflows. |
 | Legacy supervisor | Old role names, environment/role-file markers, additions and agent defaults never restore supervisory privileges. |
-| Owner authority | Work/team/gate/test-release/merge/PR-close authority remains owner-only, regardless of qualification, recommendation or green CI. |
-| Coordinator/delegate split | Coordinator reviews and prepares PRs; delegate writes only its brief; neither inherits merge or owner powers. |
+| Owner authority | Work/team/gate/test-release/merge-authorization/PR-close authority remains owner-only, regardless of qualification, recommendation or green CI. Exceptional coordinator merge execution needs the explicit scoped owner grant above. |
+| Coordinator/delegate split | Coordinator reviews and prepares PRs; delegate writes only its brief. No inherited merge rights; only a named non-authoring coordinator may execute specifically granted sub-coordinator merges. |
 | History | Compare historical results and frozen fixture content to the pinned base; no changed scores, rows, seeds, identities or case mappings. |
 | Configuration | Verify effective permissions, including inherited restrictions, not just prompt wording; document remaining enforcement gaps. |
 | Quality | Focused tests per part, consistency checks and core tests once per review batch; no benchmark draw disguised as a smoke test. |
@@ -185,6 +270,7 @@ or an explicit owner-approved deferral. No active path still treats an agent as 
   concrete scope, file ownership, team and dependencies against its own rules and the reviewed reference.
   The advisor may answer a question about that proposal, but cannot approve it or initiate the work.
 - PRs state done, left, checks, historical-data preservation and known enforcement limitations. Only the owner
-  authorizes and performs merges or closes PRs. Code review approval is not supervisory authorization.
+  authorizes merges and closes PRs. The owner normally performs merges; only explicitly opted-in coordinators may
+  execute the named sub-coordinator merges under the scoped grant above. Code review approval is not authorization.
 - No owner-authorization action/label, test release, benchmark draw, deployment or repository-settings change is
   performed by this plan. Those remain separate owner actions and decisions.

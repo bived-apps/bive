@@ -4,7 +4,7 @@ What anyone picking up the work needs to know. Kept current by the coordinator, 
 
 ## Goal
 
-Bive is a repository template for building software with LLM agents in three roles (supervisor, coordinator,
+Bive is a repository template for building software with LLM agents in three roles (advisor, coordinator,
 delegates) on OpenCode 2, with two small plugins: a guard that refuses writes outside the session's worktree and a
 counter of human and agent tokens. Bive develops itself with its own flow, so this repository is both the template
 and its first example.
@@ -34,16 +34,18 @@ there and in AGENTS.md, not here.
   Start a delegate as a session, 0.2); the process start (`BIVE_ROLE=delegate opencode run --agent delegate --model
   <model>` from the worktree) stays the fallback. The `delegate` agent of `opencode.jsonc` has
   `.bive/prompts/DELEGATE.md` as its system prompt (#84).
-- The supervisor is the owner, in an OpenCode session (`.bive/prompts/SUPERVISOR.md`).
-- The supervisor's session (an OpenCode session) is started with: "You are the supervisor of bive. Read
-  AGENTS.md, HANDOFF.md, ROADMAP.md, then .bive/prompts/SUPERVISOR.md: it is your prompt. You merge pull requests
-  into bived with `gh pr merge --merge --match-head-commit <sha>` once the coordinator has approved them, I have
-  applied the dated label and `bive-merge-gate / merge-gate` is green; you start the coordinators (at most as many as
-  the runners able to take the fast checks, never more than two, one per
-  milestone) and arbitrate shared files; you never brief, review line by line, or write code."
+- The human owner holds supervisory authority; the advisor only answers a read-only question about the current
+  worktree (`.bive/prompts/ADVISOR.md`), then stops. `SUPERVISOR.md` is a retired compatibility pointer.
+- Only the owner authorizes work, teams, gates, merges and test releases. The optional generic coordinator merge
+  execution path is in `docs/COORDINATOR-MERGES.md`; opt-in is off and this task issues no grant.
 
 ## Decisions
 
+- **Owner authority, question-only advisor (owner, 2026-11-13, #262)**: replaces agent supervisory powers, not
+  historical evidence. No qualification grants those powers. The owner requested a generic opt-in capability on any
+  Bive-built app for named coordinators to execute named sub-coordinator PR merges under scoped owner grants; no
+  advisor privileges or standing merge rights. The opt-in path is a draft under test, disabled and not granted here.
+  Earlier decisions below are retained as history; this direction wins wherever authority rules conflict.
 - **Every session pulls first and reads GitHub before acting (owner, 2026-11-13, #247)**: `AGENTS.md` › Rules.
 - **The gate's owner is named on the base (owner, 2026-11-13, #249)**: `.bive/gate.json` › `owner`, for a repository
   that belongs to an organization.
@@ -137,6 +139,16 @@ The free Beam delegate launch (`opencode/beam-free`, canonical `reflection/beam-
 rates verified in provider metadata) failed immediately with "Free usage limit reached", before work was returned.
 No fallback/provider/billing change. Preserve the partial draft; ordinary implementation is blocked pending free
 availability or explicit owner direction. The planning commit excludes the unverified code/prompt/config draft.
+Subsequent owner direction: design/test a free team and allow coordinators on independent areas. Personal Beam and
+Ollama routes were blocked; `opencode-go/beam-free` answered. Its first role smoke check wrongly assigned PR creation
+to the delegate; the corrected check named the coordinator and retained owner-only decisions. This is not a benchmark
+or qualification. Bive doc implementation and bench/workspace read-only coordination prep have been assigned on that
+explicitly tested zero-rate route; no silent fallback or provider/billing change.
+The owner also requested exceptional, opt-in coordinator merges of sub-coordinator PRs. The plan now specifies a
+default-deny, named-executor/PR/head/base/expiry-bound grant; no general or advisor privilege, no self-merge, onward
+delegation or PR-close rights. No actual merge grant or authorization action has been issued or applied by this task.
+Owner clarification: this opt-in capability must work on any app made with Bive, not only this organization.
+Implement it in the generic template/install/update contract; each app's owner decides, with repository-bound grants.
 
 ROADMAP.md › 0.1 is done (2026-11-10, #80). The backlog of 2026-11-12 is closed except two issues. Open work, in order:
 
@@ -151,8 +163,8 @@ ROADMAP.md › 0.1 is done (2026-11-10, #80). The backlog of 2026-11-12 is close
    2026-11-13). Check `https://bived-apps.github.io/registry/` then.
 5. **Models**: `opencode/beam-free`, `flint-40b-free` and `nemotron-3.5-lightning-free` hit their free usage limit on
    2026-11-12; `opencode/big-pickle` still answered (owner: lean on it).
-6. **Supervisor test v2, in bived-apps/bench** (bench#1): none qualified; until a model passes, only the owner (or a
-   person) supervises. **Coordinator qualification test**: wanted, not written.
+6. **Historical supervisor tests, in bived-apps/bench**: preserve draw results; qualifications never confer owner
+   authority. Future advisor/coordinator/delegate evaluations need their own owner-approved protocols and release.
 
 ## Watch out
 
@@ -187,10 +199,10 @@ ROADMAP.md › 0.1 is done (2026-11-10, #80). The backlog of 2026-11-12 is close
   `false`, the tests fail with `ERR_UNKNOWN_FILE_EXTENSION`): use an official Node 22+ build.
 - `.bive/registry-id`, once committed, is public: the registry is a count, not a proof.
 - GitHub's PR merge buttons are configured at repository level under Settings → General → Pull Requests; the desired
-  methods are recorded in `AGENTS.md` › Project rules: `merge` only. The supervisor merges with
+  methods are recorded in `AGENTS.md` › Project rules: `merge` only. The owner merges with
   `gh pr merge --merge --match-head-commit` once the owner's dated label has turned the gate green, which keeps each
   delegate commit under its author. "Closes #N" acts on merges into `main` only: the coordinator closes the issue
-  after the supervisor merges into `bived`.
+  after the owner merges into `bived`.
 - The guard removes shell here-document bodies before looking for redirections and outside paths. It allows a quoted
   heredoc body containing `> ../x` while still refusing a live redirect; heredoc-like text inside quotes/comments does
   not hide a later redirect. This remains a conservative command-text filter, not a shell parser.

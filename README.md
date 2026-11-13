@@ -4,7 +4,8 @@ A repository template for building software with LLM agents in three roles, on O
 
 ```mermaid
 flowchart LR
-  S(["supervisor<br/>you, in OpenCode"])
+  S(["owner<br/>you authorize work, gates, teams and merges"])
+  A["advisor<br/>read-only worktree question, answer, stop"]
   C["coordinator<br/>one agent: splits, reviews, never merges"]
   D1["delegate<br/>issue 12, its own worktree"]
   D2["delegate<br/>issue 13, its own worktree"]
@@ -14,6 +15,7 @@ flowchart LR
   C -- "opens PR to integration branch" --> C
   C -. "gate 2: failed twice" .-> S
   C == "gate 3: pull request to main" ==> S
+  C -. "question / advice only" .-> A
 ```
 
 Bive is a template and two small plugins, nothing else: a **guard** that refuses any write outside the session's
@@ -47,8 +49,8 @@ For projects using Bive, configure the project's own CI checks to run on pull re
 and integration branches. This makes a red base visible promptly; adapt the workflow to the project's test command.
 Projects on a self-hosted runner follow `docs/SELF-HOSTED.md`.
 
-Not a developer? `docs/FOR-HUMANS.md` lists the three things you do (agree the plan, answer questions, apply the
-dated merge label) and the optional registry choice.
+Not a developer? `docs/FOR-HUMANS.md` explains your owner-only decisions, merge authorization and optional registry.
+An advisor has no supervisory powers. Qualifications do not authorize work, teams, gates, merges or test releases.
 
 ## The flow
 
@@ -58,7 +60,9 @@ dated merge label) and the optional registry choice.
 3. The delegate works only in its worktree, runs the fast checks, pushes its branch, returns its report, and stops.
 4. Only the coordinator creates the pull request, using the delegate's report as its body; the coordinator reviews
    (never merges) into the integration branch. It asks you when a delegate fails twice (gate 2)
-   and before the pull request to `main` (gate 3). You merge.
+   and before the pull request to `main` (gate 3). You normally merge. The generic design also supports an explicit,
+   scoped owner opt-in for a coordinator to merge named sub-coordinator PRs, never its own. This path is off by default
+   and requires a fresh owner permission per invocation. See [`docs/COORDINATOR-MERGES.md`](docs/COORDINATOR-MERGES.md).
 
 ## Files
 
@@ -67,7 +71,7 @@ dated merge label) and the optional registry choice.
 | `AGENTS.md` | The rules every agent reads first |
 | `HANDOFF.md`, `ROADMAP.md` | State and plan, kept true by the coordinator (here: Bive's own) |
 | `.bive/prompts/` | The three role prompts, inviolable; `project/` holds a project's additions |
-| `.bive/templates/` | `brief.md` in, `report.md` out, `field-report.md` back to Bive; the skeletons of `README.md`, `HANDOFF.md`, `ROADMAP.md`; `supervisor-test.md`, the supervisor qualification test |
+| `.bive/templates/` | `brief.md` in, `report.md` out, `field-report.md` back to Bive; README/HANDOFF/ROADMAP skeletons; `supervisor-test.md` retained as a retired historical protocol, not authority |
 | `docs/COORDINATING.md` | The coordinator's routine (start, review, merge, clean) as shell commands |
 | `.bive/models.json` | The model order per role, for the fallback rule ([docs/PROVIDERS.md](docs/PROVIDERS.md)) |
 | `opencode.jsonc` | Agents and permissions, written by hand and tight |

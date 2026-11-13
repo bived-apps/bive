@@ -15,6 +15,24 @@
   // The delegate's agent (#84): DELEGATE.md is its system prompt, which replaces the provider's base prompt; a missing
   // file becomes an empty prompt without an error. Started with `opencode run --agent delegate` (docs/COORDINATING.md).
   "agents": {
+    "advisor": {
+      "description": "Read-only answer to a question about the current worktree; advice is not authorization.",
+      "mode": "subagent",
+      "system": "{file:./.bive/prompts/ADVISOR.md}",
+      "permissions": [
+        {"action": "*", "resource": "*", "effect": "deny"},
+        {"action": "read", "resource": "*", "effect": "allow"},
+        {"action": "read", "resource": "~/.ssh/*", "effect": "deny"},
+        {"action": "read", "resource": "*/.ssh/*", "effect": "deny"},
+        {"action": "glob", "resource": "*", "effect": "allow"},
+        {"action": "grep", "resource": "*", "effect": "allow"},
+        {"action": "skill", "resource": "bive-ask-owner", "effect": "allow"},
+        {"action": "external_directory", "resource": "*", "effect": "deny"}
+      ]
+    },
+    "supervisor": {
+      "disabled": true
+    },
     "delegate": {
       "description": "Bive delegate: one issue, one worktree; pushes its branch and reports to the coordinator.",
       "mode": "primary",
@@ -44,11 +62,13 @@
     {"action": "tool.use", "resource": "shell:git push -f *", "effect": "deny"},
     {"action": "tool.use", "resource": "shell:git push * main", "effect": "deny"},
     {"action": "tool.use", "resource": "shell:git push * HEAD:main", "effect": "deny"},
-    // Only the supervisor merges or closes a pull request (AGENTS.md › Roles); agents may review and approve.
+    // Direct shell merges remain denied. Only the validated, owner-opted-in bive_coordinator_merge tool
+    // may execute a named sub-coordinator merge; no agent may close a PR.
     {"action": "tool.use", "resource": "shell:gh pr merge *", "effect": "deny"},
     {"action": "tool.use", "resource": "shell:gh pr close *", "effect": "deny"}
   ],
   "permissions": [
+    {"action": "bive.coordinator.merge", "resource": "*", "effect": "ask"},
     {"action": "shell", "resource": "*", "effect": "allow"},
     {"action": "shell", "resource": "rm -rf *", "effect": "deny"},
     {"action": "shell", "resource": "git reset --hard *", "effect": "deny"},
