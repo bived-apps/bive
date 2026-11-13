@@ -3,7 +3,7 @@ import { describe, test } from "node:test"
 import assert from "node:assert/strict"
 import os from "node:os"
 import path from "node:path"
-import { isDelegate, isSupervisor, makeGuard, violations, type Check } from "../.opencode/plugins/worktree-guard/check.ts"
+import { isDelegate, isAdvisor, makeGuard, violations, type Check } from "../.opencode/plugins/worktree-guard/check.ts"
 
 // Fake paths under the home folder, never created: /tmp is a system prefix the guard lets through.
 const base = path.join(os.homedir(), ".bive-guard-test")
@@ -11,11 +11,21 @@ const main = path.join(base, "repo")
 const wt = path.join(base, "repo-3")
 const delegate = makeGuard({ root: wt, delegate: true })
 const coordinator = makeGuard({ root: wt, delegate: false })
+const advisor = makeGuard({ root: main, delegate: false, advisor: true })
+const mixed = makeGuard({ root: wt, delegate: true, advisor: true })
 
 const shell = (check: Check, command: string, workdir?: string) => () => check("shell", { command, workdir })
 const write = (check: Check, p: string) => () => check("write", { path: p })
-const passes = (fn: () => void) => assert.doesNotThrow(fn)
-const refused = (fn: () => void, re: RegExp) => assert.throws(fn, re)
+const passes = (fn: () => void) => {
+  const before = violations()
+  assert.doesNotThrow(fn)
+  assert.equal(violations(), before, "a passing call must not count a violation")
+}
+const refused = (fn: () => void, re: RegExp) => {
+  const before = violations()
+  assert.throws(fn, re)
+  assert.equal(violations(), before + 1, "each refusal must increment the violation count exactly once")
+}
 
 describe("write tools", () => {
   test("inside the worktree passes", () => {
@@ -25,6 +35,7 @@ describe("write tools", () => {
   test("outside the worktree is refused for every role", () => {
     refused(write(delegate, path.join(main, "a.py")), /outside this session's worktree/)
     refused(write(coordinator, "../repo/a.py"), /outside/)
+    refused(write(advisor, "src/a.py"), /read-only/)
   })
   test("a delegate never touches an inviolable file", () => {
     refused(write(delegate, "AGENTS.md"), /inviolable/)
@@ -33,10 +44,16 @@ describe("write tools", () => {
     refused(write(delegate, ".bive/gate.json"), /inviolable/)
     passes(write(coordinator, "AGENTS.md"))
     passes(write(coordinator, ".bive/gate.json"))
+    refused(write(advisor, "AGENTS.md"), /read-only/)
   })
   test("the V1 names still work (filePath, bash)", () => {
     refused(() => delegate("write", { filePath: path.join(main, "a.py") }), /outside/)
     refused(() => delegate("bash", { command: `echo x > ${main}/f.py` }), /outside/)
+  })
+  test("mixed delegate+advisor never gains write rights", () => {
+    refused(write(mixed, "src/a.py"), /read-only/)
+    refused(() => mixed("edit", { path: "src/a.py", oldString: "a", newString: "b" }), /read-only/)
+    refused(() => mixed("multiedit", { path: "src/a.py" }), /read-only/)
   })
 })
 
@@ -47,11 +64,51 @@ describe("patch", () => {
     passes(() => coordinator("patch", { patchText: "*** Begin Patch\n*** Update File: src/a.py\n-a\n+b\n*** End Patch" }))
     refused(() => delegate("patch", { patchText: "*** Begin Patch\n*** Update File: opencode.jsonc\n-a\n+b\n*** End Patch" }),
             /inviolable/)
+    refused(() => advisor("patch", { patchText: "*** Begin Patch\n*** Update File: src/a.py\n-a\n+b\n*** End Patch" }), /read-only/)
   })
   test("a delegate patch inside the worktree passes, outside is refused", () => {
     // Delegate patches are subject to the same boundary as writes: inside passes, outside is refused.
     passes(() => delegate("patch", { patchText: "*** Begin Patch\n*** Update File: src/a.py\n-a\n+b\n*** End Patch" }))
     refused(() => delegate("patch", { patchText: `*** Begin Patch\n*** Add File: ${main}/b.py\n+x\n*** End Patch` }), /outside/)
+  })
+})
+
+describe("advisor read-only", () => {
+  test("only read, glob, grep and skill pass; every other tool is refused", () => {
+    for (const tool of ["write", "edit", "multiedit", "patch", "apply_patch", "comment", "merge", "task", "subagent",
+                        "shell", "bash", "unknown_tool"]) {
+      refused(() => advisor(tool, {}), /read-only/)
+    }
+    passes(() => advisor("read", {}))
+    passes(() => advisor("glob", {}))
+    passes(() => advisor("grep", {}))
+    passes(() => advisor("skill", {}))
+  })
+  test("no shell, not even git status", () => {
+    refused(shell(advisor, "git status"), /read-only/)
+    refused(shell(advisor, "git log --oneline -n 5"), /read-only/)
+    refused(shell(advisor, "ls"), /read-only/)
+  })
+  test("mixed delegate+advisor has no shell either", () => {
+    refused(shell(mixed, "git status"), /read-only/)
+    refused(shell(mixed, "ls"), /read-only/)
+  })
+  test("inside reads pass; outside read, glob and grep paths refuse", () => {
+    passes(() => advisor("read", { path: "src/a.py" }))
+    passes(() => advisor("glob", { path: ".", pattern: "src/**/*.ts" }))
+    passes(() => advisor("grep", { path: ".", pattern: "x" }))
+    refused(() => advisor("read", { path: path.join(main, "..", "outside.txt") }), /outside/)
+    refused(() => advisor("glob", { path: path.join(main, "..", "outside"), pattern: "**/*.ts" }), /outside/)
+    refused(() => advisor("grep", { path: path.join(main, "..", "outside"), pattern: "x" }), /outside/)
+  })
+  test("an outside glob pattern is refused", () => {
+    refused(() => advisor("glob", { path: ".", pattern: path.join(main, "..", "**", "*.ts") }), /outside/)
+    passes(() => advisor("glob", { path: ".", pattern: "src/**/*.ts" }))
+  })
+  test("advisor blocks shell before author-override and reports read-only", () => {
+    refused(shell(advisor, "git -c user.name='delegate x/y' commit -m m"), /read-only/)
+    refused(shell(advisor, "git commit --author='A <a@b.c>' -m m"), /read-only/)
+    refused(shell(advisor, "GIT_AUTHOR_NAME=x git commit -m m"), /read-only/)
   })
 })
 
@@ -114,9 +171,12 @@ describe("shell, delegate", () => {
   })
   test("a refused command is a hard stop that preserves the worktree (#146)", () => {
     // The guard throws on refusal and does not return; uncommitted work is preserved (the guard never modifies files).
-    assert.throws(shell(delegate, `echo x > ${main}/f.py`), /outside/)
+    refused(shell(delegate, `echo x > ${main}/f.py`), /outside/)
     // A second, independent refusal still throws (the hard stop is not bypassed by a prior refusal).
-    assert.throws(shell(delegate, "sed -i 's/a/b/' opencode.jsonc"), /inviolable/)
+    refused(shell(delegate, "sed -i 's/a/b/' opencode.jsonc"), /inviolable/)
+    // Count both refusals above too.
+    // (They are counted by the global violation counter; assert delta by re-checking is not possible here,
+    //  so rely on the per-call refused() invariant elsewhere.)
   })
   test("a pipe is refused as invalid-structure", () => {
     refused(shell(delegate, "git status | xargs rm"), /invalid-structure/)
@@ -213,11 +273,27 @@ describe("delegate detection (child sessions inherit the coordinator's environme
   })
 })
 
-describe("author override and the supervisor's commits (#197)", () => {
+describe("advisor detection (legacy supervisor markers count as advisor)", () => {
+  test("recognizes advisor and legacy supervisor via env, role file or agent", () => {
+    assert.equal(isAdvisor("advisor", undefined), true)
+    assert.equal(isAdvisor(undefined, "advisor\n"), true)
+    assert.equal(isAdvisor(undefined, undefined, "advisor"), true)
+    assert.equal(isAdvisor("supervisor", undefined), true)
+    assert.equal(isAdvisor(undefined, "supervisor\n"), true)
+    assert.equal(isAdvisor(undefined, undefined, "supervisor"), true)
+  })
+  test("negative for coordinator and delegate", () => {
+    assert.equal(isAdvisor("coordinator", "coordinator", "coordinator"), false)
+    assert.equal(isAdvisor("delegate", "delegate", "delegate"), false)
+    assert.equal(isAdvisor(undefined, undefined), false)
+  })
+})
+
+describe("author override and the advisor's commits (#197)", () => {
   const c = makeGuard({ root: main, delegate: false })
-  const s = makeGuard({ root: main, delegate: false, supervisor: true })
+  const d = delegate
   test("no role overrides the commit author for one command", () => {
-    for (const g of [c, delegate, s]) {
+    for (const g of [c, d]) {
       refused(shell(g, "git -c user.name='delegate x/y' commit -m m"), /author-override/)
       refused(shell(g, 'git -c user.email="a@b.c" commit -m m'), /author-override/)
       refused(shell(g, "git commit --author='A <a@b.c>' -m m"), /author-override/)
@@ -234,29 +310,28 @@ describe("author override and the supervisor's commits (#197)", () => {
     passes(shell(delegate, "git commit -F msg.txt"))
     passes(shell(c, "git log --format=%an -1"))
   })
-  test("a supervisor never commits or pushes, also over ssh", () => {
-    refused(shell(s, "git commit -m m"), /supervisor does not commit/)
-    refused(shell(s, "git push origin bived"), /supervisor does not commit/)
-    refused(shell(s, "git -C other commit -am m"), /supervisor does not commit/)
-    refused(shell(s, "ssh machine-a 'cd repo && git commit -m fix && git push'"), /supervisor does not commit/)
-    refused(shell(s, 'ssh machine-a "git push origin x"'), /supervisor does not commit/)
-    passes(shell(s, "git status"))
-    passes(shell(s, "git log --oneline -n 5"))
-    passes(shell(s, "gh pr view 5"))
-    passes(shell(s, "ssh machine-a 'git status'"))
+  test("an advisor never commits or pushes (read-only), and a coordinator still commits", () => {
+    refused(shell(advisor, "git commit -m m"), /read-only/)
+    refused(shell(advisor, "git push origin bived"), /read-only/)
+    refused(shell(advisor, "git -C other commit -am m"), /read-only/)
+    refused(shell(advisor, "ssh machine-a 'cd repo && git commit -m fix && git push'"), /read-only/)
+    refused(shell(advisor, 'ssh machine-a "git push origin x"'), /read-only/)
+    refused(shell(advisor, "git status"), /read-only/)
+    refused(shell(advisor, "git log --oneline -n 5"), /read-only/)
+    refused(shell(advisor, "gh pr view 5"), /read-only/)
+    refused(shell(advisor, "ssh machine-a 'git status'"), /read-only/)
     passes(shell(c, "git commit -m ok"))   // a coordinator still commits its own pull requests
   })
-  test("who is a supervisor: the variable, the role file or the agent", () => {
-    assert.equal(isSupervisor("supervisor", undefined), true)
-    assert.equal(isSupervisor(undefined, "supervisor\n"), true)
-    assert.equal(isSupervisor(undefined, undefined, "supervisor"), true)
-    assert.equal(isSupervisor("coordinator", "coordinator", "coordinator"), false)
-    assert.equal(isSupervisor(undefined, undefined), false)
+  test("who is an advisor: the variable, the role file or the agent", () => {
+    // covered by advisor detection above; keep a quick check here for compatibility
+    assert.equal(isAdvisor("advisor", undefined), true)
+    assert.equal(isAdvisor("supervisor", undefined), true)
   })
 })
 
 describe("violations", () => {
-  test("every refusal above was counted", () => {
-    assert.equal(violations(), 73)      // every `refused(...)` call above contributes one violation
+  test("every refusal above incremented exactly once", () => {
+    // The per-call deltas were asserted in refused(); the counter is monotonic and positive.
+    assert.ok(violations() > 0)
   })
 })
