@@ -48,9 +48,14 @@ export function buildCreateRequest(opts: {
   worktree: string
   model: ModelRef
   agent?: string
-  parentID?: string
   title?: string
+  coordinator?: { session: string; issue: number }
 }): HttpRequest {
+  if ("parentID" in opts) {
+    throw new Error(
+      "parentID is refused: OpenCode runs a child session in its parent's directory, not the delegate's worktree (#256); record the coordinator in metadata instead",
+    )
+  }
   // The session runs in the delegate's worktree, so its directory must be absolute.
   if (!opts.worktree.startsWith("/") && !/^[A-Za-z]:[\\/]/.test(opts.worktree)) {
     throw new Error(`worktree "${opts.worktree}" must be an absolute path`)
@@ -60,8 +65,15 @@ export function buildCreateRequest(opts: {
     model: { providerID: opts.model.providerID, id: opts.model.id },
     location: { directory: opts.worktree },
   }
-  if (opts.parentID !== undefined) body.parentID = opts.parentID
   if (opts.title !== undefined) body.title = opts.title
+  if (opts.coordinator !== undefined) {
+    const { session, issue } = opts.coordinator
+    if (typeof session !== "string" || !session.startsWith("ses")) {
+      throw new Error(`coordinator session id "${session}" must start with "ses"`)
+    }
+    if (!Number.isInteger(issue) || issue <= 0) throw new Error(`coordinator issue "${issue}" must be a positive integer`)
+    body.metadata = { bive: { coordinator: session, issue } }
+  }
   return { method: "POST", path: "/api/session", body }
 }
 

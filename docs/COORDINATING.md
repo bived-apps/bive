@@ -99,7 +99,10 @@ where it says it was not. Bive ships no script (HANDOFF › *No machinery*): `li
    The alias is what the server is asked for; the canonical name is what the identity and the pull request say.
 4. **Create the session**: `buildCreateRequest({worktree: <absolute path of .worktrees/issue-<n>>, model: ref})` is
    `POST /api/session` with the agent `delegate` (the guard recognises it by its agent even in a worktree not named
-   `issue-<n>`, #188). The answer is `{data: {id, ...}}`.
+   `issue-<n>`, #188). The answer is `{data: {id, ...}}`. Also pass `coordinator: {session: $OPENCODE_SESSION_ID, issue}`
+   (the coordinator's own session id, set in its shell): it is recorded as `metadata.bive`. Never set `parentID`:
+   OpenCode would run the delegate in the coordinator's directory, not the worktree (#256), and the builder refuses it.
+   The link is not shown as a tree yet (#243).
 5. **Prompt it with the brief**: `buildPromptRequest({sessionID, brief})` is `POST /api/session/<id>/prompt` with
    `delivery: "queue"`, which is also how to talk to a busy delegate.
 6. **Wait**: `buildWaitRequest(sessionID)` is `POST /api/experimental/session/<id>/wait` (204 when it finishes). It is

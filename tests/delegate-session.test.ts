@@ -59,10 +59,28 @@ test("buildCreateRequest body", () => {
   assert.deepEqual(r.body, { agent: "delegate", model, location: { directory: "/tmp/wt" } })
   assert.ok(!("parentID" in r.body))
   assert.ok(!("title" in r.body))
-  const r2 = buildCreateRequest({ worktree: "/tmp/wt", model, agent: "x", parentID: "ses_1", title: "T" })
-  assert.equal(r2.body.parentID, "ses_1")
+  const r2 = buildCreateRequest({ worktree: "/tmp/wt", model, agent: "x", title: "T" })
+  assert.ok(!("parentID" in r2.body))
   assert.equal(r2.body.title, "T")
   assert.equal(r2.body.agent, "x")
+})
+
+test("buildCreateRequest refuses parentID (#256)", () => {
+  const model = { providerID: "p", id: "m" }
+  const opts = { worktree: "/tmp/wt", model, parentID: "ses_1" } as unknown as Parameters<typeof buildCreateRequest>[0]
+  assert.throws(() => buildCreateRequest(opts), /parentID is refused/)
+})
+
+test("buildCreateRequest records the coordinator in metadata", () => {
+  const model = { providerID: "p", id: "m" }
+  const r = buildCreateRequest({ worktree: "/tmp/wt", model, coordinator: { session: "ses_c", issue: 256 } })
+  assert.deepEqual(r.body.metadata, { bive: { coordinator: "ses_c", issue: 256 } })
+  assert.ok(!("parentID" in r.body))
+  assert.deepEqual(r.body.location, { directory: "/tmp/wt" })
+  assert.throws(() => buildCreateRequest({ worktree: "/tmp/wt", model, coordinator: { session: "abc", issue: 1 } }), /ses/)
+  for (const issue of [0, -1, 1.5, Number.NaN]) {
+    assert.throws(() => buildCreateRequest({ worktree: "/tmp/wt", model, coordinator: { session: "ses_c", issue } }), /positive integer/)
+  }
 })
 
 test("buildCreateRequest rejects a relative worktree", () => {
