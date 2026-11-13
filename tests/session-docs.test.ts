@@ -23,6 +23,6 @@ test("every helper the page names is exported by the modules the page cites", ()
   }
   for (const [file, fns] of Object.entries(names)) {
     const src = read(file)
-    for (const f of fns) assert.match(src, new RegExp(`export function ${f}\\b`), `${file} exports ${f}`)
+    for (const f of fns) assert.match(src, new RegExp(`export (async )?function ${f}\\b`), `${file} exports ${f}`)
   }
 })
