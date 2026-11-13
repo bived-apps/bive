@@ -11,7 +11,8 @@ and its first example.
 
 ## Running it
 
-- Repository `https://github.com/jcherfils/bive`. Integration branch **`bived`** (agents' pull requests go there);
+- Repository `https://github.com/bived-apps/bive` (moved to the organization; the gate's owner is named in
+  `.bive/gate.json`, #249). Integration branch **`bived`** (agents' pull requests go there);
   `main` is the template people copy and is protected: the owner merges `bived` into it by pull request.
 - No build. Tests: `node --test tests/*.test.ts` (Node 22; no bun). `.github/workflows/bive-tests.yml` runs them on
   pull requests and pushes to `main` and `bived`. Worker: in bived-apps/registry (deployed by the
@@ -28,9 +29,10 @@ then .bive/prompts/COORDINATOR.md: it is your prompt. Fill in only the milestone
 there and in AGENTS.md, not here.
 ```
 
-- Delegates get no prompt to paste: the coordinator hands them `.bive/state/briefs/<n>.md` as the message of
-  `BIVE_ROLE=delegate opencode run --agent delegate --model <model>`, run from `.worktrees/issue-<n>`
-  (`docs/COORDINATING.md` › Start a delegate). The `delegate` agent of `opencode.jsonc` has
+- Delegates get no prompt to paste: the coordinator hands them `.bive/state/briefs/<n>.md` as the first prompt of a
+  session it creates by API under its own session and moves into `.worktrees/issue-<n>` (`docs/COORDINATING.md` ›
+  Start a delegate as a session, 0.2); the process start (`BIVE_ROLE=delegate opencode run --agent delegate --model
+  <model>` from the worktree) stays the fallback. The `delegate` agent of `opencode.jsonc` has
   `.bive/prompts/DELEGATE.md` as its system prompt (#84).
 - The supervisor is the owner, in an OpenCode session (`.bive/prompts/SUPERVISOR.md`).
 - The supervisor's session (an OpenCode session) is started with: "You are the supervisor of bive. Read
@@ -42,6 +44,9 @@ there and in AGENTS.md, not here.
 
 ## Decisions
 
+- **Every session pulls first and reads GitHub before acting (owner, 2026-11-13, #247)**: `AGENTS.md` › Rules.
+- **The gate's owner is named on the base (owner, 2026-11-13, #249)**: `.bive/gate.json` › `owner`, for a repository
+  that belongs to an organization.
 - **No stacked pull requests for now (owner, 2026-11-12, #128)**: each issue branch starts from the integration base
   (#73); revisit if conflicts stay frequent.
 - **Skill provisioning contract accepted (owner, 2026-11-12, #132)**: D1–D10 of `docs/SKILL-PROVISIONING.md` §10 as

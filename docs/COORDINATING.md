@@ -96,8 +96,9 @@ where it says it was not. Bive ships no script (HANDOFF › *No machinery*): `li
    `planRecovery({markerCreatedByThisAttempt, sessionActive, dirty})` decides: it clears the marker only when this
    attempt made it, the session is known inactive and nothing is dirty. Never clear an active or pre-existing marker
    to retry.
-3. **The model**: `resolveFromFile(<text of .bive/state/models.local.json, or undefined>, <canonical>)` (it calls `loadAliases`, then
-   `resolveModel`), which stops on a malformed file instead of falling back to the canonical route (#258).
+3. **The model**: `resolveFromFile(<text of .bive/state/models.local.json, or undefined>, <canonical>)` (it calls
+   `loadAliases`, then `resolveModel`), which stops on a malformed file instead of falling back to the canonical route
+   (#258).
    The alias is what the server is asked for; the canonical name is what the identity and the pull request say.
 4. **Create, move, check**: `buildCreateRequest({worktree: <absolute path of .worktrees/issue-<n>>, model: ref,
    parentID: $OPENCODE_SESSION_ID, coordinator: {session: $OPENCODE_SESSION_ID, issue}})` is `POST /api/session` with the
