@@ -18,10 +18,12 @@ its own `.bive/registry-id`, and a project adapts `opencode.jsonc`, the gate and
 ## What you keep (merge by hand, never overwrite)
 
 - `opencode.jsonc`: your private-path denies, MCP servers and models stay. Add what is new in Bive's (agents,
-  policies) line by line in the diff.
+  policies) line by line in the diff. Keep the existing app owner, private-path denies and registry identity and
+  defaults; new protected plugin files such as `bive_coordinator_merge` require reviewed source before adoption.
 - `AGENTS.md`: take Bive's core sections (Roles, Rules, Coding rules, Inviolable prompts, Field reports); keep your
   *Project rules* and *Before committing* exactly as they are.
-- `.bive/prompts/project/`: your additions to the role prompts.
+- `.bive/prompts/project/`: your additions to the role prompts. Review and migrate any legacy `SUPERVISOR.md`
+  additions explicitly to `ADVISOR.md`; never auto-load or blindly rename them into the advisor role.
 - `.bive/models.json` and `.bive/gate.json`: your models, your skippable checks, your named owner and your merge
   opt-in (never Bive's; the opt-in defaults to disabled and is not copied between apps).
 - `.github/workflows/bive-*.yml`: take Bive's logic, keep your own `runs-on` labels and your project's test command
@@ -31,8 +33,10 @@ its own `.bive/registry-id`, and a project adapts `opencode.jsonc`, the gate and
 
 The core role prompts (`.bive/prompts/COORDINATOR.md`, `DELEGATE.md`, `ADVISOR.md`), `.bive/templates/`,
 `.opencode/plugins/`, `.opencode/skills/` and `.bive/skills.json` (re-check each skill's revision), the Bive scripts of
-`.github/scripts/`, and the pages of `docs/` that describe the rules (including `docs/COORDINATOR-MERGES.md`,
-design only, not implemented).
+`.github/scripts/`, and the pages of `docs/` that describe the rules (including `docs/COORDINATOR-MERGES.md`; the
+protected merge tool is drafted and being tested on Bive first, default off, not live deployed or proven). The
+protected merge plugin relies on recorded session identity; shared accounts and the absence of an OS-level sandbox
+remain caveats rather than proof of a human.
 
 ## Turn 1: read only
 

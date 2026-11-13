@@ -4,9 +4,11 @@ What you do, and what you never have to do. The agents do the rest.
 
 ## Your three jobs
 
-1. **Agree the plan** (gate 1): read `ROADMAP.md` and the split the coordinator proposes; say yes, no or other.
+1. **Agree the plan and the team** (gate 1): read `ROADMAP.md` and the split the coordinator proposes; approve the
+   work, the team and the three gates. Nobody else gets these supervisory decisions.
 2. **Answer questions** the coordinator brings you, in one line each (below).
-3. **Press the merge authorization** on each pull request you accept: the dated label (below). Nobody else does.
+3. **Authorize merges and releases**: press the dated merge authorization on each pull request you accept (below), close
+   pull requests, and release tests. Nobody else merges, closes or releases.
 
 ## Answering a question
 
@@ -32,8 +34,12 @@ authorize it. That red means "waiting for the owner", not "broken". To authorize
    Labels box; or `gh pr edit <n> --add-label bive-merge-authorized-until-YYYY-MM-DD`; create the label first if it does
    not exist: `gh label create <that name>`).
 3. The gate turns green by itself. The owner then merges, with a merge commit, never squash. By default the
-   coordinator cannot merge; an explicitly scoped owner grant is required and is not enabled by default. See
-   `docs/COORDINATOR-MERGES.md` (design; not implemented yet).
+   coordinator cannot merge; an explicitly scoped owner grant is required and is not enabled by default. The protected
+   merge tool is drafted and being tested on Bive first (default off), not live deployed or proven. See
+   `docs/COORDINATOR-MERGES.md`. An exceptional coordinator executes only an opted-in sub-coordinator merge through a
+   base-enabled flag and a fresh exact-scope permission; it never closes pull requests, approves teams or gates, or
+   releases tests. The plugin relies on recorded session identity, not on an account proving a human: shared accounts
+   and the absence of an OS-level sandbox remain caveats.
 
 Rules of the label: it is valid until 23:59:59 UTC of its date; the date must be the day you apply it (a future date
 is refused); the coordinator never applies it. Remove it to withdraw the authorization. A pull request that changes the
