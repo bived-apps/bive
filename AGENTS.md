@@ -27,6 +27,12 @@ Read this file, then [`HANDOFF.md`](HANDOFF.md), before changing anything. Your 
 
 ## Rules
 
+- **Start every session from the current state** (owner, 2026-11-13): before anything else, bring your working copy
+  up to date (`git fetch`, then `git pull --ff-only` on your branch; a checkout that must not move, such as a pinned or
+  frozen one, is only fetched and compared with `origin`), then read GitHub: the open pull requests and issues you act
+  on, their checks, labels and latest comments, and what merged or closed since your hand-over. Act on what GitHub
+  shows now, not on a hand-over's or a summary's memory of it. The same applies when a session resumes after a pause
+  or a change of model.
 - **One branch and one pull request per issue**: `issue/<n>-<slug>`. Only the coordinator creates pull requests for
   issue work, after receiving the pushed branch and delegate's report. The body starts with `Closes #N` (or `Part of
   #N` and what is left) and holds the delegate's report.
