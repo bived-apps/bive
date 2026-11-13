@@ -2,7 +2,7 @@ import { execFile } from "node:child_process"
 import { readFileSync } from "node:fs"
 import path from "node:path"
 import { fileURLToPath } from "node:url"
-import { AUTHORIZATION_LABEL_PREFIX, OVERRIDE_LABEL_PREFIX, evaluateMergeGate, isIntegrationBranch, parseSkippable, validateMergeAuthorization } from "./merge-gate-lib.mjs"
+import { AUTHORIZATION_LABEL_PREFIX, OVERRIDE_LABEL_PREFIX, evaluateMergeGate, isIntegrationBranch, parseGateOwner, parseSkippable, validateMergeAuthorization } from "./merge-gate-lib.mjs"
 
 const GH_TIMEOUT_MS = 15_000
 const OWN_CHECK = "bive-merge-gate / merge-gate"
@@ -142,6 +142,13 @@ export async function runMergeGate({
   if (pr.baseRefName !== request.base.ref) throw new Error("pull request base changed; refusing stale merge-gate run")
   if (pr.headRefOid !== request.head.sha) throw new Error("pull request head changed; refusing stale merge-gate run")
 
+  // `.bive/gate.json` of the base, read once: the named owner (#249) and the skippable checks (#200).
+  let gateConfig = null
+  if (readGateConfig) {
+    try { gateConfig = await readGateConfig({ repository, ref: pr.baseRefName }) } catch { gateConfig = null }
+  }
+  const namedOwner = parseGateOwner(gateConfig)
+
   // Resolve the owner identity and the applying event for the authorization label.
   let owner = null
   let labelAppliedAt = null
@@ -150,7 +157,8 @@ export async function runMergeGate({
   let labelPerformedViaApp = null
   const authLabel = (pr.labels || []).find((l) => l.startsWith(AUTHORIZATION_LABEL_PREFIX))
   if (authLabel) {
-    if (readRepositoryOwner) {
+    if (namedOwner) owner = namedOwner
+    else if (readRepositoryOwner) {
       try { owner = await readRepositoryOwner({ repository }) } catch { owner = null }
     }
     if (readLabelEvents) {
@@ -175,6 +183,7 @@ export async function runMergeGate({
   let overrideOwner = owner
   const overrideLabel = (pr.labels || []).find((l) => l.startsWith(OVERRIDE_LABEL_PREFIX))
   if (overrideLabel) {
+    if (namedOwner && !overrideOwner) overrideOwner = namedOwner
     if (readRepositoryOwner && !overrideOwner) {
       try { overrideOwner = await readRepositoryOwner({ repository }) } catch { overrideOwner = null }
     }
@@ -208,10 +217,7 @@ export async function runMergeGate({
   if (current.baseRefName !== pr.baseRefName || current.headRefOid !== pr.headRefOid) {
     throw new Error("pull request changed during merge-gate validation; refusing stale results")
   }
-  let skippable = []
-  if (readGateConfig) {
-    try { skippable = parseSkippable(await readGateConfig({ repository, ref: current.baseRefName })) } catch { skippable = [] }
-  }
+  const skippable = parseSkippable(gateConfig)
   const result = evaluateMergeGate({ labels: current.labels, baseRef: current.baseRefName, checks, now: now(), skippable,
     labelAppliedAt, labelAppliedBy, owner, labelActorType, labelPerformedViaApp,
     overrideAppliedAt, overrideAppliedBy, overrideOwner, overrideActorType, overridePerformedViaApp })
