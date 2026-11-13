@@ -1,5 +1,6 @@
 {
   "skippable": [],
   "owner": "jcherfils",
-  "coordinatorMerges": false
+  "coordinatorMerges": false,
+  "coordinatorMergeGrants": []
 }

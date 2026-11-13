@@ -70,3 +70,19 @@ and retain GitHub's pinned-head check. Do not describe this helper as a replacem
 Install/update this feature from reviewed Bive source, including the protected guard files and permission rule.
 Do not copy grants, permissions, session IDs or another app's owner identity into a new installation. Opt-in remains
 an independent decision by each app's owner.
+
+## Main is the owner's alone; parent approval of direct children (owner, 2026-11-13)
+
+- No agent approves or merges into `main`, under any grant. The code refuses it (`coordinator-merge.ts`) and the
+  grant reader ignores any grant whose base is not `bived` or `milestone/<name>`.
+- The owner's opt-in is a grant in `.bive/gate.json` on the protected base (`coordinatorMergeGrants`): repository,
+  executor session, direct child sessions and branches, base, expiry, maximum approvals, and a public key. Only the
+  owner changes that file, so an agent cannot widen it. A PR that touches it, or any other authority or enforcement
+  file, is merged by the owner.
+- Within a grant, the parent coordinator approves its direct child's PR head with a signed, short-lived comment
+  (`coordinator-approval-lib.mjs` verifies it). No manual label and no owner prompt per PR. Never its own PR or work
+  it authored.
+- Status: the grant reader, approval verifier and `main` refusal are implemented and tested
+  (`tests/coordinator-approval.test.ts`). The adapter `merge-tool.ts` and the gate script are not yet wired to them,
+  and the signing step (who holds the private key) is open. Until then the adapter fails closed: its snapshot lacks
+  the new fields, so every request is refused. Opt-in stays off and no grant exists.

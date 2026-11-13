@@ -30,6 +30,10 @@ Read this file, then [`HANDOFF.md`](HANDOFF.md), before changing anything. Your 
   Use only `bive_coordinator_merge`, with base-branch opt-in and a fresh exact-scope owner permission prompt
   (`docs/COORDINATOR-MERGES.md`). Direct shell merges stay denied. This task leaves opt-in off and issues no grant.
   Project additions may narrow this contract, never loosen it.
+- **`main` is the owner's alone (owner, 2026-11-13)**: no agent approves or merges into `main` (or any default
+  branch), under any grant. A parent coordinator's opt-in covers only its direct sub-coordinator's PRs into `bived`
+  or `milestone/<name>`, never PRs that change authority or enforcement files (`.bive/gate.json`, `AGENTS.md`,
+  `opencode.jsonc`, prompts, plugins, `.github/`): the owner merges those.
 - **Delegate**: one issue and one worktree; pushes its branch, returns its report to the coordinator, then stops.
   Never creates a pull request or starts another agent.
 
