@@ -95,6 +95,18 @@ export function parseSkippable(text) {
   return list.filter((item) => typeof item === "string" && /^\S.* \/ \S.*$/.test(item))
 }
 
+// The owner named in `.bive/gate.json` of the base branch (`{"owner": "<login>"}`, issue #249): needed when the
+// repository belongs to an organization, whose login no person's label can match. A missing, corrupt or
+// wrong-shaped value is null: the gate then falls back to the repository owner's login.
+export function parseGateOwner(text) {
+  if (typeof text !== "string") return null
+  let data
+  try { data = JSON.parse(text) } catch { return null }
+  const login = data && typeof data === "object" ? data.owner : undefined
+  if (typeof login !== "string" || !/^[A-Za-z0-9](?:[A-Za-z0-9-]{0,38})$/.test(login)) return null
+  return login
+}
+
 export function evaluateMergeGate({ labels = [], baseRef, checks = [], now = Date.now(), skippable = [],
   labelAppliedAt = null, labelAppliedBy = null, owner = null,
   labelActorType = null, labelPerformedViaApp = null,

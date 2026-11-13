@@ -91,6 +91,11 @@ These run on GitHub and appear as commit statuses on a pull request.
   not; `fail`, `cancel` and `pending` never do. The gate reads the file from the pull request's **base** branch, so a
   pull request cannot list its own skips; the file is inviolable (a delegate never changes it). A missing, corrupt or
   wrong-shaped file means nothing may be skipped, which is Bive's own setting (`{"skippable": []}`).
+- **Named owner (issue #249, owner 2026-11-13)**: the dated labels count only when the repository owner applied them.
+  On a repository that belongs to an organization, the owner's login goes in the same file:
+  `{"skippable": [], "owner": "<login>"}`. The gate reads it from the base branch, so a pull request cannot name its
+  own owner; without it the gate compares with the repository owner's login, which on an organization no person's
+  label matches. A label applied by a Bot or a GitHub App is refused either way (#130).
 - **Fails on**: a missing, malformed, duplicate or expired label; any required check pending or missing (an
   immediate red that means "wait for CI", not a refusal — the gate is re-run automatically when checks complete),
   or any check skipped (other than the exception), failed or cancelled; a pull request whose head or base changed

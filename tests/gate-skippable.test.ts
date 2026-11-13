@@ -15,7 +15,7 @@ const evaluate = (checks: unknown[], skippable?: string[]) =>
 
 test("Bive's own list is empty: its gate stays strict (#200)", () => {
   const cfg = JSON.parse(fs.readFileSync(path.join(ROOT, ".bive/gate.json"), "utf8"))
-  assert.deepEqual(cfg, { skippable: [] })
+  assert.deepEqual(cfg.skippable, [])
 })
 
 test("without a list, a skipped check is red, as before", () => {

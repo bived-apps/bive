@@ -21,7 +21,7 @@ its own `.bive/registry-id`, and a project adapts `opencode.jsonc`, the gate and
 - `AGENTS.md`: take Bive's core sections (Roles, Rules, Coding rules, Inviolable prompts, Field reports); keep your
   *Project rules* and *Before committing* exactly as they are.
 - `.bive/prompts/project/`: your additions to the role prompts.
-- `.bive/models.json` and `.bive/gate.json`: your models and your skippable checks.
+- `.bive/models.json` and `.bive/gate.json`: your models, your skippable checks and your named owner (never Bive's).
 - `.github/workflows/bive-*.yml`: take Bive's logic, keep your own `runs-on` labels and your project's test command
   (`docs/SELF-HOSTED.md`).
 
