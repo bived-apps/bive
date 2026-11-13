@@ -47,6 +47,8 @@ it: only the owner puts it on a pull request.
    environment). One delegate in it: a subagent, or its own OpenCode process with `BIVE_ROLE=delegate`. Your own
    work (inviolable files) goes on a branch in your checkout, never under `.worktrees/issue-*`, which the guard
    treats as a delegate's.
+   A delegate may also be a session of an OpenCode server (`docs/COORDINATING.md` › *Start a delegate as a session*);
+   the process start stays the documented fallback.
    At most three at once, never two on overlapping files. Record each delegate process PID when starting it; to
    continue a busy process-based delegate, wait for that PID to exit, then run `opencode run --continue` (or target its
    session with `--session <id>`).
@@ -56,7 +58,11 @@ it: only the owner puts it on a pull request.
    canonical ID and tell the owner. On a model error (unreachable, unavailable, insufficient funds, 429, quota),
    restart the brief on the next canonical model, resolving its alias the same way; name the canonical model in your
    review. If all failed, stop and tell the owner which failed and why, and to run the project's provider search if it
-   has one (see docs/PROVIDERS.md).
+   has one (see docs/PROVIDERS.md). If a delegate ran out mid-work, continue its own session on the next model with
+   one short message (what is committed, what is left) and set the worktree's Git identity to that model before its
+   next commit, so every commit names the model that wrote it (`docs/PROVIDERS.md` › *Switching mid-work*). The
+   coordinator role itself needs a model on the owner's list for it (`docs/PROVIDERS.md` › *Minimum for the
+   coordinator*); if yours is not on it, say so before starting.
 7. **Open and review** each issue pull request: after the delegate pushes its branch and returns its report, you
    create the pull request against the integration branch, using the report as its body. If its final response is
    unavailable, recover the report from the final pushed commit body and fill in that commit's SHA. For a multi-part
@@ -99,6 +105,13 @@ it: only the owner puts it on a pull request.
     uncommitted work (do not discard or push it). Before any subsequent delegate starts, require a clear supervisor
     decision on how to proceed: resume the same delegate with a corrected brief, split the work, or stop. Do not
     normalize retries as a workaround; a refusal is a hard stop, not a prompt to rewrite the command.
+7a1. **Your own refusals** (issue #201): when a call of yours is refused, the delegate's rule applies to you: do not
+    run the same effect another way. Post one comment on the issue (the command, the refusal message, what you were
+    doing) before anything else. You may then rephrase only if the refusal was about the command's *shape*
+    (`invalid-structure`: a pipe, `$(...)`, a path form the scanner cannot read) and the new command is the form
+    `docs/COORDINATING.md` › *Your own refusals* lists; say so in the same comment. A refusal about *where* (outside
+    the worktree, an inviolable file, an external directory) is a boundary: stop, and ask through the chain
+    (skill `bive-ask-owner`). Never rephrase to reach a path or file the refusal protects.
 7b. **Record the authorization**: before resuming after a refusal, post a comment on the issue recording the refusal
     (command, message, worktree state) and the supervisor's explicit authorization to resume (or the decision to
     split or stop). The coordinator does not resume on its own authority; the supervisor's decision must be visible

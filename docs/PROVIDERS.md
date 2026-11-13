@@ -6,6 +6,37 @@ When every model of the list failed, a project can offer a provider search: a sc
 model OpenCode knows with one tiny prompt and prints the ones that answer, fastest first, as a `.bive/models.json`
 line. A delegate's work that a reviewer rejects is redone by the next model, not patched by the same one.
 
+## The list per role
+
+`.bive/models.json` is `{ "<role>": ["provider/model", ...] }`, best first; roles are `coordinator` and `delegate`. The
+order is the fallback order: when a model fails (unreachable, unavailable, insufficient credit, 429, quota), the next
+one takes over. The list is per machine's reality: a model with no credit or no free quota left belongs at the end or
+out of the list until it works again. Check that the listed models resolve here before a batch
+with `node lib/models-check-cli.ts` (it prints found / alias / missing per role and sends nothing; `--probe` also
+sends one tiny prompt per role's first usable model, to reveal a used-up quota or a missing credit; the coordinator
+skill `bive-pick-model` says when to run it).
+
+## Switching mid-work (issue #203)
+
+A delegate that hits a limit after it has started is not restarted from nothing. The coordinator:
+
+1. keeps the worktree as it is and notes what is committed and what is not;
+2. continues the delegate's own session on the next model: `opencode run --continue --agent delegate --model
+   <next resolved model> "<one short message: what is committed, what is left, the model changed>"`;
+3. before the delegate's next commit, sets the worktree's identity to the canonical name of that model:
+   `git -C .worktrees/issue-<n> config --worktree user.name "delegate <next canonical model>"`. The earlier commits keep
+   the earlier model's name, so `git log` shows which model wrote what;
+4. says in the pull request body which models ran, in order.
+
+## Minimum for the coordinator (issue #203, owner 2026-11-12)
+
+A coordinator splits, briefs, reads reports and reviews; a model that fetches invented addresses or asks for its brief
+back (a 14B local model did both in the field) wastes the milestone. The minimum is a **published pass** of that model
+(name and version) on the bench's `milestone-run` case (<https://github.com/bived-apps/bench>), the same way a
+supervisor is qualified. Until a pass is published for any model, the owner names the models allowed as coordinator in
+`.bive/models.json`: the `coordinator` list is that allow-list. A coordinator that finds itself running on a model that
+is not on the list says so to the owner before starting; it does not start.
+
 ## Per-machine model aliases
 
 `.bive/models.json` is shared and contains canonical model IDs. If a machine serves one of those models through a

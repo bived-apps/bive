@@ -3,7 +3,7 @@ import { describe, test } from "node:test"
 import assert from "node:assert/strict"
 import os from "node:os"
 import path from "node:path"
-import { isDelegate, makeGuard, violations, type Check } from "../.opencode/plugins/worktree-guard/check.ts"
+import { isDelegate, isSupervisor, makeGuard, violations, type Check } from "../.opencode/plugins/worktree-guard/check.ts"
 
 // Fake paths under the home folder, never created: /tmp is a system prefix the guard lets through.
 const base = path.join(os.homedir(), ".bive-guard-test")
@@ -30,7 +30,9 @@ describe("write tools", () => {
     refused(write(delegate, "AGENTS.md"), /inviolable/)
     refused(write(delegate, ".opencode/plugins/worktree-guard/check.ts"), /inviolable/)
     refused(write(delegate, ".opencode/plugin/token-ratio.ts"), /inviolable/)
+    refused(write(delegate, ".bive/gate.json"), /inviolable/)
     passes(write(coordinator, "AGENTS.md"))
+    passes(write(coordinator, ".bive/gate.json"))
   })
   test("the V1 names still work (filePath, bash)", () => {
     refused(() => delegate("write", { filePath: path.join(main, "a.py") }), /outside/)
@@ -117,7 +119,31 @@ describe("shell, delegate", () => {
     assert.throws(shell(delegate, "sed -i 's/a/b/' opencode.jsonc"), /inviolable/)
   })
   test("a pipe is refused as invalid-structure", () => {
-    refused(shell(delegate, "git status | grep foo"), /invalid-structure/)
+    refused(shell(delegate, "git status | xargs rm"), /invalid-structure/)
+  })
+  test("read-only filters at the end of a statement pass (#204)", () => {
+    passes(shell(delegate, "node --test tests/a.test.ts 2>&1 | tail -15"))
+    passes(shell(delegate, "git log --oneline | head -n 5"))
+    passes(shell(delegate, "git status | grep foo"))
+    passes(shell(delegate, 'node --test tests/*.test.ts 2>&1 | grep -E "^# (pass|fail)"'))
+    passes(shell(delegate, "node --test a 2>&1 | tail -5; node --test b | tail -n 3"))
+    passes(shell(delegate, "git log | grep -i fix | tail -3"))
+    passes(shell(delegate, "git status | tail -n 3 && git diff --stat"))
+  })
+  test("anything else after a pipe, or a filter with a file or an expansion, is still refused (#204)", () => {
+    refused(shell(delegate, "git status | tail -n 3 /etc/passwd"), /invalid-structure|outside/)
+    refused(shell(delegate, "git status | grep foo AGENTS.md"), /invalid-structure/)
+    refused(shell(delegate, "git status | grep $(cat x)"), /invalid-structure/)
+    refused(shell(delegate, 'git status | grep "$(cat x)"'), /invalid-structure/)
+    refused(shell(delegate, "git status | grep `cat x`"), /invalid-structure/)
+    refused(shell(delegate, "git status | tail | sh"), /invalid-structure/)
+    refused(shell(delegate, "cat a | tee b"), /invalid-structure/)
+    refused(shell(delegate, "git status | head -n 3 > ../x"), /outside/)
+    refused(shell(delegate, "echo $(cat /etc/passwd) | tail -1"), /invalid-structure/)
+  })
+  test("a coordinator keeps its pipes (the filters matter to delegates only)", () => {
+    const c = makeGuard({ root: main, delegate: false })
+    passes(shell(c, "git status | xargs echo"))
   })
   test("command substitution is refused as invalid-structure", () => {
     refused(shell(delegate, "echo $(cat /etc/passwd)"), /invalid-structure/)
@@ -153,6 +179,22 @@ describe("delegate detection (child sessions inherit the coordinator's environme
     assert.equal(isDelegate(main, undefined, undefined), false)
     assert.equal(isDelegate(path.join(main, ".worktrees", "issue-12x"), "coordinator", "coordinator"), false)
   })
+  test("the session's agent makes a delegate too (0.2 part 2): no BIVE_ROLE, a worktree not named issue-<n>", () => {
+    const odd = path.join(main, ".worktrees", "task-a")
+    assert.equal(isDelegate(odd, undefined, undefined, "delegate"), true)
+    assert.equal(isDelegate(odd, undefined, undefined, "coordinator"), false)
+    assert.equal(isDelegate(odd, undefined, undefined, undefined), false)
+    assert.equal(isDelegate(odd, undefined, undefined, "build"), false)
+    // the old rules still hold whatever the agent says
+    assert.equal(isDelegate(main, "delegate", undefined, "coordinator"), true)
+    assert.equal(isDelegate(path.join(main, ".worktrees", "issue-12"), undefined, undefined, "coordinator"), true)
+  })
+  test("a delegate-agent guard refuses the inviolable files and outside paths in a worktree not named issue-<n>", () => {
+    const d = makeGuard({ root: path.join(main, ".worktrees", "task-a"), delegate: true })
+    refused(write(d, "AGENTS.md"), /inviolable/)
+    refused(shell(d, "cat ../../a.py"), /outside/)
+    passes(write(d, "src/a.py"))
+  })
   test("a coordinator's session checks what lands in .worktrees/issue-<n>/ as that delegate's", () => {
     const c = makeGuard({ root: main, delegate: false })
     const nested = path.join(main, ".worktrees", "issue-12")
@@ -171,8 +213,50 @@ describe("delegate detection (child sessions inherit the coordinator's environme
   })
 })
 
+describe("author override and the supervisor's commits (#197)", () => {
+  const c = makeGuard({ root: main, delegate: false })
+  const s = makeGuard({ root: main, delegate: false, supervisor: true })
+  test("no role overrides the commit author for one command", () => {
+    for (const g of [c, delegate, s]) {
+      refused(shell(g, "git -c user.name='delegate x/y' commit -m m"), /author-override/)
+      refused(shell(g, 'git -c user.email="a@b.c" commit -m m'), /author-override/)
+      refused(shell(g, "git commit --author='A <a@b.c>' -m m"), /author-override/)
+      refused(shell(g, "git commit --author 'A <a@b.c>' -m m"), /author-override/)
+      refused(shell(g, "GIT_AUTHOR_NAME=x git commit -m m"), /author-override/)
+      refused(shell(g, "GIT_COMMITTER_EMAIL=x@y.z git commit -m m"), /author-override/)
+    }
+    refused(shell(c, "ssh host 'git -c user.name=\"delegate x\" commit -m m'"), /author-override/)
+  })
+  test("setting the worktree identity once is allowed, and so is an ordinary commit", () => {
+    passes(shell(c, 'git -C .worktrees/issue-5 config --worktree user.name "delegate claude-agent/sonnet"'))
+    passes(shell(c, "git config --worktree user.email delegate@bive.invalid"))
+    passes(shell(c, "git commit -F msg.txt"))
+    passes(shell(delegate, "git commit -F msg.txt"))
+    passes(shell(c, "git log --format=%an -1"))
+  })
+  test("a supervisor never commits or pushes, also over ssh", () => {
+    refused(shell(s, "git commit -m m"), /supervisor does not commit/)
+    refused(shell(s, "git push origin bived"), /supervisor does not commit/)
+    refused(shell(s, "git -C other commit -am m"), /supervisor does not commit/)
+    refused(shell(s, "ssh machine-a 'cd repo && git commit -m fix && git push'"), /supervisor does not commit/)
+    refused(shell(s, 'ssh machine-a "git push origin x"'), /supervisor does not commit/)
+    passes(shell(s, "git status"))
+    passes(shell(s, "git log --oneline -n 5"))
+    passes(shell(s, "gh pr view 5"))
+    passes(shell(s, "ssh machine-a 'git status'"))
+    passes(shell(c, "git commit -m ok"))   // a coordinator still commits its own pull requests
+  })
+  test("who is a supervisor: the variable, the role file or the agent", () => {
+    assert.equal(isSupervisor("supervisor", undefined), true)
+    assert.equal(isSupervisor(undefined, "supervisor\n"), true)
+    assert.equal(isSupervisor(undefined, undefined, "supervisor"), true)
+    assert.equal(isSupervisor("coordinator", "coordinator", "coordinator"), false)
+    assert.equal(isSupervisor(undefined, undefined), false)
+  })
+})
+
 describe("violations", () => {
   test("every refusal above was counted", () => {
-    assert.equal(violations(), 37)      // every `refused(...)` call above contributes one violation
+    assert.equal(violations(), 73)      // every `refused(...)` call above contributes one violation
   })
 })
