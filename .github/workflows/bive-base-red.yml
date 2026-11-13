@@ -25,16 +25,10 @@ jobs:
           set -euo pipefail
           title="Base red: ${HEAD_BRANCH} at ${HEAD_SHA}"
           run_url="https://github.com/${REPO}/actions/runs/${RUN_ID}"
-          body="The full suite failed on a push to \`${HEAD_BRANCH}\` at \`${HEAD_SHA}\`.
-
-Run: ${run_url}
-
-This issue stays open while the base remains red; it is closed (or commented on) once a green run lands."
+          body=$(printf 'The full suite failed on a push to `%s` at `%s`.\n\nRun: %s\n\nThis issue stays open while the base remains red; it is closed (or commented on) once a green run lands.\n' "${HEAD_BRANCH}" "${HEAD_SHA}" "${run_url}")
           existing=$(gh issue list --repo "${REPO}" --state open --search "in:title \"Base red: ${HEAD_BRANCH}\"" --json number --jq '.[0].number // empty')
           if [ -n "$existing" ]; then
-            gh issue comment "$existing" --repo "${REPO}" --body "Still red on \`${HEAD_BRANCH}\` at \`${HEAD_SHA}\`.
-
-Run: ${run_url}"
+            gh issue comment "$existing" --repo "${REPO}" --body "$(printf 'Still red on `%s` at `%s`.\n\nRun: %s\n' "${HEAD_BRANCH}" "${HEAD_SHA}" "${run_url}")"
             echo "Commented on existing issue #${existing}."
           else
             gh issue create --repo "${REPO}" --title "$title" --body "$body" --label "bug"
