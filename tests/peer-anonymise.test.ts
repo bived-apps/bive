@@ -84,6 +84,11 @@ test("storing: random letter, anonymised package under packages/, key kept apart
     assert.ok(fs.existsSync(path.join(dir, "packages", r3.letter, "images", "image-1.png")))
     assert.deepEqual(JSON.parse(fs.readFileSync(path.join(dir, "key.json"), "utf8"))[r3.letter].images, ["image-1.png"])
     assert.throws(() => addPackage(raw, "s", "m", "4", dir, { images: [raw] }), /not an image/)
+    const clean = path.join(dir, "ok.svg"); fs.writeFileSync(clean, '<svg xmlns="http://www.w3.org/2000/svg"><circle r="1"/></svg>')
+    const r4 = addPackage(raw, "s", "m", "5", dir, { images: [clean] })
+    assert.ok(fs.existsSync(path.join(dir, "packages", r4.letter, "images", "image-1.svg")))
+    const bad = path.join(dir, "bad.svg"); fs.writeFileSync(bad, '<svg onload="alert(1)"></svg>')
+    assert.throws(() => addPackage(raw, "s", "m", "6", dir, { images: [bad] }), /refusing an SVG/)
     // letters are not reused
     const r2 = addPackage(raw, "site-z", "model-w", undefined, dir)
     assert.notEqual(r2.letter, r.letter)
