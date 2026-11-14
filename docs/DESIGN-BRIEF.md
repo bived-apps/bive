@@ -89,7 +89,8 @@ decisions live (the issue tracker), how to report a problem.
 
 ## 6. Findings to fix in Phase 4 (read-only, 2026-11-14; verify before editing)
 
-- `bench`'s README begins as a copy of Bive's ("Bive 0.0" and the flow diagram), not its own front page.
+- `bench`'s README begins as a copy of Bive's ("Bive 0.0" and the flow diagram), not its own front page. Owner decision
+  2026-11-14: corrected when bench joins the current Bive version, not before; bench's frozen history and open PRs are untouched until then.
 - `registry` and `university` READMEs link to `jcherfils/bive`; the repository now lives at `bived-apps/bive`.
 - No repository has a description (except the workspace template and university), a homepage link or a social image.
 - No organization profile page exists.
