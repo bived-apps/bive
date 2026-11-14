@@ -74,8 +74,9 @@ sets. Claude models cannot generate pictures; they write SVG.
 3. **Front door lead**: the Bive template, the other repositories hang off it.
 4. **Role glyphs**: simple glyphs (magnifier, clipboard, laptop) in the role colours for diagrams and icons. People-like
    characters stay a candidate set for hero art only if the owner asks for it again.
-5. **Still open**: the organization's one-line tagline, and whether `grooms` is public-facing or internal. Accent colours
-   (teal, amber, violet) remain candidates until the style guide is approved.
+5. **Tagline**: "Agents write, you decide." (chosen from five suggestions, 2026-11-14). **`grooms`**: archived by the owner's
+   instruction on 2026-11-14, so it is not a front-door card. Accent colours (teal, amber, violet) remain candidates
+   until the style guide is approved.
 
 ## Not decided here
 
