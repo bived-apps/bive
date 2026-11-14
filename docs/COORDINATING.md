@@ -51,7 +51,11 @@ authorizations. The coordinator never applies it.
 label="bive-merge-authorized-until-$(date -u +%F)"
 gh label list --search "$label" --json name --jq '.[].name' | grep -qx "$label" \
   || gh label create "$label" --color B60205 --description "Owner only: authorizes one merge through $(date -u +%F) UTC"
+gh label list --search coordinator --json name --jq '.[].name' | grep -qx coordinator \
+  || gh label create coordinator --color 5319E7 --description "Coordinator's own pull request (inviolable files); set by the coordinator"
 ```
+
+The flow uses only these labels (`docs/REQUIRED-CHECKS.md` › Labels the flow uses).
 
 ## Start a coordinator: the hand-over is a GitHub comment (issue #202, owner 2026-11-12)
 

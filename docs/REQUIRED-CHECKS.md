@@ -193,6 +193,24 @@ name of its own, or the requirement matches several checks (#94). Until that con
 gate is only as strong as the owner's procedure. No file in this repository proves that it exists; check the
 settings.
 
+## Labels the flow uses (minimum)
+
+Four labels, no more. There is no started, in-progress, done, blocked or callback label: state is the milestone, the
+pull request's checks and review, and the issue's open/closed state (`docs/COORDINATING.md` › Milestones are the work
+queue). "Use this template" does not copy labels; a project creates these.
+
+| Label | Set by | Read by | Why |
+| --- | --- | --- | --- |
+| `bive-merge-authorized-until-YYYY-MM-DD` | the owner only, on one pull request, on the day in its name | `bive-merge-gate` (also checks who applied it and when) | the dated, per-pull-request authorization |
+| `bive-owner-override-YYYY-MM-DD` | the owner only, optional | `bive-merge-gate` | the owner's override when CI is down (#115) |
+| `coordinator` | the coordinator, on its own pull requests | `bive-inviolable` (skips the check for them) | only the coordinator may change inviolable files |
+| `bug` | `bive-base-red` | people | the issue opened when a base branch goes red |
+
+A name is not a secret: the gate trusts the actor and the date of the labeling event, never the name alone, so a
+random or secret label would add nothing while roles share one account (#130). Anything else a repository carries
+(GitHub's defaults, `delegate`) is not read by any workflow and is the project's own convention. The coordinator
+creates the missing ones at session start (`docs/COORDINATING.md` › Session start); it never applies the owner's.
+
 ## Headless plugin check (issue #69)
 
 A non-interactive validation that detects whether Bive's plugins are discovered and loaded, without opening the
