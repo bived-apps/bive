@@ -1,0 +1,77 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900" role="img" aria-labelledby="t d">
+  <title id="t">Asking the advisor</title>
+  <desc id="d">On the left the amber folder-shaped coordinator, with its mustard flag and its fan of cards in its pocket, asks a question: mouth open, one arm pointing at a page on a stand, the other raised with an open hand. On the right a tall teal figure folded like a letter, the advisor, has no arms: it cannot touch, write or carry anything. It reviews by looking: a pale sight cone runs from its eyes onto one line of the page and leaves no mark. It answers with a small bubble holding a single dot. Its top flap is tipping forward to fold shut; a dashed outline shows where the flap stood open.</desc>
+  <defs>
+    <filter id="sh" x="-30%" y="-30%" width="160%" height="160%">
+      <feOffset in="SourceAlpha" dx="4" dy="5" result="o"/>
+      <feFlood flood-color="#1F2430" flood-opacity="0.16"/>
+      <feComposite in2="o" operator="in"/>
+      <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <g id="flag">
+      <path d="M0,0 V-50" fill="none" stroke="#5B5548" stroke-width="3" stroke-linecap="round"/>
+      <path d="M0,-50 L28,-41 L0,-32 Z" fill="#E0A82E"/>
+    </g>
+
+    <!-- Brae: an expanding folder, top edge folded over -->
+    <g id="brae">
+      <path d="M-28,-44 V0 h-14 M28,-44 V0 h14" fill="none" stroke="#8A3F06" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+      <use href="#flag" x="-34" y="-226"/>
+      <g filter="url(#sh)">
+        <path d="M-50,-232 L46,-238 L80,-42 L-76,-42 Z" fill="#B45309"/>
+        <path d="M51,-207 L80,-42 L56,-42 Z" fill="#9A4507"/>
+        <path d="M-2,-197 L8,-198 L12,-42 L-6,-42 Z" fill="#9A4507"/>
+        <g>
+          <rect x="-11" y="-22" width="22" height="40" fill="#8B5CF6" transform="translate(-56,-98) rotate(-22)"/>
+          <rect x="-11" y="-22" width="22" height="40" fill="#6D28D9" transform="translate(-45,-102) rotate(-8)"/>
+          <rect x="-11" y="-22" width="22" height="40" fill="#4C1D95" transform="translate(-34,-102) rotate(6)"/>
+          <rect x="-11" y="-22" width="22" height="40" fill="#FFFDF8" transform="translate(-23,-99) rotate(20)"/>
+        </g>
+        <path d="M-69,-95 L-8,-98 L-14,-42 L-76,-42 Z" fill="#C8691F"/>
+        <path d="M-50,-232 L46,-238 L51,-207 L-55,-190 Z" fill="#DE9448"/>
+      </g>
+    </g>
+    <!-- Sill: a letter folded in three, flap open -->
+    <g id="sillshut">
+      <path d="M-16,-42 V0 h-14 M16,-42 V0 h14" fill="none" stroke="#0A4A45" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+      <g filter="url(#sh)">
+        <path d="M-44,-300 L38,-304 L-8,-328 Z" fill="#5FB3AA"/>
+        <path d="M46,-212 L54,-205 L47,-126 L40,-128 Z" fill="#0A4A45"/>
+        <path d="M-42,-125 L-50,-119 L-46,-40 L-40,-40 Z" fill="#0A4A45"/>
+        <path d="M-42,-125 L40,-128 L44,-40 L-40,-40 Z" fill="#0B5F59"/>
+        <path d="M-38,-215 L46,-212 L40,-128 L-42,-125 Z" fill="#0F766E"/>
+        <path d="M-44,-300 L38,-304 L46,-212 L-38,-215 Z" fill="#14857C"/>
+        <path d="M-44,-300 L38,-304 L0,-284 Z" fill="#0F766E"/>
+      </g>
+    </g>
+  </defs>
+  <rect width="1600" height="900" fill="#F7F5F0"/>
+  <path d="M180,96 L1540,120 L1548,668 L60,676 L66,204 Z" fill="#F1EDE4"/>
+  <path d="M180,96 L66,204 L172,210 Z" fill="#E6E0D3"/>
+  <path d="M0,712 L1600,704 L1600,900 L0,900 Z" fill="#EAE5DA"/>
+  <path d="M800,560 V760 m-22,0 h44" fill="none" stroke="#BDB5A6" stroke-width="7" stroke-linecap="round"/>
+  <rect x="715" y="330" width="170" height="232" fill="#FFFDF8" filter="url(#sh)"/>
+  <rect x="715" y="330" width="170" height="16" fill="#E4DED2"/>
+  <path d="M737,386 H863 M737,412 H840 M737,464 H852 M737,490 H820 M737,516 H846" fill="none" stroke="#CFC8BA" stroke-width="8" stroke-linecap="round"/>
+  <path d="M737,438 H863" fill="none" stroke="#7A7468" stroke-width="8" stroke-linecap="round"/>
+  <g transform="translate(390,760) scale(1.7)">
+<ellipse cx="2" cy="5" rx="84" ry="7" fill="#DDD6C8"/>
+<use href="#brae"/>
+<circle cx="-22" cy="-160" r="7" fill="#F7F5F0"/><circle cx="-19.5" cy="-162" r="3" fill="#1F2430"/><circle cx="26" cy="-163" r="7" fill="#F7F5F0"/><circle cx="28.5" cy="-165" r="3" fill="#1F2430"/>
+<circle cx="3" cy="-139" r="4.500" fill="#F7F5F0"/>
+<path d="M60,-150 Q92,-150 122,-176" fill="none" stroke="#8A3F06" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M-64,-150 Q-94,-152 -98,-186" fill="none" stroke="#8A3F06" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M-108,-192 l10,6 l9,-8" fill="none" stroke="#8A3F06" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+  <g transform="translate(1180,760) scale(1.7)">
+<ellipse cx="2" cy="5" rx="50" ry="7" fill="#DDD6C8"/>
+<path d="M-44,-300 L38,-304 L12,-352 Z" fill="none" stroke="#5FB3AA" stroke-width="2" stroke-dasharray="3 6"/>
+<path d="M24,-350 q20,6 22,24" fill="none" stroke="#9CCFC9" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+<use href="#sillshut"/>
+<circle cx="-13" cy="-258" r="7" fill="#F7F5F0"/><circle cx="-15.5" cy="-256.5" r="3" fill="#1F2430"/><circle cx="17" cy="-259" r="7" fill="#F7F5F0"/><circle cx="14.5" cy="-257.5" r="3" fill="#1F2430"/>
+<path d="M-8,-238 q5,4 10,0" fill="none" stroke="#F7F5F0" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+  <path d="M1150,322 L885,427 L737,427 L737,449 L885,449 Z" fill="#7CCBC2" fill-opacity="0.5"/>
+  <circle cx="1157.9" cy="321.4" r="11.9" fill="#F7F5F0"/><circle cx="1153.7" cy="324.0" r="5.1" fill="#1F2430"/><circle cx="1208.9" cy="319.7" r="11.9" fill="#F7F5F0"/><circle cx="1204.7" cy="322.3" r="5.1" fill="#1F2430"/>
+  <g filter="url(#sh)"><path d="M1023.2,266.8 L1092,300 L1049.6,249.2 Z" fill="#FFFDF8"/><ellipse cx="1010" cy="236" rx="52.8" ry="39.6" fill="#FFFDF8"/></g><circle cx="1010" cy="236" r="11.0" fill="#0F766E"/>
+</svg>

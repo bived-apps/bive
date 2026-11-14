@@ -1,0 +1,127 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900" role="img" aria-labelledby="t d">
+  <title id="t">Peer review that catches a mistake</title>
+  <desc id="d">Two cut-paper delegates stand either side of a large card on a board. On the left, a violet square with a dog-eared corner holds a spool and has laid a thread under one line of the card. On the right, the card's author, a deep violet box-lid shape with a small mustard flag, winces and smiles while squaring that line with a set square; a faint dashed trace shows where the line sagged before. In the background the human owner waits in a dark ink coat, a cup in one hand and her pen still capped in the other. Nobody but her holds a pen.</desc>
+  <defs>
+    <filter id="sh" x="-30%" y="-30%" width="160%" height="160%">
+      <feOffset in="SourceAlpha" dx="4" dy="5" result="o"/>
+      <feFlood flood-color="#1F2430" flood-opacity="0.16"/>
+      <feComposite in2="o" operator="in"/>
+      <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <g id="flag">
+      <path d="M0,0 V-50" fill="none" stroke="#5B5548" stroke-width="3" stroke-linecap="round"/>
+      <path d="M0,-50 L28,-41 L0,-32 Z" fill="#E0A82E"/>
+    </g>
+
+    <!-- Odet: a square with a dog-eared corner and a knotted ribbon -->
+    <g id="odet">
+      <path d="M-20,-44 V0 h-13 M20,-44 V0 h13" fill="none" stroke="#4A1AA0" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+      <g filter="url(#sh)">
+        <path d="M-60,-156 L22,-160 L58,-126 L60,-44 L-56,-40 Z" fill="#6D28D9"/>
+        <path d="M-60,-156 L-56,-40 L-22,-41 Z" fill="#5A1FBF"/>
+        <path d="M22,-160 L58,-126 L24,-123 Z" fill="#A98BF5"/>
+      </g>
+      <path d="M-44,-157 l-13,15 M-44,-157 l5,20" fill="none" stroke="#E4674F" stroke-width="5" stroke-linecap="butt"/>
+      <rect x="-49" y="-162" width="10" height="10" fill="#C9523C" transform="rotate(-12 -44 -157)"/>
+      <circle cx="-14" cy="-108" r="7" fill="#F7F5F0"/><circle cx="14" cy="-109" r="7" fill="#F7F5F0"/>
+      <circle cx="-11.500" cy="-108" r="3" fill="#1F2430"/><circle cx="16.500" cy="-109" r="3" fill="#1F2430"/>
+      <path d="M-5,-88 h12" fill="none" stroke="#F7F5F0" stroke-width="3" stroke-linecap="round"/>
+    </g>
+
+    <!-- Fenn: an unfolded box lid, four flaps round a panel -->
+    <g id="fenn">
+      <path d="M-18,-42 V0 h-13 M18,-42 V0 h13" fill="none" stroke="#2F1063" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+      <use href="#flag" x="-16" y="-160"/>
+      <g filter="url(#sh)">
+        <path d="M-34,-145 L34,-148 L36,-58 L-34,-56 Z" fill="#4C1D95"/>
+        <path d="M-34,-145 L34,-148 L26,-170 L-26,-168 Z" fill="#6A3BBE"/>
+        <path d="M-34,-145 L-34,-56 L-64,-100 Z" fill="#3B1578"/>
+        <path d="M34,-148 L36,-58 L66,-104 Z" fill="#5727A6"/>
+        <path d="M-34,-56 L36,-58 L26,-40 L-24,-38 Z" fill="#2F1063"/>
+      </g>
+      <circle cx="-13" cy="-112" r="7" fill="#F7F5F0"/><circle cx="13" cy="-113" r="7" fill="#F7F5F0"/>
+      <circle cx="-10.500" cy="-112" r="3" fill="#1F2430"/><circle cx="15.500" cy="-113" r="3" fill="#1F2430"/>
+      <path d="M-5,-92 q6,5 12,0" fill="none" stroke="#F7F5F0" stroke-width="3" stroke-linecap="round"/>
+    </g>
+
+    <!-- Maren: the one human, in an ink coat with one lapel folded to its gold lining -->
+    <g id="maren">
+      <path d="M-40,0 a20,9 0 0 1 40,0 Z M4,0 a20,9 0 0 1 40,0 Z" fill="#1F2430"/>
+      <path d="M-30,-130 H-8 V-8 H-28 Z M8,-130 H30 V-8 H10 Z" fill="#3B4252"/>
+      <rect x="-9" y="-346" width="18" height="20" fill="#B87B54"/>
+      <g filter="url(#sh)">
+        <path d="M-48,-330 L48,-330 L64,-124 L-70,-112 Z" fill="#1F2430"/>
+        <path d="M48,-330 L64,-124 L40,-122 L34,-300 Z" fill="#2B3142"/>
+        <path d="M-14,-332 L14,-332 L0,-290 Z" fill="#F7F5F0"/>
+        <path d="M14,-332 L32,-330 L5,-258 L0,-290 Z" fill="#B8860B"/>
+      </g>
+      <path d="M4,-258 L2,-120" fill="none" stroke="#343B4D" stroke-width="2"/>
+      <circle cx="0" cy="-372" r="34" fill="#C68B62"/>
+      <path d="M36,-413 L52,-408 L58,-392 L48,-380 L34,-384 L28,-400 Z" fill="#2B2126"/>
+      <path d="M-33,-384 C-26,-420 30,-422 36,-384 L38,-356 L27,-360 C26,-382 6,-394 -33,-384 Z" fill="#2B2126"/>
+      <path d="M30,-416 L56,-378" fill="none" stroke="#B8860B" stroke-width="3" stroke-linecap="round"/>
+      <circle cx="-17" cy="-370" r="3.500" fill="#1F2430"/><circle cx="5" cy="-370" r="3.500" fill="#1F2430"/>
+      <path d="M-13,-354 q6,4 11,0" fill="none" stroke="#1F2430" stroke-width="2.500" stroke-linecap="round"/>
+    </g>
+  </defs>
+
+  <rect width="1600" height="900" fill="#F7F5F0"/>
+  <path d="M180,96 L1540,120 L1548,660 L60,668 L66,204 Z" fill="#F1EDE4"/>
+  <path d="M180,96 L66,204 L172,210 Z" fill="#E6E0D3"/>
+  <path d="M0,692 L1600,684 L1600,900 L0,900 Z" fill="#EAE5DA"/>
+
+  <!-- background: Maren waits, pen capped -->
+  <g transform="translate(1425,712) scale(0.96)" opacity="0.85">
+    <ellipse cx="2" cy="6" rx="78" ry="9" fill="#DDD6C8"/>
+    <path d="M-75,-192 L-81,-146" fill="none" stroke="#6B7280" stroke-width="7" stroke-linecap="round"/>
+    <path d="M-80,-158 L-85,-116" fill="none" stroke="#1F2430" stroke-width="9" stroke-linecap="round"/>
+    <path d="M-86.500,-150 L-89.500,-126" fill="none" stroke="#B8860B" stroke-width="2" stroke-linecap="round"/>
+    <use href="#maren"/>
+    <path d="M-44,-316 L-64,-252 L-73,-200" fill="none" stroke="#343B4D" stroke-width="18" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="-74" cy="-196" r="10" fill="#C68B62"/>
+    <path d="M44,-316 L42,-248 L6,-228" fill="none" stroke="#343B4D" stroke-width="18" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M-22,-252 H2 L-1,-232 H-19 Z" fill="#FFFDF8"/>
+    <path d="M-28,-230 H8" fill="none" stroke="#FFFDF8" stroke-width="4" stroke-linecap="round"/>
+    <circle cx="6" cy="-228" r="10" fill="#C68B62"/>
+  </g>
+
+  <!-- the board and Fenn's card -->
+  <path d="M700,720 L688,762 M900,720 L912,762" fill="none" stroke="#BDB5A6" stroke-width="8" stroke-linecap="round"/>
+  <rect x="636" y="336" width="328" height="388" fill="#DCD3C0" filter="url(#sh)"/>
+  <rect x="660" y="360" width="280" height="340" fill="#FFFDF8" filter="url(#sh)"/>
+  <rect x="660" y="360" width="280" height="24" fill="#4C1D95"/>
+  <path d="M690,430 H910 M690,480 H860 M690,580 H890 M690,630 H820" fill="none" stroke="#CFC8BA" stroke-width="10" stroke-linecap="round"/>
+  <path d="M806,534 L908,558" fill="none" stroke="#DAD3C5" stroke-width="9" stroke-linecap="round" stroke-dasharray="2 16"/>
+  <path d="M690,530 H910" fill="none" stroke="#7A7468" stroke-width="10" stroke-linecap="round"/>
+
+  <!-- Odet lays the thread under the line -->
+  <path d="M622,546 H950 q10,0 10,12 q0,10 -8,8" fill="none" stroke="#3B2A6B" stroke-width="3" stroke-linecap="round"/>
+  <ellipse cx="474" cy="768" rx="120" ry="12" fill="#DDD6C8"/>
+  <g transform="translate(470,760) scale(2)">
+    <use href="#odet"/>
+    <rect x="63" y="-118" width="14" height="22" fill="#3B2A6B"/>
+    <rect x="60" y="-122" width="20" height="5" fill="#C9A56A"/><rect x="60" y="-97" width="20" height="5" fill="#C9A56A"/>
+    <path d="M57,-92 Q64,-82 70,-92" fill="none" stroke="#4A1AA0" stroke-width="6" stroke-linecap="round"/>
+    <path d="M-58,-100 Q-76,-84 -68,-68" fill="none" stroke="#4A1AA0" stroke-width="6" stroke-linecap="round"/>
+  </g>
+
+  <!-- Fenn squares the line -->
+  <path fill-rule="evenodd" d="M762,523 L912,523 L912,373 Z M892,503 L810,503 L892,421 Z" fill="#7C3AED" fill-opacity="0.8" filter="url(#sh)"/>
+  <ellipse cx="1114" cy="768" rx="124" ry="12" fill="#DDD6C8"/>
+  <g transform="translate(1110,760) scale(2)">
+    <path d="M-18,-42 V0 h-13 M18,-42 V0 h-13" fill="none" stroke="#2F1063" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+    <use href="#flag" x="16" y="-160"/>
+    <g filter="url(#sh)">
+      <path d="M-34,-145 L34,-148 L36,-58 L-34,-56 Z" fill="#4C1D95"/>
+      <path d="M-34,-145 L34,-148 L26,-170 L-26,-168 Z" fill="#6A3BBE"/>
+      <path d="M-34,-145 L-34,-56 L-64,-100 Z" fill="#3B1578"/>
+      <path d="M34,-148 L36,-58 L66,-104 Z" fill="#5727A6"/>
+      <path d="M-34,-56 L36,-58 L26,-40 L-24,-38 Z" fill="#2F1063"/>
+    </g>
+    <path d="M-21,-110 q6,-7 12,0" fill="none" stroke="#F7F5F0" stroke-width="3" stroke-linecap="round"/>
+    <circle cx="10" cy="-113" r="7" fill="#F7F5F0"/><circle cx="7.500" cy="-112" r="3" fill="#1F2430"/>
+    <path d="M-10,-93 q8,7 15,-2" fill="none" stroke="#F7F5F0" stroke-width="3" stroke-linecap="round"/>
+    <path d="M-62,-102 Q-92,-106 -97,-142" fill="none" stroke="#2F1063" stroke-width="6" stroke-linecap="round"/>
+    <path d="M62,-102 Q80,-86 70,-70" fill="none" stroke="#2F1063" stroke-width="6" stroke-linecap="round"/>
+  </g>
+</svg>
