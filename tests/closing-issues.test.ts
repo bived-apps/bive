@@ -153,7 +153,7 @@ test("planClosures: an already-closed issue is skipped", () => {
   assert.deepEqual(plan, [])
 })
 
-test("planClosures: duplicate delivery (marker present) creates no closure or comment", () => {
+test("planClosures: a marker on a still-open issue closes it without a second comment; a closed one is untouched", () => {
   const plan = planClosures({
     event: mergedEvent(),
     refs: [5],
@@ -161,7 +161,16 @@ test("planClosures: duplicate delivery (marker present) creates no closure or co
     mergeCommitReachable: true,
     existingComments: { 5: `Looks done.\n\n<!-- bive-close-issues pr=7 sha=${MERGE_SHA} -->\n— bive-close-issues workflow (GitHub Actions)` },
   })
-  assert.deepEqual(plan, [])
+  assert.equal(plan.length, 1)
+  assert.equal(plan[0].issue, 5)
+  assert.equal(plan[0].comment, null)
+  const done = planClosures({ event: mergedEvent(), refs: [5], issueStates: { 5: "closed" }, mergeCommitReachable: true,
+    existingComments: { 5: `<!-- bive-close-issues pr=7 sha=${MERGE_SHA} -->` } })
+  assert.deepEqual(done, [])
+})
+
+test("planClosures: a number that is a pull request is never closed", () => {
+  assert.deepEqual(planClosures({ event: mergedEvent(), refs: [5], issueStates: { 5: "pull_request" }, mergeCommitReachable: true }), [])
 })
 
 test("planClosures: a marker for a different PR or SHA does not skip", () => {
@@ -248,4 +257,18 @@ test("run: events it does not handle are ignored", async () => {
   const result = await run({ event: { action: "opened", pull_request: {} }, repository: "me/repo", runGh: async () => { called = true } })
   assert.deepEqual(result.closures, [])
   assert.equal(called, false)
+})
+test("the close-issues workflow is merged-only, integration-only, least-privilege and never runs head code", async () => {
+  const fs = await import("node:fs")
+  const w = fs.readFileSync(new URL("../.github/workflows/bive-close-issues.yml", import.meta.url), "utf8")
+  assert.match(w, /types: \[closed\]/)
+  assert.match(w, /branches: \[bived, "milestone\/\*\*"\]/)
+  assert.match(w, /merged == true/)
+  assert.match(w, /issues: write/)
+  assert.match(w, /contents: read/)
+  assert.match(w, /timeout-minutes: 5/)
+  assert.match(w, /runs-on: ubuntu-latest/)
+  assert.match(w, /ref: \$\{\{ github\.event\.pull_request\.base\.ref \}\}/)
+  assert.doesNotMatch(w, /head\.(ref|sha)/)
+  assert.doesNotMatch(w, /pull_request_target|self-hosted/)
 })

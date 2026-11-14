@@ -116,9 +116,11 @@ export function planClosures({ event, refs, issueStates, mergeCommitReachable, e
   for (const issue of refs) {
     if (!Number.isInteger(issue) || planned.has(issue)) continue
     if (issueStates?.[issue] !== "open") continue
-    if (hasClosureMarker(existingComments[issue], prNumber, sha)) continue
     planned.add(issue)
-    out.push({ issue, comment: buildClosureComment({ prNumber, base, sha }) })
+    // A marker on a still-open issue means an earlier run commented and was interrupted before closing: close it
+    // without a second comment. A closed issue is already skipped above, so a rerun changes nothing.
+    const commented = hasClosureMarker(existingComments[issue], prNumber, sha)
+    out.push({ issue, comment: commented ? null : buildClosureComment({ prNumber, base, sha }) })
   }
   return out
 }
@@ -161,7 +163,8 @@ export async function run({ event, repository, runGh, dryRun = false }) {
   const existingComments = {}
   for (const issue of refs) {
     try {
-      issueStates[issue] = (await runGh(["api", `repos/${repository}/issues/${issue}`, "--jq", ".state"])).stdout.trim()
+      issueStates[issue] = (await runGh(["api", `repos/${repository}/issues/${issue}`, "--jq",
+        'if .pull_request then "pull_request" else .state end'])).stdout.trim() // a pull request number is never closed here
       existingComments[issue] = (await runGh(["api", `repos/${repository}/issues/${issue}/comments`, "--paginate",
         "--jq", ".[].body"])).stdout
     } catch (error) {
@@ -175,7 +178,9 @@ export async function run({ event, repository, runGh, dryRun = false }) {
   for (const { issue, comment } of closures) {
     // Comment first, then close: a failure between the two leaves the issue open and a marker behind,
     // which the next run skips — never a closed issue without its provenance comment.
-    await runGh(["issue", "comment", String(issue), "--repo", repository, "--body-file", "-"], { input: comment })
+    if (comment !== null) {
+      await runGh(["issue", "comment", String(issue), "--repo", repository, "--body-file", "-"], { input: comment })
+    }
     await runGh(["api", "-X", "PATCH", `repos/${repository}/issues/${issue}`, "-f", "state=closed"])
     applied.push(issue)
   }
