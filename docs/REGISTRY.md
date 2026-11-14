@@ -35,3 +35,7 @@ Bive asks in return; the licence (MIT) does not require it.
 - **Run a registry**: the repository [bived-apps/registry](https://github.com/bived-apps/registry) holds the
   Cloudflare Worker (`worker.js`, D1 `schema.sql`, `wrangler.toml`), its page and the browser help; the deploy steps
   are at the top of `wrangler.toml`.
+- **Troubleshooting**: a `403 Attention Required | Cloudflare` or an authentication error while deploying or reporting
+  comes from the registry Worker's side, not from a model provider: check with `wrangler whoami`, reconnect with
+  `wrangler login`, then retry. Do not switch models for it. The token counter says once per session that the
+  **registry report** failed, with the status, and only retries at the next session end (issue #261).

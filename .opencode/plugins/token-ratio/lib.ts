@@ -62,3 +62,13 @@ export function totals(log: string): { human: number, agent: number, ratio: numb
   }
   return { human, agent, ratio: human ? Math.round(agent / human) : null }
 }
+
+// The one line said when the registry report fails (#261): it names the registry, so an anonymous Cloudflare 403 is
+// not mistaken for a model provider's refusal; a 401/403 points to the Worker's side (`wrangler whoami`, then
+// `wrangler login`). Nothing is retried here: the counts wait for the next session end.
+export function registryFailureMessage(detail: string): string {
+  const auth = /\b(401|403)\b|authenticat|attention required/i.test(detail)
+  return `Bive registry report (token counter, not the model) not sent: ${detail}; retried at the next session end.` +
+    (auth ? " A 401/403 or a Cloudflare 'Attention Required' page comes from the registry Worker's side: check with" +
+      " `wrangler whoami`, reconnect with `wrangler login` (docs/REGISTRY.md › Troubleshooting)." : "")
+}
