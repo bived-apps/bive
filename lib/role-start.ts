@@ -47,19 +47,32 @@ export function resolveRole(s: Signals): RoleResolution {
     ["worktreePath", s.worktreePath],
     ["brief", s.brief],
   ];
-  const present = signals.flatMap(([name, value]) => {
-    if (value === undefined || value.trim() === "") return [];
+  const present: Array<[string, string]> = [];
+  for (const [name, value] of signals) {
+    if (value === undefined || value.trim() === "") continue;
     if (name === "worktreePath") {
-      return /\.worktrees\/issue-\d+/.test(value) ? [[name, "delegate"] as const] : [];
+      if (/\.worktrees\/issue-\d+/.test(value)) present.push([name, "delegate"]);
+      continue;
     }
     if (name === "brief") {
-      const found = roles.filter((role) => new RegExp(`\\b${role}\\b`, "i").test(value));
-      if (found.length > 1) return [[name, `conflicting roles: ${found.join(", ")}`] as const];
-      return found.length === 1 ? [[name, found[0]] as const] : [];
+      const briefRoles = [...value.matchAll(/^\s*role:\s*(advisor|coordinator|delegate)\s*$/gim)]
+        .map((match) => match[1].toLowerCase() as Role);
+      if (new Set(briefRoles).size > 1) {
+        present.push([name, `conflicting roles: ${[...new Set(briefRoles)].join(", ")}`]);
+      } else if (briefRoles.length > 0) {
+        present.push([name, briefRoles[0]]);
+      }
+      continue;
     }
-    const role = explicitRole(value);
-    return [[name, role ?? `invalid value "${value.trim()}"`] as const];
-  });
+    const normalized = value.trim();
+    if (name === "agent" && ![...roles, "supervisor"].includes(normalized as Role | "supervisor")) continue;
+    if (normalized === "supervisor") {
+      return { kind: "blocked", reason: `blocked: ${name} names supervisor; the supervisor role is retired` };
+    }
+    const role = explicitRole(normalized);
+    if (role) present.push([name, role]);
+    else present.push([name, `invalid value "${normalized}"`]);
+  }
 
   const invalid = present.find(([, value]) => value.startsWith("invalid value") || value.startsWith("conflicting roles"));
   if (invalid) return { kind: "blocked", reason: `blocked: ${invalid[0]} has ${invalid[1]}` };

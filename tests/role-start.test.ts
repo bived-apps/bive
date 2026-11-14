@@ -7,7 +7,7 @@ const roleSignals: Array<[string, Partial<Signals>, Role]> = [
   ["environment role", { envRole: "coordinator" }, "coordinator"],
   ["role file", { roleFile: " delegate \n" }, "delegate"],
   ["worktree", { worktreePath: "/repo/.worktrees/issue-232" }, "delegate"],
-  ["brief", { brief: "Please act as coordinator for this task." }, "coordinator"],
+  ["brief", { brief: "Role: coordinator" }, "coordinator"],
 ];
 
 test("each role signal suppresses asking", () => {
@@ -78,4 +78,36 @@ test("afterAnswer resolves roles and treats none/cancel as answer-only", () => {
   assert.deepEqual(afterAnswer("none of these: just answer a question", { interactive: true }), { kind: "answer-only" });
   assert.deepEqual(afterAnswer("", { interactive: true }), { kind: "answer-only" });
   assert.deepEqual(afterAnswer("cancel", { interactive: true }), { kind: "answer-only" });
+});
+
+test("default agent names are not role signals", () => {
+  assert.equal(resolveRole({ interactive: true, agent: "build" }).kind, "ask");
+  assert.deepEqual(resolveRole({ interactive: true, agent: "build", roleFile: "delegate" }), {
+    kind: "role", role: "delegate", setIdentity: true,
+  });
+});
+
+test("retired supervisor role is blocked", () => {
+  for (const signal of [
+    { agent: "supervisor" },
+    { envRole: "supervisor" },
+    { roleFile: "supervisor" },
+  ]) {
+    const result = resolveRole({ interactive: true, ...signal });
+    assert.equal(result.kind, "blocked");
+    if (result.kind === "blocked") assert.match(result.reason, /supervisor role is retired/);
+  }
+});
+
+test("brief requires an explicit role line", () => {
+  assert.equal(resolveRole({ interactive: true, brief: "The delegate will handle implementation." }).kind, "ask");
+  assert.deepEqual(resolveRole({ interactive: true, brief: "Role: coordinator" }), {
+    kind: "role", role: "coordinator", setIdentity: true,
+  });
+});
+
+test("different explicit role lines in brief block", () => {
+  const result = resolveRole({ interactive: true, brief: "Role: advisor\nRole: delegate" });
+  assert.equal(result.kind, "blocked");
+  if (result.kind === "blocked") assert.match(result.reason, /advisor.*delegate/);
 });
