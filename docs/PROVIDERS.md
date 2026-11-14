@@ -26,6 +26,24 @@ selection of that model. A lower-role exception for an unqualified model is the 
 to a higher role. The owner approves the actual candidates and their order before any paid probe or rollout; this
 guide invents no prices and makes no live call.
 
+## Proposing a team (issue #223)
+
+Five different things, never confused:
+
+- **listed**: the model is in the catalog.
+- **available**: a probe answered today on this machine; a refusal such as "not available in your country", a quota, or a missing balance means not available.
+- **free**: the catalog price is 0 for input and output.
+- **suitable**: qualified for the role on the bench (`RESULTS.md`); a probe is not a qualification.
+- **approved**: the owner chose it with buttons, dated.
+
+Two probe kinds and what each proves: a tool-free probe shows the route answers; a one-tool-call probe shows the model can call a tool (for example, read the first lines of `AGENTS.md`). Neither is qualification. Probes are sent only to models the owner agreed to probe.
+
+Who does what: the coordinator (or an advisor, as advice only) proposes a team with fixed choices, recommended first, one decision per question; the owner approves; the approved team is written to `.bive/models.json` with a dated line in `HANDOFF.md` › Decisions by a coordinator pull request. The retired supervisor role proposes nothing.
+
+A coordinator error (unreachable, 429, quota) never silently changes the assigned model: it reports and follows "Switching mid-work" above. Delegate fallback (the next model in the delegate list) is unchanged.
+
+A free model is proposed first only when it is available; otherwise propose the current provider's usable model, with its price when the catalog shows one ("price not shown" when it does not).
+
 ## Owner route constraints (issue #262)
 
 An explicit route the owner sets (the `coordinator` allow-list in `.bive/models.json`, a named coordinator model, or any
