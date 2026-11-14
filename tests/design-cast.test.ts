@@ -29,3 +29,9 @@ test("the advisor has no arms and touches nothing, and the README records proven
   const r = fs.readFileSync(new URL("README.md", DIR), "utf8")
   for (const re of [/claude-fable-5-2/, /Not verified/, /usage rights/, /only Maren decides/, /Skill, not rank/]) assert.match(r, re)
 })
+
+test("the README shows the cast sheet with real alt text and links the cast guide", () => {
+  const r = fs.readFileSync(new URL("../README.md", import.meta.url), "utf8")
+  assert.match(r, /!\[The Bive cast:[^\]]{40,}\]\(docs\/design\/cast\/cast-sheet\.svg\)/)
+  assert.match(r, /\(docs\/design\/cast\/README\.md\)/)
+})
