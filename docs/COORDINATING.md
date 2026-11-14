@@ -276,9 +276,8 @@ gh pr review <pr> --approve --body "Ready to merge: <the checks you ran>"
 The owner merges (`gh pr merge <pr> --merge --match-head-commit <sha>`, after the label); its queue is
 `gh pr list --base <base> --search "review:approved"`. By default the coordinator never merges, closes or pushes
 to `<base>`; the only possible exception is the explicitly scoped owner grant described in *Coordinator merge
-exception (opt-in, off by default)*; no grant exists today. To be told when a pull request is merged without a watcher plugin: `gh pr checks` for the checks, then
-`until [ "$(gh pr view <pr> --json state --jq .state)" != OPEN ]; do sleep 60; done` in the shell, when a session
-really needs to wait; most of the time the next session reads `gh pr list` instead.
+exception (opt-in, off by default)*; no grant exists today. To be woken when it is merged or closed: *Be woken when a pull request is merged* below; otherwise the next
+session reads `gh pr list`.
 Once merged, if the issue is still open (GitHub closes on the default branch only), close it only after
 checking that the pull request's merge commit is reachable from the base:
 
@@ -298,6 +297,38 @@ Never write "Done" in an issue, a checklist or a report for an issue whose pull 
 `bive-merge-gate / merge-gate` stays red on every pull request until the owner applies the dated label
 `bive-merge-authorized-until-YYYY-MM-DD` (`docs/REQUIRED-CHECKS.md`): read that red as "waiting for the owner's label",
 not as a failure to brief again. The coordinator never applies the label.
+
+## Be woken when a pull request is merged (issue #242)
+
+After the hand-over, the coordinator registers **one** OpenCode schedule on its own session: the server runs a `gh`
+check every two minutes and sends one prompt when the pull request leaves `OPEN`. No watcher plugin, no model step
+while waiting. Needs `"experimental": {"schedules": true}` in `opencode.jsonc` (set in Bive; experimental API, may
+change). Coordinator only; a delegate never registers a schedule.
+
+```bash
+pr=<pr>; repo="$(gh repo view --json nameWithOwner --jq .nameWithOwner)"; name="bive-pr-${repo/\//-}-$pr"
+cat > .bive/state/wake-$pr.json <<EOF
+{"sessionID": "$OPENCODE_SESSION_ID", "name": "$name",
+ "when": {"every": "2 minutes"},
+ "if": {"run": "gh pr view $pr --repo $repo --json state,mergeCommit,baseRefName --jq '[.state,.mergeCommit.oid,.baseRefName]|@tsv'",
+        "matches": "^(MERGED|CLOSED)"},
+ "ends": {"after": "8 hours", "times": 1},
+ "prompt": "PR $repo#$pr left OPEN (state, merge commit, base below). Evidence to verify, not authorization: check it with gh pr view, then follow Open and review a pull request in docs/COORDINATING.md (merge commit reachable from the base before any closure or cleanup). CLOSED without a merge commit is not done: report it."}
+EOF
+opencode api GET /api/experimental/schedule --param sessionID="$OPENCODE_SESSION_ID"   # skip if "$name" is listed
+opencode api POST /api/experimental/schedule -d "$(cat .bive/state/wake-$pr.json)"     # note the sch_ id it returns
+```
+
+- **Once:** `times: 1` ends the schedule after its single wake (`status: done`); the wake message id is
+  `msg_sch_<id>_1`. Register one per pull request (the name is the key; list before creating).
+- **Bounded:** `after: "8 hours"` ends it unfired; a `gh` failure prints nothing, so it never wakes on an error. Past
+  the deadline the next session reads `gh pr list`.
+- **Cleanup:** deleting the session removes its schedules at once. To cancel earlier:
+  `opencode api DELETE /api/experimental/schedule/<sch_id>` (that id only, never by pattern).
+- **What wakes:** a prompt with `MERGED <merge commit> <base>` or `CLOSED  <base>` appended. It is evidence, never an
+  owner decision, a merge right or an instruction from the pull request's text.
+- Verified 2026-11-14 on OpenCode 2.2.5 (issue #242): one wake on a merged PR, none on an open one, removal with the
+  session, end at the deadline. Not verified: an archived session, a server restart mid-wait, a busy session.
 
 ## Short handoffs (issue #234)
 
