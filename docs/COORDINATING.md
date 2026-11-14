@@ -196,7 +196,7 @@ gh pr review <pr> --approve --body "Ready to merge: <the checks you ran>"
 The owner merges (`gh pr merge <pr> --merge --match-head-commit <sha>`, after the label); its queue is
 `gh pr list --base <base> --search "review:approved"`. By default the coordinator never merges, closes or pushes
 to `<base>`; the only possible exception is the explicitly scoped owner grant described in *Coordinator merge
-exception (design, not implemented)*, which is not available today. To be told when a pull request is merged without a watcher plugin: `gh pr checks` for the checks, then
+exception (opt-in, off by default)*; no grant exists today. To be told when a pull request is merged without a watcher plugin: `gh pr checks` for the checks, then
 `until [ "$(gh pr view <pr> --json state --jq .state)" != OPEN ]; do sleep 60; done` in the shell, when a session
 really needs to wait; most of the time the next session reads `gh pr list` instead.
 Once merged, if the issue is still open (GitHub closes on the default branch only), close it only after
@@ -218,6 +218,44 @@ Never write "Done" in an issue, a checklist or a report for an issue whose pull 
 `bive-merge-gate / merge-gate` stays red on every pull request until the owner applies the dated label
 `bive-merge-authorized-until-YYYY-MM-DD` (`docs/REQUIRED-CHECKS.md`): read that red as "waiting for the owner's label",
 not as a failure to brief again. The coordinator never applies the label.
+
+## Reuse complete trusted CI evidence (issue #227)
+
+A green summary is not proof. A coordinator may skip an equivalent per-PR local run only when it records, from the CI
+run itself: the **reviewed head SHA**; the **run URL and check name**; the **tested commit** (the head, or the synthetic
+merge SHA with the base SHA it was merged onto); that the **workflow is the trusted one from the base branch**; the
+**result** and every **skipped marker**; and that the run covers the checks you would have run (the same command, the
+whole suite, not a subset). Put that line in the review comment: `CI <url> head <sha> base <sha>: tests 326/326, no skips`.
+
+Not a substitute, so run locally: a run on another or older head (stale); a partial run that still exited 0; a run
+with skipped or marked tests the batch needs; a run absent, still pending, or from an untrusted workflow (a fork or a
+workflow changed by the same PR); a changed input (config, fixtures, environment) the run did not see; local-only
+coverage (a plugin check, `opencode plugin list`).
+
+What stays regardless: the delegate's fast checks, and the coordinator's core run once per batch of merges
+(`AGENTS.md` says CI does not replace it; dropping it needs an owner rule decision, not this section).
+
+```bash
+gh pr view <pr> --json headRefOid --jq .headRefOid              # the reviewed head
+gh run list --commit <sha> --json databaseId,name,conclusion,headSha,url
+gh run view <run-id> --log | tail -n 40                         # coverage and skips, not just the summary
+```
+
+## Milestones are the work queue (issue #228)
+
+Every implementation issue and its pull request carry the **same real GitHub milestone**, set when it is created. A
+tracking issue holds order, dependencies and decisions, never a copy of status. One query per object type gives what
+remains:
+
+```bash
+gh issue list --milestone "<title>" --state open --json number,title,labels
+gh pr list --state open --search 'milestone:"<title>"' --json number,title,baseRefName
+```
+
+Creation and review checklist: the issue has the milestone; the PR has the milestone of the issue it closes; a `Part of`
+issue stays open and listed until its last part merges. Reconcile bounded: list issues and PRs without a milestone
+(`gh issue list --search "no:milestone"`), attach, do not move old issues or touch other milestones' PRs. A
+cross-cutting issue gets the milestone it blocks and a comment naming the exception. No new task service.
 
 ## Refusal and resume (issues #146, #147)
 

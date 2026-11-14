@@ -221,15 +221,20 @@ commit checks on a pull request.
   `../outside.txt` is refused by the guard and `.bive/state/tokens.jsonl` fills.
 - **`opencode plugin list`** is a local/manual check; it is not a GitHub required status.
 
-## Coordinator merge exception (design, not implemented)
+## Coordinator merge exception (opt-in, off by default)
 
-Default: a coordinator does not merge or close pull requests. A future, explicitly scoped owner grant may let a named
-coordinator execute the merge of specific sub-coordinator pull requests, bound to repository, executor (session), pull
-request, exact head, base and UTC expiry, single use, with no inheritance or onward delegation and no
-pull-request-close, team, gate or test-release powers. It would never cover a pull request the coordinator authored or
-owns. Revoked, expired or head-changed grants would be rejected, and green checks plus the owner's authorization would
-still be required. This is a design requirement only; it is not implemented and no grant is issued. Current enforcement
-remains the blanket denial. Proposed contract: [docs/OWNER-ADVISOR-REWORK.md](OWNER-ADVISOR-REWORK.md).
+Default: a coordinator does not merge or close pull requests, and nothing is approved or merged into `main` but by the
+owner. The owner may opt in, per app, a named parent coordinator for its direct sub-coordinator's pull requests into
+`bived` or `milestone/*`, with a signed approval verified against a grant in `.bive/gate.json`; the gate then accepts
+it instead of the dated label. `coordinatorMerges` ships `false` and no grant exists. Contract:
+[docs/COORDINATOR-MERGES.md](COORDINATOR-MERGES.md).
+
+## Reusing CI as evidence (issue #227)
+
+A run substitutes a per-PR local run only with: the reviewed head SHA, the run URL and check name, the tested (or
+synthetic merge) SHA and its base, the trusted workflow, the whole suite, the result and the skipped markers. Stale,
+partial, skipped, missing or untrusted runs do not. The batch core run stays local. See
+`docs/COORDINATING.md` › *Reuse complete trusted CI evidence*.
 
 ## What this document does not say
 
@@ -238,7 +243,7 @@ remains the blanket denial. Proposed contract: [docs/OWNER-ADVISOR-REWORK.md](OW
   compare them against the checks listed here.
 - It does not say who merges: by default the owner alone, after the coordinator's approval (`AGENTS.md` › Roles). An
   advisor's text or a collaborator/shared account is not approval; a bench pass is capability evidence only. A future,
-  explicitly scoped owner grant may let a named coordinator merge specific sub-coordinator pull requests, but that is a
-  design requirement, not implemented today (see [docs/OWNER-ADVISOR-REWORK.md](OWNER-ADVISOR-REWORK.md)).
+  opt-in grant may let a named parent coordinator merge its direct sub-coordinator's pull requests into integration
+  branches (off by default; [docs/COORDINATOR-MERGES.md](COORDINATOR-MERGES.md)).
 - Workflow job names are part of the check identity. If a workflow or job is renamed, update this document and the
   repository's branch-protection configuration together so they keep matching.
