@@ -15,7 +15,7 @@ const SITE_CHROME = [
   /^Ignorer et passer au contenu$/i, /^Skip to content$/i, /^Historique de chat$/i, /^Nouveau chat$/i, /^Se connecter$/i,
   /^Inscription gratuite$/i, /^Partager$/i, /^Share$/i, /^Log in$/i, /^Sign up/i, /^Afficher plus$/i, /^Show more$/i,
   /^Signaler la conversation$/i, /^Ceci est une copie/i, /^This is a copy of a/i, /peut se tromper\.?$/i,
-  /can make mistakes/i, /^(R[ée]fl[ée]chi|Thought|Thinking) (pendant|for) /i, /^Voir les offres/i, /^Param[eè]tres$/i, /^Connectez-vous/i, /^Flash([- ]Lite)?$/i, /^(Rapide|Fast|Thinking|Raisonnement)$/i, /n'est pas un [êe]tre humain/i,
+  /can make mistakes/i, /^(R[ée]fl[ée]chi|Thought|Thinking) (pendant|for) /i, /^Voir les offres/i, /^Param[eè]tres$/i, /^Connectez-vous/i, /adresse IP/i, /your IP address/i, /^Nouvelle discussion$/i, /^T[ée]l[ée]charger l'appli$/i, /^Flash([- ]Lite)?$/i, /^(Rapide|Fast|Thinking|Raisonnement)$/i, /n'est pas un [êe]tre humain/i,
   /^S'ouvre dans une nouvelle fen[êe]tre$/i, /^[ÀA] propos de\b/i, /^Abonnements$/i, /^Pour les entreprises$/i, /^Confidentialit[ée]$/i, /^Aide$/i, /^Sign in/i, /^Se connecter$/i,
 ]
 
