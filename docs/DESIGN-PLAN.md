@@ -66,13 +66,16 @@ No cap is set. Catalog prices are per token and often shown as zero when unknown
 call: verified price per model, a probe cost per image (one capped test each, owner-approved), then a total cap the owner
 sets. Claude models cannot generate pictures; they write SVG.
 
-## Open questions for the owner (round 3)
+## Owner answers (round 3, 2026-11-14, buttons)
 
-1. Create `bived-apps/.github` for the organization profile page? (A new repository: the owner decides.)
-2. The 8 synthetic workspaces: archive all, rename, or hide from the front door?
-3. Which of the five cards leads the front door, and is `grooms` public-facing or internal?
-4. Confirm the accent colours (teal, amber, violet are candidates only) and whether role glyphs are people or objects.
-5. A one-line name or tagline for the organization.
+1. **Profile repository**: yes, once the brief is approved. A new repository is the owner's call, so it is proposed then.
+2. **Synthetic workspaces**: archive all eight. Five are archived; the owner archives the other three
+   (`milestone-m-20261113-07`, `-08`, `-09`); an agent archives nothing.
+3. **Front door lead**: the Bive template, the other repositories hang off it.
+4. **Role glyphs**: simple glyphs (magnifier, clipboard, laptop) in the role colours for diagrams and icons. People-like
+   characters stay a candidate set for hero art only if the owner asks for it again.
+5. **Still open**: the organization's one-line tagline, and whether `grooms` is public-facing or internal. Accent colours
+   (teal, amber, violet) remain candidates until the style guide is approved.
 
 ## Not decided here
 
