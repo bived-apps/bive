@@ -23,7 +23,7 @@ export type MergeSnapshot = {
 
 export type MergeRequest = { number: number, childSession: string }
 export type MergeScope = {
-  repository: string, number: number, head: string, base: string
+  repository: string, number: number, head: string, base: string, headBranch: string
   executor: string, childSession: string, expiresAt: number
 }
 export type MergeIO = {
@@ -71,7 +71,7 @@ export async function runCoordinatorMerge(request: MergeRequest, executor: strin
   const first = await io.read()
   valid(first, request, executor)
   if (now() >= first.grantExpiresAt) throw new Error("coordinator merge refused: owner grant expired")
-  const scope: MergeScope = { repository: first.repository, number: first.number, head: first.head, base: first.base,
+  const scope: MergeScope = { repository: first.repository, number: first.number, head: first.head, base: first.base, headBranch: first.headBranch,
     executor, childSession: request.childSession, expiresAt: Math.min(now() + 120_000, first.grantExpiresAt) }
   if (!first.headApproved) await io.approve(scope, first.owner)
   if (!Number.isFinite(now()) || now() >= scope.expiresAt) throw new Error("coordinator merge refused: one-call grant expired")

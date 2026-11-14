@@ -1,8 +1,12 @@
 // Narrow execution path; never relaxes the shell policy or creates owner authorization.
 import { execFile } from "node:child_process"
+import { createPrivateKey, sign } from "node:crypto"
+import { mkdirSync, writeFileSync } from "node:fs"
 import path from "node:path"
-import { createGhReaders, runMergeGate } from "../../../.github/scripts/check-merge-gate.mjs"
-import { AUTHORIZATION_LABEL_PREFIX, parseGateOwner } from "../../../.github/scripts/merge-gate-lib.mjs"
+import { createGhReaders } from "../../../.github/scripts/check-merge-gate.mjs"
+import { parseGateOwner } from "../../../.github/scripts/merge-gate-lib.mjs"
+import { APPROVAL_LIFETIME_MS, APPROVAL_PREFIX, approvalBytes, changesMergeAuthority, matchingGrant,
+  verifyParentApproval } from "../../../.github/scripts/coordinator-approval-lib.mjs"
 import { isAdvisor, isDelegate } from "./check.ts"
 import { runCoordinatorMerge, type MergeRequest, type MergeScope, type MergeSnapshot } from "./coordinator-merge.ts"
 
@@ -21,17 +25,11 @@ function processOutput(command: string, args: string[], cwd: string, signal?: Ab
 // Uses the documented OpenCode 2 tool/permission APIs; ctx's runtime is supplied by OpenCode.
 export async function registerCoordinatorMerge(ctx: any, root: string, role?: string, roleFile?: string,
   execute = processOutput): Promise<void> {
-  // Saved approvals and inherited "allow" never replace the human's one-call decision. Explicit denies remain final.
-  await ctx.permission.hook("evaluate", (event: any) => {
-    if (event.action === "bive.coordinator.merge") {
-      event.effect = "ask"
-      event.message = "Human owner only: one named sub-coordinator PR, exact head/base/session, expires in two minutes. No standing merge right."
-    }
-  })
+  // Direct shell merges stay denied; this tool is the only merge path. No owner prompt per PR: the owner's grant is the proof.
   await ctx.tool.transform((editor: any) => {
     editor.add({
       name: "bive_coordinator_merge",
-      description: "Owner opt-in only: merge one direct sub-coordinator PR after a fresh, exact-scope human permission prompt. Default off on the base.",
+      description: "Owner opt-in only: approve and merge one direct sub-coordinator PR into an integration branch under the owner's grant on the base. Never main. Default off.",
       input: {
         type: "object", additionalProperties: false,
         properties: { number: { type: "integer", minimum: 1 }, childSession: { type: "string", minLength: 1 } },
@@ -42,6 +40,8 @@ export async function registerCoordinatorMerge(ctx: any, root: string, role?: st
             || isDelegate(root, role, roleFile, context.agent)) {
           throw new Error("coordinator merge refused: only a coordinator may request owner opt-in")
         }
+        let lastGrant: ReturnType<typeof matchingGrant> = null
+        let lastApprovals = 0
         const run = (command: string, args: string[], cwd = root) => execute(command, args, cwd, context.signal)
         const repository = await run("gh", ["repo", "view", "--json", "nameWithOwner", "--jq", ".nameWithOwner"])
         if (!/^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/.test(repository)) throw new Error("invalid repository identity")
@@ -74,37 +74,53 @@ export async function registerCoordinatorMerge(ctx: any, root: string, role?: st
               || a.name.includes(`[session=${context.sessionID}]`)
               || (a.name.startsWith("coordinator ") && !/\[session=ses_[A-Za-z0-9]+\]$/.test(a.name)))
           const gatePr = await readers.readPullRequest({ repository, number: input.number })
-          const labels = gatePr.labels.filter((label: string) => label.startsWith(AUTHORIZATION_LABEL_PREFIX))
-          if (labels.length !== 1) throw new Error("current owner authorization missing")
-          const events = await readers.readLabelEvents({ repository, number: input.number, label: labels[0] })
-          const latest = events.sort((a: any, b: any) => Date.parse(b.createdAt) - Date.parse(a.createdAt))[0]
-          if (!latest || latest.actor !== owner || latest.actorType !== "User" || latest.performedViaApp) {
-            throw new Error("authorization provenance is not the configured human owner")
-          }
-          await runMergeGate({
-            repository, ...readers,
-            event: { pull_request: { number: input.number, head: { sha: pr.headRefOid }, base: { ref: pr.baseRefName } } },
-          })
+          // Authority is the owner's grant on the protected BASE, never a label or a head-side file.
+          const grant = matchingGrant(configText, { repository, executor: context.sessionID, childSession: input.childSession,
+            headBranch: pr.headRefName, base: pr.baseRefName })
+          const files = (JSON.parse(await run("gh", ["pr", "view", String(input.number), "--repo", repository, "--json", "files"])).files ?? [])
+            .map((f: any) => f?.path)
+          const raw = await run("gh", ["api", `repos/${repository}/issues/${input.number}/comments`, "--paginate", "--jq", ".[] | {body: .body}"])
+          const comments = raw.split("\n").filter(Boolean).map((line) => { try { return JSON.parse(line) } catch { return {} } })
+          const prInfo = { repository, number: pr.number, head: pr.headRefOid, base: pr.baseRefName, headBranch: pr.headRefName,
+            coordinatorPR: gatePr.labels.includes("coordinator"), state: pr.state, files,
+            sameRepository: pr.isCrossRepository === false
+              && `${pr.headRepositoryOwner?.login}/${pr.headRepository?.name}`.toLowerCase() === repository.toLowerCase() }
+          const approval = grant ? verifyParentApproval(configText, prInfo, comments) : null
+          lastGrant = grant
+          lastApprovals = grant ? comments.filter((c: any) => {
+            try { return JSON.parse(String(c.body).slice(APPROVAL_PREFIX.length))?.payload?.grant === grant.id } catch { return false }
+          }).length : 0
           return {
             repository, number: pr.number, state: pr.state, head: pr.headRefOid, base: pr.baseRefName,
-            headBranch: pr.headRefName, sameRepository: pr.isCrossRepository === false
-              && `${pr.headRepositoryOwner?.login}/${pr.headRepository?.name}`.toLowerCase() === repository.toLowerCase(),
-            coordinatorPR: gatePr.labels.includes("coordinator"),
+            headBranch: pr.headRefName, sameRepository: prInfo.sameRepository, coordinatorPR: prInfo.coordinatorPR,
             enabled: true, owner, checks: await readers.readChecks({ repository, number: input.number }),
-            authorizationValid: true, selfAuthored,
+            authorizationValid: grant !== null,
+            headApproved: approval !== null && approval.payload.executor === context.sessionID
+              && approval.payload.childSession === input.childSession,
+            grantExpiresAt: grant ? Date.parse(grant.expiresAt) : NaN,
+            authorityChange: changesMergeAuthority(files),
+            selfAuthored,
             executor: { id: executor.id, agent: executor.agent },
             child: { id: child.id, agent: child.agent, parentID: child.parentID, branch, head: childHead },
           }
         }
         const result = await runCoordinatorMerge(input, context.sessionID, {
           read,
-          approve: async (scope: MergeScope, owner: string) => {
-            await ctx.permission.assert({
-              sessionID: context.sessionID, agent: context.agent,
-              source: { type: "tool", messageID: context.messageID, id: context.id },
-              action: "bive.coordinator.merge", resources: [JSON.stringify(scope)], save: [],
-              metadata: { owner, scope, warning: "One-call owner opt-in, not supervisory authority. Reject if you are not the owner." },
-            })
+          // Records the parent's signed approval of this exact head under the owner's grant; the owner is not asked per PR.
+          approve: async (scope: MergeScope) => {
+            const pem = process.env.BIVE_PARENT_APPROVAL_KEY
+            if (!lastGrant || !pem) throw new Error("coordinator merge refused: no grant, or no approval key handed over by the owner")
+            if (lastApprovals >= lastGrant.maxApprovals) throw new Error("coordinator merge refused: the grant's approvals are used up")
+            const issuedAt = Date.now()
+            const payload = { grant: lastGrant.id, repository: scope.repository, number: scope.number, head: scope.head,
+              base: scope.base, executor: scope.executor, childSession: scope.childSession, headBranch: scope.headBranch,
+              issuedAt, expiresAt: Math.min(issuedAt + APPROVAL_LIFETIME_MS, Date.parse(lastGrant.expiresAt)),
+              sequence: lastApprovals + 1 }
+            const signature = sign(null, approvalBytes(payload), createPrivateKey(pem)).toString("base64")
+            const file = path.join(root, ".bive", "state", `approval-${scope.number}.md`)
+            mkdirSync(path.dirname(file), { recursive: true })
+            writeFileSync(file, APPROVAL_PREFIX + JSON.stringify({ payload, signature }))
+            await run("gh", ["pr", "comment", String(scope.number), "--repo", scope.repository, "--body-file", file])
           },
           merge: (scope: MergeScope) => run("gh", ["pr", "merge", String(scope.number), "--repo", scope.repository,
             "--merge", "--match-head-commit", scope.head]),

@@ -74,6 +74,7 @@ test("success: exact scope, two reads, one approval, one merge", async () => {
     number: 123,
     head: SHA,
     base: "bived",
+    headBranch: HEAD_BRANCH,
     executor: "exec",
     childSession: "child",
     expiresAt: 1000 + 120_000,
