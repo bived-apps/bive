@@ -79,7 +79,8 @@ It develops itself with its own flow: this repository is the template and its fi
 - A prompt with a human step must end its turn there (`ask`/`show me` without "stop and wait" is run through).
   `opencode debug agents` prints the resolved agents; a missing `{file:…}` gives an empty prompt silently.
 - Some Linux Node builds lack TypeScript support: use an official Node 22+. `.bive/registry-id` is public once committed.
-- The registry page fetches `/v1/stats` with a relative path (404 on github.io): a one-line fix in bived-apps/registry.
+- Registry: a Cloudflare 403 is wrangler's login (`wrangler whoami`, `wrangler login`; `docs/REGISTRY.md`), not a model.
+  The page's stats URL is fixed (registry PR #1); 0.2.1 sync is registry PR #4.
 - Branch deletion and protection through the API are refused from some proxies: the owner does those in GitHub.
 
 ## Session log
