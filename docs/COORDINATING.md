@@ -156,6 +156,79 @@ where it says it was not. Bive ships no script (HANDOFF › *No machinery*): `li
 
 Not verified live end to end yet: the whole path with a real delegate is the pilot (issue #192).
 
+## Wait for process delegates (issue #226)
+
+When a delegate is the process started in *Start a delegate* above (the `opencode run ... &` line), the coordinator
+waits for it instead of treating the ended assistant turn as a wait (seen twice on 2026-11-13: the turn ended while
+delegates were still running, and each needed another wake-up and a full context reread):
+
+- **Record each delegate's PID at launch**: append `echo $!` to a list (`... & echo $! >> .bive/state/pids.txt`), one
+  line per delegate, next to its issue and session id.
+- **Wait in the SAME tool invocation as the launch, with a finite overall deadline**, and never end the assistant
+  turn while a delegate still runs. Collect every exit code and every report afterwards.
+- A delegate launched as a child of that same shell can be waited with `wait <pid>`, which returns its exit code. A
+  PID started in another shell cannot be waited (`wait` is not portable there): the supported bounded alternative is
+  a loop of `kill -0 <pid>` every few seconds until the deadline. The PID-reuse limitation applies: an old PID can be
+  recycled and then make `kill -0` succeed for a long-finished delegate, so a PID alone never decides — the deadline
+  and the delegate's own report do.
+- **No watcher, no helper package, no pattern kill (`pkill -f`, `killall`), no detached unbounded poller**: only the
+  recorded PIDs are ever targeted, and the loop lives inside the waiting tool call.
+- **Success**: read the report and review the branch as in *Open and review a pull request* below.
+- **Delegate failure** (a non-zero exit or a failed report): record it on the issue, apply *Refusal and resume* /
+  gate 2 (issue #192), and resume or split — never take the work over.
+- **Timeout at the deadline**: preserve the work as it is, record the still-running PIDs and their session ids, do
+  not restart and do not kill the delegates, and ask the owner.
+
+```bash
+# wait-recipe (issue #226): bounded same-turn wait for delegates started as processes.
+# Set before running: PIDS (space-separated, recorded at launch with `<delegate> & echo $! >> "$LIST"`),
+# DEADLINE (overall wait budget, seconds) and POLL (seconds between checks).
+# Stay in the SAME tool invocation for the whole block; never end the assistant turn while a delegate runs.
+# `wait <pid>` works only on a child of this shell and returns its exit code; a PID started in another
+# shell cannot be waited (wait is not portable there), so the supported bounded alternative is a loop of
+# `kill -0 <pid>` every POLL seconds until the deadline. PID-reuse limitation: a recycled PID can make
+# `kill -0` succeed for a long-finished delegate, so the PID alone never decides: the deadline and the
+# delegate's own report do. No watcher, no helper package, no pattern kill (pkill -f / killall), no
+# detached unbounded poller: only the recorded PIDs are targeted, and only with the harmless signal 0.
+# Optional LAUNCH holds simple commands started here as children of this shell, so `wait` can
+# collect their exit codes.
+: "${DEADLINE:=600}"
+: "${POLL:=5}"
+deadline=$(( $(date +%s) + DEADLINE ))
+launched=""
+for cmd in $LAUNCH; do
+  $cmd &
+  launched="$launched $!"
+done
+timed_out=""
+for pid in $PIDS $launched; do
+  wait "$pid" 2>/dev/null
+  status=$?
+  if [ "$status" -eq 0 ]; then
+    echo "pid $pid: exit 0 (success: read its report, then review it)"
+  elif [ "$status" -ne 127 ]; then
+    echo "pid $pid: exit $status (delegate failure: record it, apply Refusal and resume / gate 2)"
+  elif kill -0 "$pid" 2>/dev/null; then
+    # 127 and still running: not a child of this shell; bounded poll until the deadline.
+    while kill -0 "$pid" 2>/dev/null && [ "$(date +%s)" -lt "$deadline" ]; do
+      sleep "$POLL"
+    done
+    if kill -0 "$pid" 2>/dev/null; then
+      echo "pid $pid: timed out after ${DEADLINE}s (preserve its work, record the still-running PID and session ID, do not restart or kill it, ask the owner)"
+      timed_out="$timed_out $pid"
+    else
+      echo "pid $pid: finished (exit code not collectable from this shell: read its report)"
+    fi
+  else
+    # 127 and already gone: a PID from another shell that finished before we looked.
+    echo "pid $pid: finished (exit code not collectable from this shell: read its report)"
+  fi
+done
+if [ -n "$timed_out" ]; then
+  echo "still running at the deadline:$timed_out (ask the owner; do not restart or kill the delegates)"
+fi
+```
+
 ## Open and review a pull request (step 7)
 
 The delegate pushes its branch and returns the filled report; it never opens a pull request. The coordinator creates
