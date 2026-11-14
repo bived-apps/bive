@@ -58,6 +58,13 @@ test("a heading that ends with a colon starts the package, and the echoed prompt
   assert.doesNotMatch(text, /More prompt|max 120/)
 })
 
+test("user handles and short French dates are removed", () => {
+  const { text } = anonymise("Bive cast: the Folds 14 nov. 2026 \u00b7 @JJ\nA plain cast.")
+  assert.doesNotMatch(text, /@JJ|14 nov\. 2026/)
+  assert.deepEqual(leaks(text), [])
+  assert.ok(leaks("hi @someone").includes("handle"))
+})
+
 test("a clean text is left alone, and leaks() sees what remains", () => {
   assert.equal(anonymise("1. CONCEPT\nA plain idea.\nPACKAGE COMPLETE.\n").text, "1. CONCEPT\nA plain idea.\nPACKAGE COMPLETE.\n")
   assert.deepEqual(leaks("fine text"), [])
