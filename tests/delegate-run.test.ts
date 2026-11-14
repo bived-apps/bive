@@ -1,7 +1,9 @@
 import { test } from "node:test"
 import assert from "node:assert/strict"
 import { once } from "node:events"
-import { readFileSync } from "node:fs"
+import fs, { readFileSync } from "node:fs"
+import os from "node:os"
+import path from "node:path"
 import { spawn, spawnSync } from "node:child_process"
 import {
   buildWaitRequest,
@@ -148,7 +150,10 @@ test("the wait-recipe block exists, avoids pattern kills, and sh -n accepts it",
     })
     .join("\n")
   assert.doesNotMatch(commands, /pkill|killall/)
-  assert.doesNotMatch(commands.replace(/kill -0/g, ""), /kill/, "only the harmless signal-0 kill is allowed")
+  // allowed: signal 0, and the watchdog that signals THIS shell (never a delegate) and is stopped at the end
+  const withoutAllowed = commands.replace(/kill -0/g, "").replace(/kill -s TERM \$\$/g, "").replace(/kill "\$watchdog"/g, "")
+    .replace(/do not restart or kill it|do not restart or kill the delegates/g, "")
+  assert.doesNotMatch(withoutAllowed, /kill/, "only signal 0 and the shell's own watchdog may use kill")
   const r = spawnSync("sh", ["-n", "-c", waitRecipe])
   assert.equal(r.status, 0, `sh -n rejected the wait-recipe: ${r.stderr}`)
 })
@@ -198,7 +203,7 @@ test("the wait-recipe times out at the deadline and leaves the child running", a
     const r = spawnSync("sh", ["-c", waitRecipe], {
       env: { ...process.env, DEADLINE: "1", POLL: "1", PIDS: String(child.pid) },
     })
-    assert.equal(r.status, 0, `the recipe failed: ${r.stderr}`)
+    assert.equal(r.status, 124, `a timeout exits 124: ${r.stderr}`)
     const out = r.stdout.toString()
     assert.match(out, new RegExp(`pid ${child.pid}: timed out after 1s`))
     assert.match(out, /still running at the deadline/)
@@ -215,4 +220,18 @@ test("the wait-recipe times out at the deadline and leaves the child running", a
       // already exited: nothing to clean up
     }
   }
+})
+
+test("the wait-recipe stops waiting on its own child at the deadline and does not kill it", () => {
+  const started = Date.now()
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "waitrecipe-"))
+  const slow = path.join(dir, "slow.sh")
+  fs.writeFileSync(slow, "#!/bin/sh\nexec >/dev/null 2>&1\nsleep 4\n", { mode: 0o755 })
+  const r = spawnSync("sh", ["-c", waitRecipe], {
+    env: { ...process.env, DEADLINE: "1", POLL: "1", LAUNCH: slow }, encoding: "utf8", timeout: 4000,
+  })
+  assert.ok(Date.now() - started < 3500, "the wait must end at the deadline, not when the child exits")
+  assert.equal(r.status, 124)
+  assert.match(r.stdout, /timed out after 1s/)
+  assert.match(r.stdout, /still running at the deadline:/)
 })

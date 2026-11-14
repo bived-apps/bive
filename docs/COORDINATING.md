@@ -14,19 +14,15 @@ merges or closes one. An explicitly scoped owner grant may let a named coordinat
 pull-request merges; see *Coordinator merge exception (design, not implemented)* below. Historical supervisor
 qualifications grant no authority.
 
-## Coordinator merge exception (design, not implemented)
+## Coordinator merge exception (opt-in, off by default)
 
-Default: a coordinator never merges or closes a pull request. The owner may, by an explicit opt-in grant, let a named
-coordinator execute the merge of specific sub-coordinator pull requests. This is a design requirement only; it is not
-implemented and no grant is issued by this task. Current enforcement remains the blanket denial above. The proposed
-contract lives in [docs/OWNER-ADVISOR-REWORK.md](OWNER-ADVISOR-REWORK.md).
-
-A grant, if ever issued, would be bound to: the repository; the executor (coordinator session); the pull request; the
-exact head commit; the base; and a UTC expiry. It would be single use, with no inheritance or onward delegation, and
-would carry none of the coordinator's other powers (no pull-request close, no team or gate approval, no test release).
-It would never cover a pull request the coordinator authored or whose work it owns. A revoked, expired or
-head-changed grant would be rejected. Green checks and the owner's authorization would still be required. Until an
-implementation exists, treat every coordinator as unable to merge.
+Default: a coordinator never merges or closes a pull request, and no agent approves or merges into `main`. The owner
+may, by a grant in `.bive/gate.json` on the base branch, let a named parent coordinator approve and merge its direct
+sub-coordinator's pull requests into `bived` or `milestone/<name>`, with `bive_coordinator_merge` as the only path.
+The approval is signed with a per-grant key the owner hands over; the gate accepts it instead of the dated label. A
+pull request that changes authority or enforcement files, or the coordinator's own work, is always the owner's to
+merge. `coordinatorMerges` ships `false` and no grant exists. Contract, limits and status: `docs/COORDINATOR-MERGES.md`.
+Not yet verified live end to end.
 
 ## Before a milestone (issue #116)
 
@@ -200,6 +196,11 @@ for cmd in $LAUNCH; do
   $cmd &
   launched="$launched $!"
 done
+# `wait` on a child has no timeout of its own: a watchdog signals THIS shell at the deadline (never a delegate), and the
+# trap reports every PID still running. The delegates keep running; nothing is killed or restarted.
+trap 'for p in $PIDS $launched; do kill -0 "$p" 2>/dev/null && echo "pid $p: timed out after ${DEADLINE}s (preserve its work, record the still-running PID and session ID, do not restart or kill it, ask the owner)" && still="$still $p"; done; echo "still running at the deadline:$still (ask the owner; do not restart or kill the delegates)"; exit 124' TERM
+( sleep "$DEADLINE"; kill -s TERM $$ 2>/dev/null ) &
+watchdog=$!
 timed_out=""
 for pid in $PIDS $launched; do
   wait "$pid" 2>/dev/null
@@ -224,8 +225,10 @@ for pid in $PIDS $launched; do
     echo "pid $pid: finished (exit code not collectable from this shell: read its report)"
   fi
 done
+kill "$watchdog" 2>/dev/null
 if [ -n "$timed_out" ]; then
   echo "still running at the deadline:$timed_out (ask the owner; do not restart or kill the delegates)"
+  exit 124
 fi
 ```
 
