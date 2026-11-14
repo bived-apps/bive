@@ -42,6 +42,13 @@ Read this file, then [`HANDOFF.md`](HANDOFF.md), before changing anything. Your 
 - **One branch and one pull request per issue**: `issue/<n>-<slug>`. Only the coordinator creates pull requests for
   issue work, after receiving the pushed branch and delegate's report. The body starts with `Closes #N` (or `Part of
   #N` and what is left) and holds the delegate's report.
+- **Role at session start (owner, 2026-11-14; `docs/ROLE-START.md`)**: a session takes the role its start gives, in this
+  order, the first present signal winning: the named agent, `BIVE_ROLE`, the role file `.bive/state/role`, the worktree
+  path `.worktrees/issue-<n>` (a delegate), an explicit launch hand-over or brief. Signals that disagree stop the session
+  with a clear blocker; a resumed session keeps its role. With no signal, an interactive session asks once with fixed
+  choices (advisor, coordinator, delegate, none of these: just answer a question) and waits; a non-interactive run never
+  asks and stops with `blocked: no role assigned`. Choosing a role grants no authority; the model must be listed for
+  that role in `.bive/models.json`, else the session reports it and stops; only a work role sets its worktree identity.
 - **Claim the issue** with a short comment before working on it; update it with the result. A claim with no pushed
   branch after one day is void and the issue may be claimed again (field report #110, remark 3).
 - **Stay in your worktree**: the guard plugin refuses writes outside it, including shell redirections; a delegate's
