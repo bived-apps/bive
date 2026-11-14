@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900" role="img" aria-labelledby="t d">
+  <title id="t">Learning a lesson</title>
+  <desc id="d">On the left a short grey paper-roll figure, the record-keeper, holds a long tape flat with both hands. Along the tape run small light tick marks; two heavy dark ticks sit side by side, and after them a long run of light, even ticks. On the right the small light violet droplet, a delegate, looks at the tape, holding its finished card and its one paintbrush. A small coral knot now hangs on its cord of three beads. It stands on the same floor, at the same size as before: the lesson adds a knot, nothing else.</desc>
+  <defs>
+    <filter id="sh" x="-30%" y="-30%" width="160%" height="160%">
+      <feOffset in="SourceAlpha" dx="4" dy="5" result="o"/>
+      <feFlood flood-color="#1F2430" flood-opacity="0.16"/>
+      <feComposite in2="o" operator="in"/>
+      <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <clipPath id="rollclip"><rect x="-48" y="-152" width="96" height="114" rx="40"/></clipPath>
+
+    <!-- Tally: a short roll of paper with a pencil stub tucked behind -->
+    <g id="tally">
+      <path d="M-16,-42 V0 h-12 M16,-42 V0 h12" fill="none" stroke="#5E574F" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+      <g transform="rotate(-24 -24 -150)">
+        <rect x="-29" y="-180" width="10" height="34" fill="#D6CFC2"/>
+        <path d="M-29,-180 L-24,-192 L-19,-180 Z" fill="#C9A56A"/>
+        <path d="M-26,-187 L-24,-192 L-22,-187 Z" fill="#1F2430"/>
+      </g>
+      <g filter="url(#sh)">
+        <rect x="-48" y="-152" width="96" height="114" rx="40" fill="#8A8178"/>
+        <path d="M16,-160 L60,-160 L60,-30 L6,-30 Z" fill="#9D948A" clip-path="url(#rollclip)"/>
+        <path d="M15,-152 L32,-150 L14,-130 Z" fill="#BDB5AA"/>
+      </g>
+    </g>
+    <!-- Pim: a hand-cut droplet with a bent tip -->
+    <g id="pim">
+      <path d="M-16,-40 V0 h-12 M16,-40 V0 h12" fill="none" stroke="#5B33C9" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+      <g filter="url(#sh)">
+        <path d="M-14,-146 L22,-150 L36,-124 L50,-88 L40,-52 L8,-34 L-30,-42 L-50,-78 L-40,-122 Z" fill="#8B5CF6"/>
+        <path d="M-14,-146 L22,-150 L20,-188 Z" fill="#B79CFB"/>
+        <path d="M-50,-78 L-30,-42 L8,-34 L-16,-66 Z" fill="#7446E0"/>
+        <path d="M-40,-122 L-14,-146 L-24,-116 Z" fill="#9D78F9"/>
+      </g>
+    </g>
+  </defs>
+  <rect width="1600" height="900" fill="#F7F5F0"/>
+  <path d="M180,96 L1540,120 L1548,668 L60,676 L66,204 Z" fill="#F1EDE4"/>
+  <path d="M180,96 L66,204 L172,210 Z" fill="#E6E0D3"/>
+  <path d="M0,712 L1600,704 L1600,900 L0,900 Z" fill="#EAE5DA"/>
+  <g transform="translate(470,760) scale(2)">
+<ellipse cx="2" cy="5" rx="50" ry="7" fill="#DDD6C8"/>
+<use href="#tally"/>
+<circle cx="-14" cy="-122" r="7" fill="#F7F5F0"/><circle cx="-11.5" cy="-120.5" r="3" fill="#1F2430"/><circle cx="16" cy="-122" r="7" fill="#F7F5F0"/><circle cx="18.5" cy="-120.5" r="3" fill="#1F2430"/>
+<g filter="url(#sh)"><circle cx="-94" cy="-90" r="16" fill="#FFFDF8"/><path d="M-94,-101 H236 L230,-92 L236,-83 H-94 Z" fill="#FFFDF8"/></g>
+<circle cx="-94" cy="-90" r="10" fill="none" stroke="#CFC8BA" stroke-width="2"/><circle cx="-94" cy="-90" r="4" fill="#CFC8BA"/>
+<path d="M-70,-97 v10 M-42,-97 v10 M-28,-97 v10 M-14,-97 v10 M0,-97 v10 M14,-97 v10 M28,-97 v10 M42,-97 v10 M70,-97 v10 M116,-97 v10 M130,-97 v10 M144,-97 v10 M158,-97 v10 M172,-97 v10 M186,-97 v10 M200,-97 v10 M214,-97 v10" fill="none" stroke="#A39C8D" stroke-width="2.500" stroke-linecap="round"/>
+<path d="M88,-99 v14 M100,-99 v14" fill="none" stroke="#1F2430" stroke-width="5" stroke-linecap="round"/>
+<path d="M-44,-112 Q-64,-108 -56,-93 M44,-112 Q64,-108 56,-93" fill="none" stroke="#5E574F" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+  <g transform="translate(1220,760) scale(2)">
+<ellipse cx="2" cy="5" rx="48" ry="7" fill="#DDD6C8"/>
+<use href="#pim"/>
+<circle cx="-12" cy="-110" r="7" fill="#F7F5F0"/><circle cx="-14.5" cy="-109" r="3" fill="#1F2430"/><circle cx="14" cy="-111" r="7" fill="#F7F5F0"/><circle cx="11.5" cy="-110" r="3" fill="#1F2430"/>
+<path d="M-5,-92 q6,5 12,0" fill="none" stroke="#F7F5F0" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M-46,-94 Q2,-64 48,-92" fill="none" stroke="#4A3A7A" stroke-width="2"/><circle cx="-12" cy="-80.500" r="5" fill="#EDE9FE"/><circle cx="3" cy="-78" r="5" fill="#E0A82E"/><circle cx="18" cy="-81" r="5" fill="#EDE9FE"/>
+<path d="M34,-85 l-3,13 M34,-85 l7,11" fill="none" stroke="#E4674F" stroke-width="4"/><rect x="30" y="-89" width="8" height="8" fill="#C9523C" transform="rotate(-15 34 -85)"/>
+<path d="M58,-58 L63,-114" fill="none" stroke="#C9A56A" stroke-width="5" stroke-linecap="round"/><path d="M63,-114 L64,-124" fill="none" stroke="#9CA3AF" stroke-width="8"/><path d="M60,-124 L68,-124 L66,-140 Z" fill="#2E2152"/>
+<g transform="translate(-82,-108) rotate(-8)"><rect x="-13" y="-18" width="26" height="36" fill="#8B5CF6" filter="url(#sh)"/><path d="M-8,-2 q4,-9 8,0 t8,0" fill="none" stroke="#FFFDF8" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></g>
+<path d="M44,-98 Q60,-98 60,-84" fill="none" stroke="#5B33C9" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M-45,-94 Q-60,-100 -70,-106" fill="none" stroke="#5B33C9" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+</svg>
