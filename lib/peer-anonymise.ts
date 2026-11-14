@@ -36,7 +36,7 @@ export function anonymise(raw: string): Anonymised {
 
   // Keep the package itself: from its own first heading (a line that is only the heading) to its last "COMPLETE" line.
   const lines = text.split("\n")
-  const first = lines.findIndex((l) => /^1\.?\s*(CONCEPT|THE IDEA)\s*$/i.test(l.trim()))
+  const first = lines.findIndex((l) => /^1\.?\s*(CONCEPT|THE IDEA)\s*:?\s*$/i.test(l.trim()))
   if (first === -1) {
     // A free-form answer without numbered headings: nothing marks where the answer starts, so keep everything except the
     // site chrome (removed below); the owner reads it before anything is published.

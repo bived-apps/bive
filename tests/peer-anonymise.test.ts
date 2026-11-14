@@ -51,6 +51,13 @@ test("a free-form answer without headings is kept whole, minus chrome, and still
   assert.deepEqual(leaks(text), [])
 })
 
+test("a heading that ends with a colon starts the package, and the echoed prompt line with text after it does not", () => {
+  const raw = ["Conversation", "1 THE IDEA: the one concept behind the cast (max 120 words).", "More prompt.", "1 THE IDEA:", "Clockwork garden.", "2 THE CAST", "Pip."].join("\n")
+  const { text } = anonymise(raw)
+  assert.match(text, /^1 THE IDEA:\nClockwork garden\./)
+  assert.doesNotMatch(text, /More prompt|max 120/)
+})
+
 test("a clean text is left alone, and leaks() sees what remains", () => {
   assert.equal(anonymise("1. CONCEPT\nA plain idea.\nPACKAGE COMPLETE.\n").text, "1. CONCEPT\nA plain idea.\nPACKAGE COMPLETE.\n")
   assert.deepEqual(leaks("fine text"), [])
