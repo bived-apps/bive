@@ -24,5 +24,5 @@ test("the root handoff has the same sections and does not grow past the ratchet"
 test("COORDINATING states the short-handoff rule", () => {
   const d = read("docs/COORDINATING.md")
   assert.match(d, /Short handoffs/)
-  assert.match(d, /at most 100 lines/)
+  assert.match(d, /at most\s+100 lines/)
 })
