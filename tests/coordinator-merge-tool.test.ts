@@ -6,6 +6,7 @@ import path from "node:path"
 import test, { after } from "node:test"
 import { APPROVAL_LIFETIME_MS, APPROVAL_PREFIX, approvalBytes } from "../.github/scripts/coordinator-approval-lib.mjs"
 import { registerCoordinatorMerge } from "../.opencode/plugins/worktree-guard/merge-tool.ts"
+import { runMergeGate } from "../.github/scripts/check-merge-gate.mjs"
 
 const PARENT = "ses_parent"
 const CHILD = "ses_child"
@@ -578,4 +579,46 @@ test("unsupported base is denied", async () => {
   env.S.pr.baseRefName = "develop"
   env.S.gatePr.baseRefName = "develop"
   await refused(env, /unsupported integration base/)
+})
+
+// Offline end-to-end simulation (owner chose it over a scratch repository, 2026-11-14): the approval the tool posts is the
+// very text the gate verifies, then the tool merges the pinned head. Only GitHub is faked; the signing, the grant lookup,
+// the comment format and the gate's own decision are the real code.
+function gateFor(env: any, comments: any[], opts: { labels?: string[], files?: string[], base?: string, config?: any } = {}) {
+  const base = opts.base ?? BASE
+  return runMergeGate({
+    event: { pull_request: { number: 123, head: { sha: SHA }, base: { ref: base } } }, repository: REPOSITORY,
+    readPullRequest: async () => ({ baseRefName: base, headRefOid: SHA, labels: opts.labels ?? ["coordinator"] }),
+    readChecks: async () => [{ workflow: "bive-tests", name: "tests", bucket: "pass" }, { workflow: "bive-inviolable", name: "check", bucket: "skipping" }],
+    readGateConfig: async () => JSON.stringify(opts.config ?? env.S.gateConfig),
+    readParentContext: async () => ({ headBranch: HEAD_BRANCH, sameRepository: true, state: "OPEN", files: opts.files ?? ["docs/a.md"] }),
+    readComments: async () => comments,
+    readLabelEvents: async () => [], readRepositoryOwner: async () => "human",
+  })
+}
+
+test("simulation: the tool's approval comment passes the real gate with no label, then the tool merges the pinned head", async () => {
+  const env = createEnv({ checks: pendingGate() })
+  const tool = await register(env)
+  await tool.execute({ number: 123, childSession: CHILD }, contextFor(env))
+  assert.equal(env.S.commentCalls.length, 1)
+  const posted = { body: env.S.commentCalls[0].body }
+  assert.equal((await gateFor(env, [posted])).ok, true, "the gate accepts exactly what the tool posted")
+
+  const second = createEnv()
+  second.S.comments.push(posted)
+  const res = await (await register(second)).execute({ number: 123, childSession: CHILD }, contextFor(second))
+  assert.deepEqual(res, { content: "Merged #123" })
+  assert.equal(second.S.mergeCalls.length, 1)
+})
+
+test("simulation: the same approval does not pass when the PR touches authority files, targets main, or opt-in is off", async () => {
+  const env = createEnv({ checks: pendingGate() })
+  await (await register(env)).execute({ number: 123, childSession: CHILD }, contextFor(env))
+  const posted = { body: env.S.commentCalls[0].body }
+  await assert.rejects(gateFor(env, [posted], { files: [".bive/gate.json"] }), /dated merge-authorization label/)
+  await assert.rejects(gateFor(env, [posted], { files: ["AGENTS.md"] }), /dated merge-authorization label/)
+  await assert.rejects(gateFor(env, [posted], { base: "main" }), /only runs for pull requests targeting bived or milestone/)
+  await assert.rejects(gateFor(env, [posted], { config: { ...env.S.gateConfig, coordinatorMerges: false } }), /dated merge-authorization label/)
+  await assert.rejects(gateFor(env, []), /dated merge-authorization label/)
 })

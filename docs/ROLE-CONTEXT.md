@@ -29,7 +29,7 @@ verified here**: the table counts it once as a file the role is told to read.
 - Every role still reads `AGENTS.md` first: it holds the identity, guard, report and authority rules. That is the core
   rule of `AGENTS.md`; this document changes none of it.
 
-## Owner decision (blocked, not assumed)
+## Owner decision (decided 2026-11-14: option 1, keep as is)
 
 The issue's target is a delegate of about twenty lines of rules. That needs one of these, both inviolable-file changes:
 
@@ -39,7 +39,7 @@ The issue's target is a delegate of about twenty lines of rules. That needs one 
    but duplicates rules in two files, which is how contradictions began (#117). Needs the owner's decision and a
    separately authorized core-prompt change.
 
-Until the owner chooses, no core prompt, `AGENTS.md` or `opencode.jsonc` is edited, and the delegate is not described
+The owner chose option 1 on 2026-11-14 (answered with buttons): no twenty-line delegate. No core prompt, `AGENTS.md` or `opencode.jsonc` is edited, and the delegate is not described
 as running on twenty-line prompts.
 
 ## What the tests hold

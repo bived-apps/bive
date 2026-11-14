@@ -1,5 +1,8 @@
 # Role at session start, and quick choices (design for issues #232 and #244; proposal, not in force)
 
+Owner direction, 2026-11-14 (answered with buttons): follow an `AGENTS.md` rule (no optional start agent). The rule text
+is not written yet: it is an inviolable-file change for a separate, owner-authorized coordinator PR.
+
 Status: a design for the owner's review. It changes no rule, prompt, config or skill. Adopting it needs the owner's
 decision (marked **Owner**) and, for the pieces that touch inviolable files, a separately authorized coordinator change.
 
