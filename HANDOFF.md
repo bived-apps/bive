@@ -56,7 +56,7 @@ It develops itself with its own flow: this repository is the template and its fi
 - Run once on `main`: #229's close-issues workflow only activates there. Restart the OpenCode server to load the new guard.
 - Open owner questions: a live dry run of `bive_coordinator_merge` on a scratch repo; bench sequencing (bench PRs #72, #74
   are open and its history is frozen); #120 who merges before a bench pass; #110 remark 6; the label deletions listed in
-  PR #272; `docs/ROLE-CONTEXT.md` › Owner decision.
+  PR #272; the owner decision in PR #274 (role context).
 - Other apps: registry PR #3 and workspace template PR #4 are merged; FiFoo migration: not started.
 
 ## Watch out
