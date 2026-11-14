@@ -15,7 +15,7 @@ const SITE_CHROME = [
   /^Ignorer et passer au contenu$/i, /^Skip to content$/i, /^Historique de chat$/i, /^Nouveau chat$/i, /^Se connecter$/i,
   /^Inscription gratuite$/i, /^Partager$/i, /^Share$/i, /^Log in$/i, /^Sign up/i, /^Afficher plus$/i, /^Show more$/i,
   /^Signaler la conversation$/i, /^Ceci est une copie/i, /^This is a copy of a/i, /peut se tromper\.?$/i,
-  /can make mistakes/i, /^(R[ée]fl[ée]chi|Thought|Thinking) (pendant|for) /i, /^Voir les offres/i, /^Param[eè]tres$/i,
+  /can make mistakes/i, /^(R[ée]fl[ée]chi|Thought|Thinking) (pendant|for) /i, /^Voir les offres/i, /^Param[eè]tres$/i, /^Connectez-vous/i, /^Sign in/i, /^Se connecter$/i,
 ]
 
 export type Anonymised = { text: string, removed: string[] }
@@ -39,8 +39,11 @@ export function anonymise(raw: string): Anonymised {
   if (first !== -1) {
     let last = -1
     lines.forEach((l, i) => { if (/PACKAGE (PART )?COMPLETE\.?\s*$/i.test(l.trim())) last = i })
-    text = lines.slice(first, last === -1 ? lines.length : last + 1).join("\n")
-    removed.push("text before the package heading and after the completion line")
+    // A model may print the completion line in the middle (after the images) and carry on with numbered sections: then
+    // nothing after it is cut. Only trailing page text after the final completion line, with no heading after it, is cut.
+    const headingAfter = last !== -1 && lines.slice(last + 1).some((l) => /^\d{1,2}\.?\s+[A-Z][A-Z /&-]{3,}\s*$/.test(l.trim()))
+    text = lines.slice(first, last === -1 || headingAfter ? lines.length : last + 1).join("\n")
+    removed.push("text before the package heading" + (last !== -1 && !headingAfter ? " and after the completion line" : ""))
   }
 
   text = text.split("\n").filter((l) => !SITE_CHROME.some((re) => re.test(l.trim()))).join("\n")

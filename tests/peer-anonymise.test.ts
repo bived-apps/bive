@@ -26,6 +26,17 @@ test("the author's identity, links, email, dates, provenance and site chrome are
   assert.ok(removed.some((r) => r.startsWith("word: ")) && removed.includes("provenance section"))
 })
 
+test("a completion line in the middle does not cut the sections that follow, and sign-in footers are removed", () => {
+  const raw = ["1 CONCEPT", "Idea.", "4 IMAGES", "PACKAGE PART COMPLETE", "5 ACCESSIBILITY", "Contrast fine.", "8 PROVENANCE", "Model: unknown. Date: November 14, 2026.",
+    "9 RISKS", "Too abstract.", "10 NOT DELIVERED", "Files.", "Connectez-vous pour acc\u00e9der aux applis Google", "Se connecter"].join("\n")
+  const { text } = anonymise(raw)
+  assert.match(text, /5 ACCESSIBILITY/)
+  assert.match(text, /9 RISKS/)
+  assert.match(text, /10 NOT DELIVERED/)
+  assert.doesNotMatch(text, /Connectez-vous|Google|Model: unknown/)
+  assert.deepEqual(leaks(text), [])
+})
+
 test("a clean text is left alone, and leaks() sees what remains", () => {
   assert.equal(anonymise("1. CONCEPT\nA plain idea.\nPACKAGE COMPLETE.\n").text, "1. CONCEPT\nA plain idea.\nPACKAGE COMPLETE.\n")
   assert.deepEqual(leaks("fine text"), [])
