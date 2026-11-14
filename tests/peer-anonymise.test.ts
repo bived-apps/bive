@@ -37,6 +37,12 @@ test("a completion line in the middle does not cut the sections that follow, and
   assert.deepEqual(leaks(text), [])
 })
 
+test("a package that opens with THE IDEA (second batch prompt) is recognised too", () => {
+  const { text } = anonymise(["Log in", "echo of the prompt", "1 THE IDEA", "Pocket companions.", "7 NOT DELIVERED", "Nothing.", "8 PROVENANCE", "Model: x", "PACKAGE PART COMPLETE"].join("\n"))
+  assert.match(text, /^1 THE IDEA/)
+  assert.doesNotMatch(text, /echo of the prompt|Model: x/)
+})
+
 test("a clean text is left alone, and leaks() sees what remains", () => {
   assert.equal(anonymise("1. CONCEPT\nA plain idea.\nPACKAGE COMPLETE.\n").text, "1. CONCEPT\nA plain idea.\nPACKAGE COMPLETE.\n")
   assert.deepEqual(leaks("fine text"), [])
