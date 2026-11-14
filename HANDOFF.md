@@ -26,6 +26,10 @@ It develops itself with its own flow: this repository is the template and its fi
 
 ## Decisions (owner, dated; reasoning in the history link)
 
+- 2026-11-14 free dev team (supersedes the delegates below): coordinator `openai/gpt-6.1-sol`; delegates
+  `opencode/iceman-free`, `opencode/minimax-m3.1-flash-free`, `opencode/flint-40b-free`, then
+  `opencode/deepseek-v4.1-flash-free`, `opencode/glm-5.3-flash-free` (one-tool-call probes, not qualification).
+  `inkling-2-small-free` refused in the owner's country; `gpt-6-luna` no longer a delegate.
 - 2026-11-14 GPT team (supersedes the free team below): coordinator `openai/gpt-6.1-sol`; delegates `openai/gpt-6-luna`,
   then the free four as fallback (`.bive/models.json`). Both GPT routes answered a tool-free availability probe; not a
   qualification. OpenAI prices are not shown in the catalog (owner's account).
