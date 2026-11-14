@@ -31,3 +31,13 @@ test("the wake recipe is one bounded schedule whose payload has only the API's f
 test("the old shell polling loop is gone", () => {
   assert.doesNotMatch(read("docs/COORDINATING.md"), /until \[ "\$\(gh pr view/)
 })
+
+test("issue 242 records archived and busy-session wake results but not server restarts", () => {
+  const s = section()
+  assert.match(s, /OpenCode 2\.3\.0.*archived session still fired once and received its wake/)
+  assert.match(s, /after unarchiving, the schedule remained done with `runCount: 1` and `lastOutcome: fired`/)
+  assert.match(s, /OpenCode 2\.3\.0.*90-second shell turn was busy/)
+  assert.match(s, /delivered once just after that tool turn completed \(`runCount: 1`\)/)
+  assert.match(s, /exactly one `msg_sch_…` user message appeared/)
+  assert.match(s, /Not verified: a server restart mid-wait\./)
+})
