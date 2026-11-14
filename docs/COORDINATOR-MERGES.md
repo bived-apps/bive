@@ -82,7 +82,7 @@ an independent decision by each app's owner.
 - Within a grant, the parent coordinator approves its direct child's PR head with a signed, short-lived comment
   (`coordinator-approval-lib.mjs` verifies it). No manual label and no owner prompt per PR. Never its own PR or work
   it authored.
-- Status: the grant reader, approval verifier and `main` refusal are implemented and tested
-  (`tests/coordinator-approval.test.ts`). The adapter `merge-tool.ts` and the gate script are not yet wired to them,
-  and the signing step (who holds the private key) is open. Until then the adapter fails closed: its snapshot lacks
-  the new fields, so every request is refused. Opt-in stays off and no grant exists.
+- Status: implemented and tested: the grant reader, the signed approval, the `main` refusal, the merge tool
+  (`merge-tool.ts`, signs with `BIVE_PARENT_APPROVAL_KEY`, posts the comment, asks GitHub to re-run the gate) and the
+  gate (`check-merge-gate.mjs` accepts the approval instead of the dated label, `tests/gate-parent-approval.test.ts`).
+  Not yet verified live end to end. Opt-in stays off (`coordinatorMerges: false`) and no grant exists.

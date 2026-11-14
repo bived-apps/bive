@@ -58,6 +58,11 @@ These run on GitHub and appear as commit statuses on a pull request.
   date, valid through 23:59:59 UTC of that date and only while the base is `bived` or `milestone/<name>` (one path
   segment). Only the owner applies it, after the coordinator's approval and when the owner is about to merge;
   the coordinator never does, also on its own pull requests. Adding or removing it re-runs the gate.
+- **Parent approval instead of the label (#262)**: on `bived` or `milestone/<name>` only, never `main`, a signed
+  approval comment of this exact head, verified against the owner's grant in `.bive/gate.json` on the base
+  (`coordinatorMerges: true` and a matching `coordinatorMergeGrants` entry), stands in for the dated label. It does not
+  cover a PR labelled with an override, a PR that changes authority or enforcement files (`.bive/gate.json`,
+  `AGENTS.md`, `opencode.jsonc`, prompts, plugins, `.github/`), or a red check. The owner's dated label still works.
 - **Label date (issue #114)**: the label's date must equal the UTC day on which the `labeled` event applied it (read
   from the issue timeline). A label dated tomorrow or later (or any day other than the applying day) is refused.
 - **Label actor (issue #114)**: the `labeled` event's actor must be the repository owner (or a listed owner identity).

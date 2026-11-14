@@ -121,6 +121,13 @@ export async function registerCoordinatorMerge(ctx: any, root: string, role?: st
             mkdirSync(path.dirname(file), { recursive: true })
             writeFileSync(file, APPROVAL_PREFIX + JSON.stringify({ payload, signature }))
             await run("gh", ["pr", "comment", String(scope.number), "--repo", scope.repository, "--body-file", file])
+            // The gate does not fire on comments: ask GitHub to re-run its latest run for this head (best effort; it also
+            // re-runs when the checks complete). This never creates authority: the gate re-reads the signed approval itself.
+            try {
+              const runId = (await run("gh", ["run", "list", "--repo", scope.repository, "--workflow", "bive-merge-gate.yml",
+                "--commit", scope.head, "--limit", "1", "--json", "databaseId", "--jq", ".[0].databaseId"])).trim()
+              if (/^\d+$/.test(runId)) await run("gh", ["run", "rerun", runId, "--repo", scope.repository])
+            } catch { /* the approval is recorded; the gate will re-run when checks complete */ }
           },
           merge: (scope: MergeScope) => run("gh", ["pr", "merge", String(scope.number), "--repo", scope.repository,
             "--merge", "--match-head-commit", scope.head]),
