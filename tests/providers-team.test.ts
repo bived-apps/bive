@@ -41,6 +41,6 @@ test("treats country refusal as unavailable and states probe is not qualificatio
 test("states roles, coordinator errors, and delegate fallback", () => {
   const s = section(doc);
   assert.match(s, /retired supervisor role proposes nothing/);
-  assert.match(s, /coordinator error \(unreachable, 429, quota\) never silently changes the assigned model/i);
+  assert.match(s, /coordinator error \(unreachable, 429, quota\)\s+never silently changes the assigned model/i);
   assert.match(s, /Delegate fallback \(the next model in the delegate list\) is unchanged\./);
 });
