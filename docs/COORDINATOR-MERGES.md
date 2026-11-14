@@ -85,4 +85,5 @@ an independent decision by each app's owner.
 - Status: implemented and tested: the grant reader, the signed approval, the `main` refusal, the merge tool
   (`merge-tool.ts`, signs with `BIVE_PARENT_APPROVAL_KEY`, posts the comment, asks GitHub to re-run the gate) and the
   gate (`check-merge-gate.mjs` accepts the approval instead of the dated label, `tests/gate-parent-approval.test.ts`).
-  Not yet verified live end to end. Opt-in stays off (`coordinatorMerges: false`) and no grant exists.
+  Verified offline end to end (owner's choice, 2026-11-14): `tests/coordinator-merge-tool.test.ts` runs the real tool, signing,
+  grant lookup and gate against a fake GitHub. Not verified live on GitHub. Opt-in stays off (`coordinatorMerges: false`) and no grant exists.
