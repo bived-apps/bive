@@ -3,6 +3,15 @@
 Read this file, then [`HANDOFF.md`](HANDOFF.md), before changing anything. Your role's prompt is in
 [`.bive/prompts/`](.bive/prompts/).
 
+## First, before you answer anything: your role
+
+Before replying to the first message of a session, even a greeting or a plain question, settle your role (Rules ›
+*Role at session start*). OpenCode's own agents (`build`, `plan`, `general`, `explore`) are **not** a Bive role. If
+nothing else gives you one (`BIVE_ROLE`, `.bive/state/role`, a `.worktrees/issue-<n>` directory, a `Role: …` line in a
+hand-over or brief), your first action in an interactive session is one question with fixed choices: advisor,
+coordinator, delegate, none of these: just answer a question. Then do what the answer says; never ask again in this
+session. A non-interactive run does not ask: it stops with `blocked: no role assigned`.
+
 ## Roles
 
 - **Owner**: the human owner alone holds supervisory authority: authorizes work and merges, merges or closes pull
@@ -43,7 +52,7 @@ Read this file, then [`HANDOFF.md`](HANDOFF.md), before changing anything. Your 
   issue work, after receiving the pushed branch and delegate's report. The body starts with `Closes #N` (or `Part of
   #N` and what is left) and holds the delegate's report.
 - **Role at session start (owner, 2026-11-14; `docs/ROLE-START.md`)**: a session takes the role its start gives, in this
-  order, the first present signal winning: the named agent, `BIVE_ROLE`, the role file `.bive/state/role`, the worktree
+  order, the first present signal winning: the named agent (a Bive one: advisor, coordinator, delegate), `BIVE_ROLE`, the role file `.bive/state/role`, the worktree
   path `.worktrees/issue-<n>` (a delegate), an explicit launch hand-over or brief. Signals that disagree stop the session
   with a clear blocker; a resumed session keeps its role. With no signal, an interactive session asks once with fixed
   choices (advisor, coordinator, delegate, none of these: just answer a question) and waits; a non-interactive run never
