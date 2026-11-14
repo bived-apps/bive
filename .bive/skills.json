@@ -17,7 +17,7 @@
     "bive-ask-owner": {
       "source": "project",
       "path": ".opencode/skills/bive-ask-owner",
-      "revision": "f4180f02d23dc6d82d2222f79fa181f729053904e949bda3c2a494aeb9dffb57"
+      "revision": "913cd83c6230e0700023c6698a0d66926a42593c16e69644350aa6646dbabd7b"
     },
     "bive-registry-optin": {
       "source": "project",
