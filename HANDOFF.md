@@ -47,14 +47,17 @@ It develops itself with its own flow: this repository is the template and its fi
 
 ## Tasks
 
-- Milestone 0.2.1 (`https://github.com/bived-apps/bive/milestone/5`) is the queue. Open PRs for owner review and
-  merge: #267 guard (#224, #225, #226), #268 role style, #269 close-issues workflow (#229), #270 issue form (#230),
-  #271 process docs (#227, #228, #231, #234 partial). Nothing merged by an agent; no dated label applied by one.
-- Blocked on the owner or outside access: #235–#240 (GitHub Apps per role), #254, #261 (wrangler reconnect), #242, #243.
-- After #267 merges: close #224–#226 (verify the merge commit is on `bived`), restart the OpenCode server (new guard).
-- Open owner questions: a live dry run of `bive_coordinator_merge` on a scratch repo; bench sequencing (bench PRs
-  #72, #74 are open and its history is frozen); #120 who merges before a bench pass; #110 remark 6.
-- Other apps (registry PR #3, workspace template PR #4) wait for the owner. FiFoo migration: not started.
+- Milestone 0.2.1 (`https://github.com/bived-apps/bive/milestone/5`) is the queue. Merged by the owner: #263, #267 to
+  #272 (guard, role style, close-issues workflow, issue form, process docs, short handoff, labels). Open for owner
+  review: #273 designs (#232, #244, #245), #274 role context (#233 partial, closes #228).
+- Open in the milestone and ready for work: #227 and #231 have a part left (#231: `.bive/models.json` candidates are the
+  owner's); #241 is the tracker. Blocked on the owner or outside access: #235 to #240 (GitHub Apps per role), #254, #261
+  (wrangler reconnect), #242, #243.
+- Run once on `main`: #229's close-issues workflow only activates there. Restart the OpenCode server to load the new guard.
+- Open owner questions: a live dry run of `bive_coordinator_merge` on a scratch repo; bench sequencing (bench PRs #72, #74
+  are open and its history is frozen); #120 who merges before a bench pass; #110 remark 6; the label deletions listed in
+  PR #272; the owner decision in PR #274 (role context).
+- Other apps: registry PR #3 and workspace template PR #4 are merged; FiFoo migration: not started.
 
 ## Watch out
 
@@ -78,4 +81,4 @@ It develops itself with its own flow: this repository is the template and its fi
 ## Session log
 
 - **2026-11-14, coordinator anthropic/claude-sonnet-5-5**: advisor role merged (#263, `83e3d9f`); free team approved;
-  milestone 0.2.1 batches opened as #267–#271; the root handoff cut from 416 to this short form, history linked above.
+  milestone 0.2.1 batches #267–#272 merged by the owner; #273 and #274 open; the root handoff cut from 416 to this short form, history linked above.
