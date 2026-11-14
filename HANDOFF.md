@@ -51,15 +51,16 @@ It develops itself with its own flow: this repository is the template and its fi
 ## Tasks
 
 - Milestone 0.2.1 (`https://github.com/bived-apps/bive/milestone/5`) is the queue. Merged by the owner: #263, #267 to
-  #272 (guard, role style, close-issues workflow, issue form, process docs, short handoff, labels). Open for owner
-  review: #273 designs (#232, #244, #245), #274 role context (#233 partial, closes #228).
-- Open in the milestone and ready for work: #227 and #231 have a part left (#231: `.bive/models.json` candidates are the
-  owner's); #241 is the tracker. Blocked on the owner or outside access: #235 to #240 (GitHub Apps per role), #254, #261
-  (wrangler reconnect), #242, #243.
+  #277, #279 to #293 (guard, process docs, short handoff, designs, role context, jury removed, Folds cast and README,
+  GPT team, one-App checklist `docs/GITHUB-APP.md`, `lib/role-start.ts`, `lib/ci-evidence.ts`, quick choices).
+  Closed: #224 to #227, #229, #230, #233, #234, #244.
+- Owner steps: #232 two smoke tests (fresh interactive session asks once; a coordinator-started delegate never asks;
+  no plugin wiring, the guard already fails closed); create and install the agents App (#235, checklist in
+  `docs/GITHUB-APP.md`; per-role #236 to #238, #240 not planned, open); #245 live read-only checks; #278 close or keep.
+- Blocked: #231 (bench evidence); #254, #261 (wrangler reconnect), #242, #243 (owner decisions); #241 is the tracker.
 - Run once on `main`: #229's close-issues workflow only activates there. Restart the OpenCode server to load the new guard.
 - Open owner questions: a live dry run of `bive_coordinator_merge` on a scratch repo; bench sequencing (bench PRs #72, #74
-  are open and its history is frozen); #120 who merges before a bench pass; #110 remark 6; the label deletions listed in
-  PR #272; the owner decision in PR #274 (role context).
+  are open and its history is frozen); #120 who merges before a bench pass; #110 remark 6.
 - Other apps: registry PR #3 and workspace template PR #4 are merged; FiFoo migration: not started.
 
 ## Watch out
@@ -85,3 +86,5 @@ It develops itself with its own flow: this repository is the template and its fi
 
 - **2026-11-14, coordinator anthropic/claude-sonnet-5-5**: advisor role merged (#263, `83e3d9f`); free team approved;
   milestone 0.2.1 batches #267–#272 merged by the owner; #273 and #274 open; the root handoff cut from 416 to this short form, history linked above.
+- **2026-11-14, coordinator anthropic/claude-opus-5-5**: #286 to #293 merged by the owner (GPT team, one App, cast,
+  #232 resolver, #227 policy, #244 skill); delegate `openai/gpt-6-luna` reports need the template asked explicitly.
