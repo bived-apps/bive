@@ -161,7 +161,8 @@ describe("shell, delegate", () => {
   })
   test("system prefixes, flags, URLs and relative names pass", () => {
     passes(shell(delegate, "/usr/bin/python3 -m pytest tests/test_a.py -q --tb=short"))
-    passes(shell(delegate, "curl -sS https://example.com/x.json -o /tmp/x.json"))
+    passes(shell(delegate, "curl -sS https://example.com/x.json -o .bive/state/x.json"))
+    passes(shell(delegate, "cat /tmp/notes.txt && ls /var/log && head -n 3 /private/var/x"))   // system reads stay usable
     passes(shell(delegate, `ls ${wt}/src && git add -A && git commit -m 'x (#3)'`))
     passes(shell(delegate, "ruff check src tests"))
   })
@@ -326,6 +327,38 @@ describe("author override and the advisor's commits (#197)", () => {
     // covered by advisor detection above; keep a quick check here for compatibility
     assert.equal(isAdvisor("advisor", undefined), true)
     assert.equal(isAdvisor("supervisor", undefined), true)
+  })
+})
+
+describe("temporary-directory writes of a delegate (#224)", () => {
+  test("a delegate writes no scratch outside its worktree", () => {
+    for (const c of ["echo x > /tmp/a.txt", "echo x >> /var/tmp/a", "cp a.py /tmp/a.py", "mv a.py /tmp/", "touch /tmp/x",
+      "mkdir -p /tmp/scratch", "tee /tmp/log < a.txt", "rm -f /tmp/x", "sed -i s/a/b/ /tmp/f", "dd if=a of=/private/tmp/b",
+      "curl -sS https://e.com -o /tmp/x.json", "tar -xf a.tar -C /tmp/d", "git clone https://e.com/r /tmp/r"]) {
+      refused(shell(delegate, c), /outside|temporary-directory/)
+    }
+  })
+  test("variables and mktemp defaults are refused", () => {
+    refused(shell(delegate, 'echo x > "$TMPDIR/a"'), /variable|temporary-directory/)
+    refused(shell(delegate, "echo x > ${TMPDIR}/a"), /variable|temporary-directory/)
+    refused(shell(delegate, "cp a.py $TMPDIR/a.py"), /temporary-directory/)
+    refused(shell(delegate, "TMPDIR=/tmp mktemp -d"), /temporary-directory/)
+    refused(shell(delegate, "mktemp"), /temporary-directory/)
+    refused(shell(delegate, "mktemp -t scratch"), /temporary-directory/)
+    refused(shell(delegate, "mktemp --tmpdir"), /temporary-directory/)
+    refused(shell(delegate, "python3 -c \"open('/tmp/x','w').write('1')\""), /temporary-directory/)
+  })
+  test("scratch inside the worktree and system reads pass", () => {
+    passes(shell(delegate, "echo x > .bive/state/scratch.txt"))
+    passes(shell(delegate, "echo x > /dev/null"))
+    passes(shell(delegate, "mkdir -p .bive/state/tmp && cp a.py .bive/state/tmp/a.py"))
+    passes(shell(delegate, "mktemp -d .bive/state/scratch.XXXXXX"))
+    passes(shell(delegate, "mktemp -p .bive/state -d"))
+    passes(shell(delegate, "cat /tmp/x && ls /var && ls $TMPDIR && python3 -c 'print(1)'"))
+    passes(shell(delegate, `echo x > ${wt}/out.txt`))
+  })
+  test("the coordinator is not restricted by the delegate-only rule", () => {
+    passes(shell(coordinator, "cp a.py /tmp/a.py"))
   })
 })
 

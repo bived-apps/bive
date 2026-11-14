@@ -203,6 +203,10 @@ ROADMAP.md › 0.1 is done (2026-11-10, #80). The backlog of 2026-11-12 is close
   `gh pr merge --merge --match-head-commit` once the owner's dated label has turned the gate green, which keeps each
   delegate commit under its author. "Closes #N" acts on merges into `main` only: the coordinator closes the issue
   after the owner merges into `bived`.
+- A delegate's temporary files: the guard refuses a redirect leaving the worktree (but `/dev/*`), a redirect through a
+  variable other than `$HOME`, a writing command naming `/tmp`, `/var`, `/private` or `$TMPDIR`, and a `mktemp` that
+  defaults to `$TMPDIR` (#224). System paths stay readable. Scratch goes in `.bive/state/`. A text filter, not a
+  sandbox: forms it does not recognise (for example a script file that writes to `/tmp`) are not covered.
 - The guard removes shell here-document bodies before looking for redirections and outside paths. It allows a quoted
   heredoc body containing `> ../x` while still refusing a live redirect; heredoc-like text inside quotes/comments does
   not hide a later redirect. This remains a conservative command-text filter, not a shell parser.
