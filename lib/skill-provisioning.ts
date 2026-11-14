@@ -7,7 +7,7 @@ import {
 } from "node:fs"
 import path from "node:path"
 
-export const ROLES = ["supervisor", "coordinator", "delegate"] as const
+export const ROLES = ["advisor", "coordinator", "delegate"] as const
 export type SkillSource = "project" | "catalog" | "path"
 
 export interface SkillDeclaration {
@@ -167,6 +167,9 @@ export function validateManifest(manifest: SkillManifest): void {
     throw new ManifestValidationError("skill provisioning failed: manifest.skills must be an object", {})
   }
   for (const [role, ids] of Object.entries(manifest.roles)) {
+    if (!ROLES.includes(role as any)) {
+      throw new ManifestValidationError(`skill provisioning failed: role ${role} is not a valid role (allowed: ${ROLES.join(", ")})`, { role })
+    }
     if (!Array.isArray(ids) || !ids.every((x) => typeof x === "string" && x.length > 0)) {
       throw new ManifestValidationError(`skill provisioning failed: roles.${role} must be an array of non-empty strings`, { role })
     }

@@ -10,7 +10,8 @@ here is committed with the code it describes (an item started → `doing`, finis
 - Nothing enters the template that a role or a human does not read during a task. Anything else lives in its own
   repository.
 - Bive develops itself with its own flow: coordinator and delegates on the integration branch `bived`, pull requests
-  only; the supervisor (the owner) alone merges, with a merge commit, into `bived` and from `bived` into `main`.
+  only; the human owner authorizes merges, normally performs them with merge commits, and may explicitly opt in to
+  scoped coordinator execution of named sub-coordinator merges through the validated opt-in tool.
 - **Versions tend to 1.0 and never reach it (owner, 2026-11-08)**: 1.0 is the dream, written down in *bivedream*
   below. Milestones count 0.1 … 0.9, then 0.91 … 0.99, then 0.991 …: when the last digit is 9, the next milestone
   appends a digit instead of carrying over. Each run of digits is an *order* with its own theme, and the number of
@@ -24,6 +25,23 @@ here is committed with the code it describes (an item started → `doing`, finis
   registry client, MCP over SSH, the browser help, a worktree strategy. Installing is choosing modules.
 
 ## Epics
+
+### Cross-app owner/advisor rework — started, blocked (2026-11-13, #262)
+
+Plan: [`docs/OWNER-ADVISOR-REWORK.md`](docs/OWNER-ADVISOR-REWORK.md). The human owner alone supervises; an advisor
+answers a read-only question about the current worktree, then stops. No qualification grants supervisory powers.
+The owner said to start this plan, using only free Beam delegates; Sol handles inviolable changes and review.
+Start with Bive; dependent repositories wait for the reviewed reference and owner merge.
+Owner addition: permit exceptional opt-in merges of named sub-coordinator PRs by a designated coordinator, with
+scoped, head/base-bound, expiring owner grants and default denial. No advisor privileges or general merge authority.
+This is generic to any app made with Bive; each app's owner opts in, and grants are repository-bound, never inherited.
+
+Order: Bive reference contract → bench and workspace template → registry/help, university and Grooms inspection →
+owner-approved installed-project rollout. Preserve all historical draws, scores and frozen fixtures. Coordinator and
+delegate remain separate. No merges, owner-authorization actions, test releases or benchmark draws under this plan.
+The existing Bive implementation is a partial, unverified draft, not done or deployed.
+The first free Beam launch hit "Free usage limit reached"; no provider fallback or billing change was attempted.
+Ordinary implementation waits for the approved free route to become available or explicit owner direction.
 
 ### 0.2 — Delegates as sessions (done 2026-11-13: pilot #192 through #255; next: 0.3, #254)
 

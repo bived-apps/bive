@@ -9,7 +9,7 @@ import path from "node:path"
 const WRITE_TOOLS = new Set(["write", "edit", "multiedit"])
 const PATCH_TOOLS = new Set(["patch", "apply_patch"])
 const SHELL_TOOLS = new Set(["shell", "bash"])            // OpenCode 2 names it `shell`; `bash` was the V1 name
-// Bive's inviolable files: a delegate never changes them. The coordinator and the supervisor complete the role prompts
+// Bive's inviolable files: a delegate never changes them. The owner and the coordinator complete the role prompts
 // in .bive/prompts/project/ (never the core ones) (AGENTS.md › Inviolable prompts). `.opencode/plugin/` was the V1
 // folder (empty since #5); still matched in case a project kept one.
 const PROTECTED = [/^\.bive\/registry-id$/, /^\.bive\/gate\.json$/, /^\.bive\/prompts\//, /^\.bive\/templates\//, /^\.opencode\/plugins?\//,
@@ -93,12 +93,9 @@ const UNPARSEABLE = [
 // under another role's or model's name. Seen in the text too, so one inside an `ssh '...'` string is caught.
 const AUTHOR_OVERRIDE = [/(?:^|\s)-c\s*['"]?user\.(?:name|email)\s*=/, /(?:^|\s)--author(?:[=\s]|$)/,
                          /\bGIT_(?:AUTHOR|COMMITTER)_(?:NAME|EMAIL)\s*=/]
-// A supervisor never commits or pushes (AGENTS.md › Roles: whoever merges did not write): `git commit`, `git push`,
-// also inside an `ssh` command string.
-const SUPERVISOR_WRITES = /\bgit\b[^;&|\n]*?\b(?:commit|push)\b/
-// Whether the session is a supervisor's: BIVE_ROLE=supervisor, the role file, or the tool event's agent.
-export function isSupervisor(role: string | undefined, roleFile: string | undefined, agent?: string): boolean {
-  return role === "supervisor" || agent === "supervisor" || roleFile?.trim() === "supervisor"
+// Legacy supervisor sessions fail closed as advisors, never as privileged owners.
+export function isAdvisor(role: string | undefined, roleFile: string | undefined, agent?: string): boolean {
+  return [role, roleFile?.trim(), agent].some((value) => value === "advisor" || value === "supervisor")
 }
 // Read-only filters at the end of a statement (issue #204): `| tail [-n N | -N]`, `| head [-n N | -N]` and
 // `| grep [-flags] PATTERN`. They read the pipe, never a file: no operand but the pattern, and a pattern carries no
@@ -143,7 +140,7 @@ export type GuardOptions = {
   root: string          // the session's worktree: every write stays under it
   directory?: string    // where relative paths resolve from (default: root)
   delegate: boolean     // a delegate's session (isDelegate): inviolable files and any path outside are refused too
-  supervisor?: boolean  // a supervisor's session (isSupervisor): `git commit` and `git push` are refused, also over ssh
+  advisor?: boolean     // read-only consultation: no writes, shell commands or workflow operations
   home?: string         // what `~` and $HOME expand to (default: the user's home)
 }
 export type ToolInput = Record<string, unknown>
@@ -196,6 +193,14 @@ export function makeGuard(options: GuardOptions): Check {
   }
   return (tool, input) => {
     const str = (key: string) => (typeof input[key] === "string" ? (input[key] as string) : undefined)
+    if (options.advisor && !["read", "glob", "grep", "skill"].includes(tool)) {
+      violation("worktree-guard: an advisor is read-only: answer the question about the current worktree, then stop.")
+    }
+    if (options.advisor && ["read", "glob", "grep"].includes(tool)) {
+      const p = str("path") ?? str("filePath") ?? str("file_path") ?? directory
+      if (!inside(p)) refuse(p)
+      if (tool === "glob" && str("pattern") !== undefined && !inside(str("pattern")!)) refuse(str("pattern")!)
+    }
     if (WRITE_TOOLS.has(tool)) {
       const p = str("path") ?? str("filePath") ?? str("file_path")
       if (p !== undefined) guard(p)
@@ -220,10 +225,6 @@ export function makeGuard(options: GuardOptions): Check {
       if (AUTHOR_OVERRIDE.some((re) => re.test(shellSyntax))) {
         violation("worktree-guard: author-override: a commit is signed by the identity set with `git config --worktree`; "
           + "it is never overridden for one command (-c user.name=, -c user.email=, --author, GIT_AUTHOR_*, GIT_COMMITTER_*).")
-      }
-      if (options.supervisor && SUPERVISOR_WRITES.test(shellSyntax)) {
-        violation("worktree-guard: a supervisor does not commit or push (whoever merges did not write); ask the coordinator "
-          + "for the change, on its own branch.")
       }
       // A delegate: the portable scanner cannot safely parse pipes, command substitution or process substitution,
       // so it refuses them rather than risk missing a path escape. The message names the construct and does not

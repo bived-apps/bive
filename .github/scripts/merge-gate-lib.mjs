@@ -111,9 +111,12 @@ export function evaluateMergeGate({ labels = [], baseRef, checks = [], now = Dat
   labelAppliedAt = null, labelAppliedBy = null, owner = null,
   labelActorType = null, labelPerformedViaApp = null,
   overrideAppliedAt = null, overrideAppliedBy = null, overrideOwner = null,
-  overrideActorType = null, overridePerformedViaApp = null }) {
+  overrideActorType = null, overridePerformedViaApp = null, parentApproved = false }) {
   const override = labels.some((l) => l.startsWith(OVERRIDE_LABEL_PREFIX))
-  const grant = validateMergeAuthorization({ labels, baseRef, now, labelAppliedAt, labelAppliedBy, owner,
+  // A signed parent approval under the owner's grant replaces the dated label, on integration branches only (never main).
+  const grant = parentApproved
+    ? (isIntegrationBranch(baseRef) && !override ? { ok: true } : { ok: false, reason: "parent approval applies only to integration branches, without an override label" })
+    : validateMergeAuthorization({ labels, baseRef, now, labelAppliedAt, labelAppliedBy, owner,
     labelActorType, labelPerformedViaApp,
     overrideAppliedAt, overrideAppliedBy, overrideOwner,
     overrideActorType, overridePerformedViaApp })

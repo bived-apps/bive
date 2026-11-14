@@ -1,5 +1,5 @@
 {
-  "coordinator": ["claude-agent/opus", "claude-agent/claude-opus-5"],
-  "delegate": ["claude-agent/sonnet", "opencode-go/beam-free", "opencode/beam-free", "opencode/nemotron-3.5-lightning-free",
-               "opencode/flint-40b-free", "opencode/big-pickle", "ollama-cloud/beam"]
+  "coordinator": ["opencode-go/beam-free"],
+  "delegate": ["opencode/deepseek-v4.1-flash-free", "opencode/glm-5.3-flash-free", "opencode-go/longcat-2.5-free",
+               "opencode/mimo-v2.6-flash-free"]
 }

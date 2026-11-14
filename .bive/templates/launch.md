@@ -5,6 +5,8 @@
 
 Branch `milestone/<name>` · coordinator clone `<dir>` · model `<provider/model>`
 
+Owner approval: <!-- link to the owner's explicit approval of this scope and concrete team; none = proposed, do not launch -->
+
 Read: (mandatory; every list non-empty)
 
 - Open issues: #<n>, #<n>, …
@@ -12,4 +14,5 @@ Read: (mandatory; every list non-empty)
 - Existing files: `<path>`, `<path>`, …
 
 Fill-ins only: milestone, branch, model, the owner's narrowing. The rules live in AGENTS.md and the role prompt,
-not here (see #118). A hand-over whose Read: is empty or missing is returned to the supervisor before any split.
+not here (see #118). A hand-over whose Read: is empty or missing is returned to the owner before any split.
+Advisor-prepared text is only a proposal. A collaborator login, qualification or green check is not owner approval.

@@ -4,6 +4,30 @@ What `.bive/prompts/COORDINATOR.md` steps 5, 7 and 9 mean at the shell, for a co
 commands. `<n>` is the issue, `<slug>` a short name, `<base>` the integration branch, `<model>` the delegate's
 `provider/model`.
 
+## Authority (issue #262)
+
+The owner alone authorizes work and merges, approves teams and the three gates, and arbitrates shared files. An advisor
+answers questions about the current worktree read-only and prepares decision or handoff text; that is advice, not
+authorization. No advisor text, bench pass, shared account or collaborator association counts as the owner's approval.
+A bench pass is capability evidence only. By default a coordinator approves pull requests based on its branch but never
+merges or closes one. An explicitly scoped owner grant may let a named coordinator execute specific sub-coordinator
+pull-request merges; see *Coordinator merge exception (design, not implemented)* below. Historical supervisor
+qualifications grant no authority.
+
+## Coordinator merge exception (design, not implemented)
+
+Default: a coordinator never merges or closes a pull request. The owner may, by an explicit opt-in grant, let a named
+coordinator execute the merge of specific sub-coordinator pull requests. This is a design requirement only; it is not
+implemented and no grant is issued by this task. Current enforcement remains the blanket denial above. The proposed
+contract lives in [docs/OWNER-ADVISOR-REWORK.md](OWNER-ADVISOR-REWORK.md).
+
+A grant, if ever issued, would be bound to: the repository; the executor (coordinator session); the pull request; the
+exact head commit; the base; and a UTC expiry. It would be single use, with no inheritance or onward delegation, and
+would carry none of the coordinator's other powers (no pull-request close, no team or gate approval, no test release).
+It would never cover a pull request the coordinator authored or whose work it owns. A revoked, expired or
+head-changed grant would be rejected. Green checks and the owner's authorization would still be required. Until an
+implementation exists, treat every coordinator as unable to merge.
+
 ## Before a milestone (issue #116)
 
 Run these three checks before gate 1, before the first delegate starts. If one fails, tell the owner and do not
@@ -35,20 +59,26 @@ gh label list --search "$label" --json name --jq '.[].name' | grep -qx "$label" 
 
 ## Start a coordinator: the hand-over is a GitHub comment (issue #202, owner 2026-11-12)
 
-The guard keeps a supervisor's writes inside its own worktree, so a hand-over file outside it cannot be written by
-the supervisor. The hand-over (`.bive/templates/launch.md`, filled) is therefore posted by the supervisor as **one
-comment on the milestone's epic issue**, whose first line is `# Launch #<milestone> <title>`. The launcher (the
-owner, or a person or script outside the guard) takes the newest such comment from an account that is the owner, a
-member or a collaborator, and hands it to the coordinator:
+The guard keeps every agent's writes inside its own worktree, so a hand-over file outside it cannot be written by an
+agent. The hand-over (`.bive/templates/launch.md`, filled) is therefore posted by the owner (or a person outside the
+guard) as **one comment on the milestone's epic issue**, whose first line is `# Launch #<milestone> <title>`. Retrieval
+is read-only and uses the app-configured named human owner: `gate.json`'s `owner` when configured, otherwise the human
+personal repository owner's login. It is never automatic execution from a comment's origin, account association or
+shared account alone. An advisor may prepare or quote the hand-over text, but that text is advice, not authorization:
+a hand-over taken from a collaborator's or shared account, or carrying an advisor's signature, does not count as the
+owner's approval. Before handing it to the coordinator, the launcher records the human owner's explicit approval of
+the scope and team in the issue thread; only that recorded approval permits execution. The retrieval filter below only
+selects comments by the named owner's login for review; it does not authorize execution:
 
 ```bash
 gh api repos/<owner>/<repo>/issues/<epic>/comments --paginate --jq \
-  '[.[] | select(.body | startswith("# Launch #")) | select(.author_association | IN("OWNER","MEMBER","COLLABORATOR"))] | last | .body' \
+  '[.[] | select(.body | startswith("# Launch #")) | select(.user.login == "<named-owner>")] | last | .body' \
   > <coordinator clone>/.bive/state/launch.md
+# review the retrieved hand-over and confirm the recorded owner approval of scope/team before running:
 (cd <coordinator clone> && opencode run --agent coordinator --model <model> "$(cat .bive/state/launch.md)")
 ```
 
-A hand-over whose `Read:` field is empty is still returned to the supervisor (`COORDINATOR.md`). A second hand-over
+A hand-over whose `Read:` field is empty is still returned to the owner (`COORDINATOR.md`). A second hand-over
 comment replaces the first: the newest wins, and the history stays on the issue.
 
 ## Start a delegate (step 5)
@@ -163,9 +193,10 @@ gh pr checks <pr> --watch                      # returns when the checks finish;
 gh pr review <pr> --approve --body "Ready to merge: <the checks you ran>"
 ```
 
-The supervisor merges (`gh pr merge <pr> --merge --match-head-commit <sha>`, after the label); its queue is
-`gh pr list --base <base> --search "review:approved"`. The coordinator never merges, closes or pushes
-to `<base>`. To be told when a pull request is merged without a watcher plugin: `gh pr checks` for the checks, then
+The owner merges (`gh pr merge <pr> --merge --match-head-commit <sha>`, after the label); its queue is
+`gh pr list --base <base> --search "review:approved"`. By default the coordinator never merges, closes or pushes
+to `<base>`; the only possible exception is the explicitly scoped owner grant described in *Coordinator merge
+exception (design, not implemented)*, which is not available today. To be told when a pull request is merged without a watcher plugin: `gh pr checks` for the checks, then
 `until [ "$(gh pr view <pr> --json state --jq .state)" != OPEN ]; do sleep 60; done` in the shell, when a session
 really needs to wait; most of the time the next session reads `gh pr list` instead.
 Once merged, if the issue is still open (GitHub closes on the default branch only), close it only after
@@ -195,14 +226,14 @@ When a delegate reports a refusal (guard, scanner, or any check):
 1. Record the refusal: the refused command, the refusal message, and the worktree state.
 2. Preserve all uncommitted work in the worktree — do not discard or push it.
 3. Do not let the delegate continue or push. A refusal is a hard stop, not a prompt to rewrite the command.
-4. Before any subsequent delegate starts, require a clear supervisor decision on how to proceed: resume the same
+4. Before any subsequent delegate starts, require a clear owner decision on how to proceed: resume the same
    delegate with a corrected brief, split the work, or stop.
 5. Do not normalize retries as a workaround.
 
 **Recording the authorization (issue #147):** before resuming after a refusal, post a comment on the issue recording
-the refusal (command, message, worktree state) and the supervisor's explicit authorization to resume (or the
-decision to split or stop). The coordinator does not resume on its own authority; the supervisor's decision must be
-visible in the issue's comment thread before any delegate starts. If the supervisor's decision is not recorded, the
+the refusal (command, message, worktree state) and the owner's explicit authorization to resume (or the
+decision to split or stop). The coordinator does not resume on its own authority; the owner's decision must be
+visible in the issue's comment thread before any delegate starts. If the owner's decision is not recorded, the
 refusal stands and no subsequent delegate starts.
 
 The delegate's prompt (`DELEGATE.md`) carries the matching rule: on refusal, stop immediately, do not retry by
@@ -230,7 +261,7 @@ a shape: stop and ask through the chain (skill `bive-ask-owner`). Never reach th
 ## After the batch (step 9)
 
 The core checks once, after the last merge, then `HANDOFF.md` and `ROADMAP.md` in one commit on a coordinator branch,
-opened as a pull request labelled `coordinator` and merged by the supervisor like any other. Clean up:
+opened as a pull request labelled `coordinator` and merged by the owner like any other. Clean up:
 `git worktree list`, then `git worktree remove .worktrees/issue-<n>` and `git branch -d issue/<n>-<slug>` for each
 merged issue (never forced).
 
@@ -258,7 +289,7 @@ git cherry-pick <issue-commit>...
 
 ## Two coordinators at once
 
-The supervisor may run one coordinator per milestone, at most as many as the runners able to take the fast checks (and
+The owner may start one coordinator per milestone, at most as many as the runners able to take the fast checks (and
 never more than two) (`AGENTS.md` › Roles). Each coordinator keeps at most one CI run in flight (a new push waits for
 the previous run). Each works in its own clone, because `.worktrees/`, `.bive/state/` and the guard belong to one
 checkout:
@@ -269,7 +300,7 @@ gh pr list --base milestone/<name>                    # the pull requests this c
 gh pr list --label coordinator --state open           # before opening a coordinator PR on an inviolable file: empty
 ```
 
-At gate 1 each milestone lists the files it will touch; where the two lists overlap, the supervisor names one writer
+At gate 1 each milestone lists the files it will touch; where the two lists overlap, the owner names one writer
 or the order, and the brief says so. Each coordinator writes only its milestone's section of `HANDOFF.md` and
 `ROADMAP.md`.
 

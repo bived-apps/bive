@@ -16,6 +16,14 @@ with `node lib/models-check-cli.ts` (it prints found / alias / missing per role 
 sends one tiny prompt per role's first usable model, to reveal a used-up quota or a missing credit; the coordinator
 skill `bive-pick-model` says when to run it).
 
+## Owner route constraints (issue #262)
+
+An explicit route the owner sets (the `coordinator` allow-list in `.bive/models.json`, a named coordinator model, or any
+other owner-named model or route constraint) supersedes any generic fallback or recommendation, including an advisor's.
+Fallback applies only where the owner has not fixed the route. Qualification (a published bench pass) is capability
+evidence only; it never authorizes work, teams, gates or merges, and an advisor's text is not authorization. This
+section concerns models and routes only; dated merge-authorization labels are governed by `docs/REQUIRED-CHECKS.md`.
+
 ## Switching mid-work (issue #203)
 
 A delegate that hits a limit after it has started is not restarted from nothing. The coordinator:
@@ -32,8 +40,9 @@ A delegate that hits a limit after it has started is not restarted from nothing.
 
 A coordinator splits, briefs, reads reports and reviews; a model that fetches invented addresses or asks for its brief
 back (a 14B local model did both in the field) wastes the milestone. The minimum is a **published pass** of that model
-(name and version) on the bench's `milestone-run` case (<https://github.com/bived-apps/bench>), the same way a
-supervisor is qualified. Until a pass is published for any model, the owner names the models allowed as coordinator in
+(name and version) on the bench's `milestone-run` case (<https://github.com/bived-apps/bench>), the same way a model is
+qualified. Qualification is capability evidence only: it never authorizes work, teams, gates or merges, and historical
+supervisor qualifications grant no authority. Until a pass is published for any model, the owner names the models allowed as coordinator in
 `.bive/models.json`: the `coordinator` list is that allow-list. A coordinator that finds itself running on a model that
 is not on the list says so to the owner before starting; it does not start.
 

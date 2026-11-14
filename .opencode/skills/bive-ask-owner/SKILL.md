@@ -1,108 +1,66 @@
 ---
 name: bive-ask-owner
-description: How a Bive role asks the owner a yes/no/other question: the premade question block, who asks whom (delegate to coordinator to owner), how to batch, and how answers are recorded. Use whenever a decision belongs to the owner.
+description: Ask the human owner for a decision, with a short yes/no/other block, coordinator batching and a durable issue record. Advice is never authorization.
 ---
 
 # Asking the owner
 
-The owner answers one of five ways: **yes**, **no**, **other** (free text), **supervisor** ("ask the supervisor") or
-**coordinator** ("you decide"). Make every question answerable in one
-line. The block to fill is `.bive/templates/question.md`.
+The owner answers **yes**, **no**, **other**, **advisor** (get advice, then return for a decision), or
+**coordinator** (decide only within existing coordinator authority). Use `.bive/templates/question.md`.
 
-## The chain: answer what you may, pass up the rest, unchanged
+## The decision chain: Delegate → Coordinator → Owner
 
-Every role may ask the rung directly above it, during its session. Each role **answers** what is inside its authority
-and **transmits** the rest, unchanged, adding itself and its reason to `Path`. Nobody answers beyond their authority,
-and nobody answers "no" just to avoid passing a question up.
+| Role | May decide | Must pass up |
+| --- | --- | --- |
+| **Delegate** | Implementation choices inside its brief; say which in the report. | Anything outside it, to the coordinator. Stop the blocked part. |
+| **Coordinator** | What a rule already answers (cite it), brief clarification and sequencing within authorized scope. | Work or merge authorization, teams, gates, shared-file arbitration, rule changes, irreversible actions and test releases, to the owner. |
+| **Owner** | All supervisory decisions. | Nothing is delegated merely by asking for advice. |
 
-| Role | May answer | Transmits when |
-|---|---|---|
-| **Delegate** | Implementation choices inside its brief (say which you took in the report). | It is anything else: ask the coordinator and, if the answer blocks the part, stop that part (others may go on). |
-| **Coordinator** | Anything a rule already answers (cite the section); brief ambiguity, sequencing, model fallback, test and doc choices within the rules. | It is a gate (the split, a delegate that failed twice, the pull request to `main`), shared-file arbitration, starting a coordinator, a rule interpretation that could change behaviour, or not reversible. |
-| **Supervisor** | Gate decisions, shared-file arbitration, how a rule applies to a case, starting coordinators. | It is owner-only (below), or it would change a rule. |
-| **Owner** | Everything. Only the owner decides: the dated merge label, who may merge before a bench pass (#120), promoting an agent to a role, any change to `AGENTS.md` or a role prompt, anything irreversible or outward (publishing, deleting, spending), credentials. | |
+An **advisor is not a rung of authority**. It is asked a question about the current worktree, reads relevant files,
+returns an answer to the caller and stops. It never writes files/comments/reviews, executes commands, starts agents
+or operates workflows. Qualifications, green checks and shared accounts confer no owner powers.
 
-**Bypass**: a rung is skipped only when (a) it does not exist (no qualified supervisor agent: the question goes to the
-owner or the person the owner named), or (b) it has not answered after the wait the question states (default one
-day) and the question blocks work: the asker passes it to the next rung and records the bypass in `Path`. A bypass is
-never a way to get a different answer: once a rung has answered, the question is not asked again higher up, unless
-that answer was outside its authority, which makes it void.
+**Bypass**: a missing coordinator or an unanswered blocking question after the stated wait (default one day) may be
+raised to the owner. Record the reason in `Path`. Never bypass the owner with advisor advice or an assumed answer.
+An answer outside a role's authority is void.
 
-**Transport**: during a session, a delegate asks by a comment on its issue (the block, `To: coordinator`) and, once
-delegates are API sessions (ROADMAP 0.2), the coordinator may also prompt it; before that, the block goes under
-`**Left**` in the delegate's report. The coordinator is the only role that posts to the owner: it batches, cites the
-rule instead of asking when a rule answers, and merges duplicates. A role answering sends the answer to the asker
-(comment on the issue) and records it as below.
+## Transport and GitHub record
 
-## The GitHub record: always, even when answered live
+The delegate asks its coordinator with the block as an issue comment and reports blocking questions under `Left`.
+The coordinator is the only agent role that asks the owner: batch and transmit questions unchanged, merge duplicates,
+and cite an existing rule instead of asking where it already decides. An advisor returns advice to its caller;
+the caller, never the advisor, records it and asks the owner for any owner-only decision.
 
-Whatever the transport (a prompt to an API session, the question tool, a chat), **every question and every answer is
-also posted on the issue**, so the thread is the permanent record:
+Whatever the transport (session, question tool or chat), every workflow question and answer is recorded on the issue:
 
-- **Question**: the asker posts the filled block as one comment (`To`, `Path` filled), before or at the moment it asks.
-- **Answer**: the role that answers posts it as a reply naming the question: `Q2 yes`, `Q2 other: ...` (with its
-  role, model and date). An answer given live is mirrored by the answering role, or by the coordinator if the answer
-  came from the owner in a session.
-- **Transmission**: when a role passes a question up, it posts a one-line comment: `Q2 passed to supervisor: <reason>`.
-- **No answer after one day** (or the wait the block states): the asker posts a status comment, `Q2 unanswered after 1
-  day: asked <rung> on <date>, blocks <what>, next: <bypass to X | still waiting, reversible default Y>`, and then does
-  what that line says. This comment is also the record of a bypass. Repeat it each day while the question blocks work.
-- **Report**: the delegate's report and the coordinator's pull request body list the questions of the issue as
-  `Q<n>: asked <rung>, answered <answer> | unanswered | passed up`, with a link to the comment.
+- Question: one comment with `To` and `Path` filled, posted before or when asking.
+- Answer: `Q2 yes`, `Q2 no` or `Q2 other: ...`, attributed to role/model/date. The coordinator mirrors a live owner answer.
+- Transmission: `Q2 passed to owner: <reason>`; add the sender and reason to `Path`.
+- No answer: `Q2 unanswered after 1 day: asked <role> on <date>, blocks <what>, next <wait | pass to owner>`.
+  Record each bypass and repeat status each day while blocked. Silence is not consent.
+- Report: list `Q<n>: asked <role>, answered <answer> | unanswered | passed up`, with the comment link.
 
-## Writing a good question
+## Writing and batching
 
-1. **One decision per block.** Two decisions, two blocks.
-2. **Lead with the decision**, not the story: the owner should be able to answer from the first line.
-3. **Give a recommendation.** "Recommended: Yes, because ..." in one line. Never ask open-ended when you can propose.
-4. **Say what is blocked** and whether it is **reversible**. If not reversible, wait for the answer.
-5. **A default only for reversible questions.** "Default if unanswered: none" is the normal case.
-6. **At most 3 context lines.** Link, do not paste.
+One decision per block; lead with it, give yes/no/other and a recommendation, at most three context lines with links.
+Say what is blocked and whether reversible. Default if unanswered is normally **none**; never default an owner-only
+decision or an irreversible action. Batch at a part boundary or when blocked, at most five questions.
+In an interactive session use fixed choices, recommended option first; otherwise one numbered comment Q1..Qn.
 
-## Asking (coordinator)
+## When the owner answers "advisor"
 
-- Where the owner is in an OpenCode session: use the session's question tool with the options **Yes**, **No**,
-  **Other** (put the recommended one first, labelled "(Recommended)"). Several questions go in one call.
-- Otherwise: post the blocks as **one comment** on the issue (or the pull request), numbered Q1..Qn, and say
-  "Answer with one line per question."
-- Batch at the end of a part or when a delegate is blocked, not one by one. More than 5 in a batch means the split was
-  wrong: raise that instead.
-
-## When the owner answers "supervisor"
-
-The coordinator forwards the same block, unchanged, to the supervisor (a person, or an agent that holds a published
-bench pass) as one comment on the issue naming the supervisor, and waits. The supervisor answers yes, no or other like
-the owner. The supervisor may not answer what is the owner's alone: the dated merge label, who may merge before a
-bench pass (#120), promoting an agent to a role; those come back to the owner. While no agent is qualified, the
-supervisor is the owner or a person the owner named, so "supervisor" then means that person.
+The caller asks a bounded read-only question about the current worktree and records the answer as **advice**.
+Bring the proposed decision back to the owner. Asking an advisor does not authorize work or transfer a gate.
+Do not revive the retired supervisor routing or load legacy supervisor additions as current authority.
 
 ## When the owner answers "coordinator"
 
-The coordinator decides, says so on the issue (`Owner, <date>: Q2 coordinator; decided yes because ...`) and takes the
-responsibility. It may not take over a decision about a merge, a dated label, a gate (the split, a delegate that
-failed twice, the pull request to `main`), or a change to `AGENTS.md` or a role prompt: those go back to the owner as
-a plain yes/no. If the question was marked not reversible, the coordinator repeats it once with its recommendation
-rather than deciding.
+Decide only inside the coordinator's existing authority and record the choice and reason. Work/team/gate/merge
+authorization, PR closure and test releases cannot be handed over by this shorthand. Ask a plain yes/no instead.
+The exceptional coordinator merge opt-in requires its own complete, validated repository/executor/PR/head/base/expiry
+grant (`AGENTS.md` › Roles), never a qualification or an advisor answer. No such grant is created by this skill.
 
-## Recording the answer
+## Recording durable decisions
 
-- Quote the answer on the issue: `Owner, <date>: Q2 yes`.
-- A decision that outlives the issue goes to `HANDOFF.md` › Decisions, dated and attributed to the owner, in a
-  coordinator pull request. A decision that changes a rule goes to `AGENTS.md` or the role prompt the same way.
-- "Ask again later" is an answer: record it on the issue and leave the issue open (see #120).
-
-## Examples
-
-```
-**Question Q1** — from delegate opencode/big-pickle, issue #189
-**Decision needed**: should a missing local alias map fall back to the canonical model id?
-**Context**: docs/PROVIDERS.md says use the canonical id and tell the owner; lib/delegate-session.ts line 40.
-**Options**:
-- [ ] **Yes** — fall back and print one warning.
-- [ ] **No** — fail the session start.
-- [ ] **Other** — owner describes.
-**Recommended**: Yes, it matches PROVIDERS.md.
-**Blocks**: nothing; the part can finish with Yes.
-**Reversible**: yes
-**Default if unanswered**: Yes
-```
+Quote `Owner, <date>: Q2 yes` on the issue. Durable decisions go to `HANDOFF.md` › Decisions; rule changes go to
+`AGENTS.md` or the role prompt in a coordinator PR. "Ask again later" is an answer: record it and leave the issue open.

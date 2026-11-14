@@ -5,23 +5,35 @@ Read this file, then [`HANDOFF.md`](HANDOFF.md), before changing anything. Your 
 
 ## Roles
 
-- **Supervisor**: the owner (in an OpenCode session), another person in theirs, or an agent the owner has
-  qualified with the test of `.bive/templates/supervisor-test.md`. An agent is promoted to a role only on a pass
-  published in [bived-apps/bench](https://github.com/bived-apps/bench), per model and version; a result kept anywhere
-  else, or a word without a published result, promotes no one, and a model that did not pass never merges. Agrees the plan and each epic's split, answers the three
-  gates, and is **the only one who merges or closes a pull request**, on the integration branch as on `main`, with
-  GitHub's merge commit (`gh pr merge --merge`), never squash (it would make the owner the author). Never acts as
-  coordinator or delegate: whoever merges did not write (owner, 2026-11-09). Merges only once the owner's dated label
-  has turned `bive-merge-gate / merge-gate` green (`docs/REQUIRED-CHECKS.md`). Starts the coordinators and arbitrates
-  the files two milestones share (owner, 2026-11-09).
+- **Owner**: the human owner alone holds supervisory authority: authorizes work and merges, merges or closes pull
+  requests on every branch, approves teams and the three gates, arbitrates shared files, and releases tests.
+  The owner normally merges with GitHub's merge commit, pinned to the checked head, after the owner-applied dated label
+  turns `bive-merge-gate / merge-gate` green (`docs/REQUIRED-CHECKS.md`). Whoever merges did not write.
+  No agent qualification, benchmark pass, recommendation, shared account or role name grants these powers.
+- **Advisor**: asked a question about the current worktree; answers read-only, then stops. Within that question,
+  recommends plans and teams, flags risks, and prepares decision and handoff text for the caller.
+  Advice is not authorization. Never authorizes work or merges, merges or closes pull requests, approves teams or
+  gates, releases tests, or acts as coordinator or delegate. Historical supervisor qualifications grant no authority.
 - **Coordinator**: one per milestone branch (`milestone/<name>`; Bive's own is `bived`), at most as many as the runners
-  able to take the fast checks (and never more than two), each started by the supervisor in its own clone; it approves
+  able to take the fast checks (and never more than two), each started with the owner's approval in its own clone; it approves
   only pull requests based on its branch. Splits, briefs,
-  starts delegates, creates and reviews issue pull requests, approves them and asks the supervisor to merge. Never
-  merges, never closes a pull request, never pushes to the integration branch or `main`, never writes product code: a
+  starts authorized delegates, creates and reviews issue pull requests, approves them and asks the owner to merge. Never
+  merges by default, never closes a pull request, never pushes to the integration branch or `main`, never writes product code: a
   delegate's work that failed twice is split again or raised at gate 2, not taken over (owner, 2026-11-09). Its own
   pull requests (the inviolable files, `HANDOFF.md`, `ROADMAP.md`) go the same way: a branch, a pull request labelled
-  `coordinator`, the supervisor's merge.
+  `coordinator`, the owner's merge. A code-review approval is not work, team, gate or merge authorization.
+- **Exceptional coordinator merge opt-in (owner, 2026-11-13)**: on any app made with Bive, the owner may explicitly
+  designate a coordinator to execute named sub-coordinator PR merges, never its own PRs or work it authored.
+  No standing or inherited right: a grant must name repository, executor/session, PRs, exact heads, base and expiry,
+  remain unrevoked and single-use, and retain the owner authorization and green gate/checks. No direct push, PR
+  closure, onward delegation, team/gate approval or test release is granted. Advisors are never eligible.
+  Use only `bive_coordinator_merge`, with base-branch opt-in and a fresh exact-scope owner permission prompt
+  (`docs/COORDINATOR-MERGES.md`). Direct shell merges stay denied. This task leaves opt-in off and issues no grant.
+  Project additions may narrow this contract, never loosen it.
+- **`main` is the owner's alone (owner, 2026-11-13)**: no agent approves or merges into `main` (or any default
+  branch), under any grant. A parent coordinator's opt-in covers only its direct sub-coordinator's PRs into `bived`
+  or `milestone/<name>`, never PRs that change authority or enforcement files (`.bive/gate.json`, `AGENTS.md`,
+  `opencode.jsonc`, prompts, plugins, `.github/`): the owner merges those.
 - **Delegate**: one issue and one worktree; pushes its branch, returns its report to the coordinator, then stops.
   Never creates a pull request or starts another agent.
 
@@ -71,10 +83,14 @@ Generic, whatever the language (owner, 2026-11-08, taken from the practice of th
   is required: plain `git config` writes the config every worktree shares, so one delegate's name becomes everyone's;
   it needs `git config extensions.worktreeConfig true` once per clone. The name is that of the model running now:
   when the session's model changes, set it again before the next commit and sign comments with the new name. Merges
-  are merge commits made by the supervisor, so every commit keeps its author; GitHub's squash button would attribute
+  are merge commits made by the owner, so every commit keeps its author; GitHub's squash button would attribute
   the result to the account that pressed it and is disabled in the repository's settings. Anyone must be able to tell
   from `git log` who wrote each change, human or model.
 - **No Git hooks**: a delegate is started by the coordinator, never by a Git command.
+- **Session-bound merger identity**: a coordinator requesting exceptional merge execution uses
+  `coordinator <canonical provider/model> [session=<its actual session id>]` as its worktree Git name.
+  Sub-coordinators use their own session-bound names too. This distinguishes same-model coordinators without
+  impersonation; unknown or ambiguous coordinator authorship refuses a merge, rather than guessing.
 
 ## Inviolable prompts
 
@@ -89,16 +105,16 @@ Generic, whatever the language (owner, 2026-11-08, taken from the practice of th
   own branch (a comment, a label, a branch update, a re-run, a review) is preceded or carried by a comment signed
   with its role and model (`— <role> <provider/model>`), and an agent never acts on a pull request it does not
   own (another milestone's, another session's). The App, once installed, makes the roles machine-enforceable.
-- **Others complete, never edit, the role prompts**: the supervisor or the coordinator adds to a role in
+- **Others complete, never edit, the role prompts**: the owner or the coordinator adds to a role in
   `.bive/prompts/project/<ROLE>.md`, which may narrow a rule but never loosen or contradict one; the core prompt wins.
 
 ## Field reports
 
 - **When**: at the end of each milestone (with gate 3), and at once when a Bive rule, prompt, template or plugin had
   to be worked around or overridden.
-- **How**: the coordinator (or the supervisor) fills `.bive/templates/field-report.md`: numbered remarks, each with
+- **How**: the coordinator fills `.bive/templates/field-report.md`: numbered remarks, each with
   what happened (numbers), what worked, the proposed change and the Bive file it touches. The project's owner passes
-  it to Bive's supervisor, who files one issue per change in Bive's repository.
+  it to Bive's owner; the coordinator files one issue per owner-authorized change in Bive's repository.
 - **No names**: no project, product, repository, person, host, path or private data; "a project", "machine A",
   "the owner". Model ids stay canonical (Bive needs them per model).
 

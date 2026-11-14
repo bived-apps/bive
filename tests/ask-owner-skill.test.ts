@@ -9,7 +9,7 @@ const read = (rel: string) => fs.readFileSync(path.join(ROOT, rel), "utf8")
 
 test("every role gets the bive-ask-owner skill at the declared revision", () => {
   // Editing the skill changes its hash: update .bive/skills.json (revision) in the same commit.
-  for (const role of ["supervisor", "coordinator", "delegate"]) {
+  for (const role of ["advisor", "coordinator", "delegate"]) {
     const report = provisionLocal({ root: ROOT, role, reportPath: false })
     const expected = role === "coordinator" ? ["bive-ask-owner", "bive-pick-model", "bive-registry-optin"] : ["bive-ask-owner"]
     assert.deepEqual(report.skills.map((s) => s.id).sort(), expected, role)
@@ -19,7 +19,7 @@ test("every role gets the bive-ask-owner skill at the declared revision", () => 
 
 test("the question template offers yes, no and other, with a recommendation and reversibility", () => {
   const t = read(".bive/templates/question.md")
-  for (const k of ["**To**", "**Path**", "**Yes**", "**No**", "**Other**", "**Ask supervisor**", "**Coordinator decides**", "**Recommended**", "**Blocks**", "**Reversible**", "**Default if unanswered**"]) {
+  for (const k of ["**To**", "**Path**", "**Yes**", "**No**", "**Other**", "**Ask advisor**", "**Coordinator decides**", "**Recommended**", "**Blocks**", "**Reversible**", "**Default if unanswered**"]) {
     assert.ok(t.includes(k), `template lacks ${k}`)
   }
 })
@@ -27,7 +27,7 @@ test("the question template offers yes, no and other, with a recommendation and 
 test("the skill states the ladder and the delegate and coordinator prompts point at it", () => {
   const s = read(".opencode/skills/bive-ask-owner/SKILL.md")
   assert.match(s, /^---\nname: bive-ask-owner\n/)
-  assert.match(s, /Delegate.*Coordinator.*Supervisor.*Owner/s)
+  assert.match(s, /Delegate.*Coordinator.*Owner/s)
   assert.match(s, /Bypass/)
   assert.match(s, /GitHub record/)
   assert.match(s, /unanswered after 1/)

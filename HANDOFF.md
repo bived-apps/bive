@@ -4,7 +4,7 @@ What anyone picking up the work needs to know. Kept current by the coordinator, 
 
 ## Goal
 
-Bive is a repository template for building software with LLM agents in three roles (supervisor, coordinator,
+Bive is a repository template for building software with LLM agents in three roles (advisor, coordinator,
 delegates) on OpenCode 2, with two small plugins: a guard that refuses writes outside the session's worktree and a
 counter of human and agent tokens. Bive develops itself with its own flow, so this repository is both the template
 and its first example.
@@ -34,16 +34,18 @@ there and in AGENTS.md, not here.
   Start a delegate as a session, 0.2); the process start (`BIVE_ROLE=delegate opencode run --agent delegate --model
   <model>` from the worktree) stays the fallback. The `delegate` agent of `opencode.jsonc` has
   `.bive/prompts/DELEGATE.md` as its system prompt (#84).
-- The supervisor is the owner, in an OpenCode session (`.bive/prompts/SUPERVISOR.md`).
-- The supervisor's session (an OpenCode session) is started with: "You are the supervisor of bive. Read
-  AGENTS.md, HANDOFF.md, ROADMAP.md, then .bive/prompts/SUPERVISOR.md: it is your prompt. You merge pull requests
-  into bived with `gh pr merge --merge --match-head-commit <sha>` once the coordinator has approved them, I have
-  applied the dated label and `bive-merge-gate / merge-gate` is green; you start the coordinators (at most as many as
-  the runners able to take the fast checks, never more than two, one per
-  milestone) and arbitrate shared files; you never brief, review line by line, or write code."
+- The human owner holds supervisory authority; the advisor only answers a read-only question about the current
+  worktree (`.bive/prompts/ADVISOR.md`), then stops. `SUPERVISOR.md` is a retired compatibility pointer.
+- Only the owner authorizes work, teams, gates, merges and test releases. The optional generic coordinator merge
+  execution path is in `docs/COORDINATOR-MERGES.md`; opt-in is off and this task issues no grant.
 
 ## Decisions
 
+- **Owner authority, question-only advisor (owner, 2026-11-13, #262)**: replaces agent supervisory powers, not
+  historical evidence. No qualification grants those powers. The owner requested a generic opt-in capability on any
+  Bive-built app for named coordinators to execute named sub-coordinator PR merges under scoped owner grants; no
+  advisor privileges or standing merge rights. The opt-in path is a draft under test, disabled and not granted here.
+  Earlier decisions below are retained as history; this direction wins wherever authority rules conflict.
 - **Every session pulls first and reads GitHub before acting (owner, 2026-11-13, #247)**: `AGENTS.md` › Rules.
 - **The gate's owner is named on the base (owner, 2026-11-13, #249)**: `.bive/gate.json` › `owner`, for a repository
   that belongs to an organization.
@@ -123,6 +125,31 @@ there and in AGENTS.md, not here.
 
 ## Tasks
 
+**Planning checkpoint (2026-11-13, #262):** the owner requested the cross-app rework plan in Bive:
+[`docs/OWNER-ADVISOR-REWORK.md`](docs/OWNER-ADVISOR-REWORK.md), linked from ROADMAP. Owner-only supervisory authority;
+the advisor only answers a read-only question about the current worktree, then stops. This new direction supersedes
+older grants of agent supervisory powers below; historical decisions and draw results are retained as history.
+The owner then directed execution to start, with only free Beam delegates and Sol for inviolable changes/review.
+Start with Bive; dependent repositories wait for its reviewed reference and owner merge.
+`coordinator/advisor-role` has a partial, unverified Bive code
+draft; Haiku Part A is separate on `issue/262-advisor-code` at `38f8e03b52c7c478c8453514af7a1c3b661c7201`, not yet
+integrated/reviewed. Do not treat either as complete. No merges, authorization labels/actions, test releases or draws
+have been performed for this work.
+The free Beam delegate launch (`opencode/beam-free`, canonical `reflection/beam-1.0-501b-a23b`, version and zero
+rates verified in provider metadata) failed immediately with "Free usage limit reached", before work was returned.
+No fallback/provider/billing change. Preserve the partial draft; ordinary implementation is blocked pending free
+availability or explicit owner direction. The planning commit excludes the unverified code/prompt/config draft.
+Subsequent owner direction: design/test a free team and allow coordinators on independent areas. Personal Beam and
+Ollama routes were blocked; `opencode-go/beam-free` answered. Its first role smoke check wrongly assigned PR creation
+to the delegate; the corrected check named the coordinator and retained owner-only decisions. This is not a benchmark
+or qualification. Bive doc implementation and bench/workspace read-only coordination prep have been assigned on that
+explicitly tested zero-rate route; no silent fallback or provider/billing change.
+The owner also requested exceptional, opt-in coordinator merges of sub-coordinator PRs. The plan now specifies a
+default-deny, named-executor/PR/head/base/expiry-bound grant; no general or advisor privilege, no self-merge, onward
+delegation or PR-close rights. No actual merge grant or authorization action has been issued or applied by this task.
+Owner clarification: this opt-in capability must work on any app made with Bive, not only this organization.
+Implement it in the generic template/install/update contract; each app's owner decides, with repository-bound grants.
+
 ROADMAP.md › 0.1 is done (2026-11-10, #80). The backlog of 2026-11-12 is closed except two issues. Open work, in order:
 
 1. **0.2 — Delegates as sessions** (owner chose it, 2026-11-12; part 0 done; issues #187–#192 are parts 1–6, #196 is
@@ -136,8 +163,8 @@ ROADMAP.md › 0.1 is done (2026-11-10, #80). The backlog of 2026-11-12 is close
    2026-11-13). Check `https://bived-apps.github.io/registry/` then.
 5. **Models**: `opencode/beam-free`, `flint-40b-free` and `nemotron-3.5-lightning-free` hit their free usage limit on
    2026-11-12; `opencode/big-pickle` still answered (owner: lean on it).
-6. **Supervisor test v2, in bived-apps/bench** (bench#1): none qualified; until a model passes, only the owner (or a
-   person) supervises. **Coordinator qualification test**: wanted, not written.
+6. **Historical supervisor tests, in bived-apps/bench**: preserve draw results; qualifications never confer owner
+   authority. Future advisor/coordinator/delegate evaluations need their own owner-approved protocols and release.
 
 ## Watch out
 
@@ -172,10 +199,10 @@ ROADMAP.md › 0.1 is done (2026-11-10, #80). The backlog of 2026-11-12 is close
   `false`, the tests fail with `ERR_UNKNOWN_FILE_EXTENSION`): use an official Node 22+ build.
 - `.bive/registry-id`, once committed, is public: the registry is a count, not a proof.
 - GitHub's PR merge buttons are configured at repository level under Settings → General → Pull Requests; the desired
-  methods are recorded in `AGENTS.md` › Project rules: `merge` only. The supervisor merges with
+  methods are recorded in `AGENTS.md` › Project rules: `merge` only. The owner merges with
   `gh pr merge --merge --match-head-commit` once the owner's dated label has turned the gate green, which keeps each
   delegate commit under its author. "Closes #N" acts on merges into `main` only: the coordinator closes the issue
-  after the supervisor merges into `bived`.
+  after the owner merges into `bived`.
 - The guard removes shell here-document bodies before looking for redirections and outside paths. It allows a quoted
   heredoc body containing `> ../x` while still refusing a live redirect; heredoc-like text inside quotes/comments does
   not hide a later redirect. This remains a conservative command-text filter, not a shell parser.
@@ -195,6 +222,43 @@ ROADMAP.md › 0.1 is done (2026-11-10, #80). The backlog of 2026-11-12 is close
   those in GitHub's settings.
 
 ## Session log
+
+- **2026-11-14, owner decisions (answered with buttons), coordinator anthropic/claude-sonnet-5-5**: (1) free team
+  approved: coordinator `opencode-go/beam-free` (canonical reflection/beam-1.0-501b-a23b), delegates in order
+  `opencode/deepseek-v4.1-flash-free`, `opencode/glm-5.3-flash-free`, `opencode-go/longcat-2.5-free`,
+  `opencode/mimo-v2.6-flash-free`; recorded in `.bive/models.json`. Each answered a tool-free availability and
+  role-boundary probe on 2026-11-14; this is not a qualification. Excluded: `opencode/big-pickle` (said the owner opens
+  PRs), `opencode-go/iceman-contributor-free` (trains on request data; the owner's privacy setting was not changed),
+  `opencode/beam-free` and `ollama-cloud/beam` (quota/credit). No paid fallback. (2) Parent-approval signing key: a
+  per-grant keypair generated by the owner; the public key goes in the grant in `.bive/gate.json`, the private key is
+  handed to that parent session only. Next: wire `merge-tool.ts` to `coordinator-approval-lib.mjs`.
+
+- **2026-11-14, correction (owner)**: this session runs on anthropic/claude-sonnet-5-5, not openai/gpt-6.1-sol. The
+  commits, issue comments, PR #263 body and the passation of 2026-11-13 signed "coordinator openai/gpt-6.1-sol" were
+  written by this Sonnet session; the claim that Sol wrote or reviewed the protected files is wrong, and no Sol review
+  has happened. Pushed history is not rewritten. From now on commits and comments are signed
+  `coordinator anthropic/claude-sonnet-5-5`. The protected files (guard, config, prompts) still need an independent
+  review by Sol or the owner before merge.
+
+- **2026-11-13, coordinator openai/gpt-6.1-sol — passation, #262 advisor role and owner-only authority**: branch
+  `coordinator/advisor-role` (draft PR #263), last commit `bdaa622`. Done: question-only read-only `ADVISOR.md`,
+  `SUPERVISOR.md` retired to a pointer, legacy supervisor markers fail closed as advisor (guard, config, skills),
+  docs/templates/README/ROADMAP aligned, plan in `docs/OWNER-ADVISOR-REWORK.md`, exception contract in
+  `docs/COORDINATOR-MERGES.md`. `main` is the owner's alone: no agent approves or merges into it (code refuses it,
+  `tests/coordinator-approval.test.ts` 6/6). Owner opt-in = grant in `.bive/gate.json` on the base (parent coordinator
+  approves its direct child's PR into `bived`/`milestone/*`, signed short-lived comment, no label per PR; authority
+  and enforcement files stay owner-merged). Open: (1) `merge-tool.ts` and `check-merge-gate.mjs` are not wired to
+  `coordinator-approval-lib.mjs`, so the tool refuses every request (fails closed), opt-in off, no grant exists;
+  (2) who holds the signing key (recommended: a per-grant key given by the owner); (3) the gate still needs the dated
+  label until its script changes, which must reach `main` and `bived` together; (4) delegate branches not yet
+  cherry-picked: `issue/264-advisor-merge-tests` (`8e93e72`, `db7e473`: 35+35 tests of the merge state machine and
+  adapter, written for the earlier snapshot, to adapt) and `issue/265-advisor-role-tests` (`aa4c7a0`, guard test
+  migrated to advisor; other old supervisor tests in `ask-owner-skill`, `launch-handover`, `rules-consistency`,
+  `merge-authority` still to align); (5) full `node --test tests/*.test.ts` not yet run on this branch. Haiku Part A
+  (`38f8e03`) is integrated. Other apps (bench, workspace template, registry, university, grooms) wait for the owner's
+  review of this reference; bench has PRs #72/#74 to avoid. Delegates: only free Beam through the tested route
+  `opencode-go/beam-free` (`opencode/beam-free` and `ollama-cloud/beam` were blocked by quota/credit); no fallback,
+  no billing change. No grant, label, merge, test release or draw was done.
 
 - **2026-11-12, coordinator opencode/beam-free — backlog closed, registry live**: ~45 issues solved in one day:
   epic #132 (skills) with its seven slices, the merge gate (#114, #115, #129, #130), guard refusals (#146–#148), the
