@@ -25,7 +25,7 @@ test("the safety rules stay in the role prompts and docs/ROLE-CONTEXT.md states 
   assert.match(read(".bive/prompts/DELEGATE.md"), /Never create a pull request/)
   assert.match(read(".bive/prompts/DELEGATE.md"), /Hard stop on refusal/)
   const d = read("docs/ROLE-CONTEXT.md")
-  for (const re of [/40,721 B/, /6,880 B/, /Owner decision/, /not verified here/]) assert.match(d, re)
+  for (const re of [/40,721 B/, /6,880 B/, /Owner decision/, /not\s+verified\s+here/]) assert.match(d, re)
 })
 
 test("the coordinator project addition names the milestone queue (#228)", () => {
