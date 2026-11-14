@@ -36,6 +36,16 @@ test("the skill states the ladder and the delegate and coordinator prompts point
   assert.match(read(".bive/prompts/COORDINATOR.md"), /bive-ask-owner/)
 })
 
+test("quick choices keep recommendations, authorization boundaries and non-interactive fallback", () => {
+  const s = read(".opencode/skills/bive-ask-owner/SKILL.md")
+  const section = s.split("## Quick choices")[1]?.split("\n## ")[0] ?? ""
+  assert.ok(section, "skill lacks the Quick choices section")
+  assert.match(section, /recommended\s+choice first,\s+marked \*\*\(Recommended\)\*\*/)
+  assert.match(section, /one decision per question, never a combined yes\/no/i)
+  assert.match(section, /non-interactive or preassigned session never opens a form/i)
+  assert.match(section, /plain text with a numbered list, say that no buttons were shown, and stop/i)
+})
+
 test("the registry opt-in skill creates no id without a yes, and the human guide covers the label", () => {
   const s = read(".opencode/skills/bive-registry-optin/SKILL.md")
   assert.match(s, /^---\nname: bive-registry-optin\n/)

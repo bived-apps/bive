@@ -47,6 +47,17 @@ Say what is blocked and whether reversible. Default if unanswered is normally **
 decision or an irreversible action. Batch at a part boundary or when blocked, at most five questions.
 In an interactive session use fixed choices, recommended option first; otherwise one numbered comment Q1..Qn.
 
+## Quick choices
+
+- Use the client's native question tool with fixed choices: short labels, one-line consequences, and the recommended
+  choice first, marked **(Recommended)**. The client adds a custom answer; cancel is allowed.
+- Ask one decision per question, never a combined yes/no. A button grants only what its question names.
+- For a question about a native app's screen, use that app's own choice dialog when it exposes one, within its consent
+  scopes; never ask the owner to retype private app data.
+- A non-interactive or preassigned session never opens a form. Missing authorization becomes a blocker in its report.
+- A resumed session does not re-ask a settled question; the answer is in the issue or `HANDOFF`.
+- With no interactive tool, ask in plain text with a numbered list, say that no buttons were shown, and stop.
+
 ## When the owner answers "advisor"
 
 The caller asks a bounded read-only question about the current worktree and records the answer as **advice**.
