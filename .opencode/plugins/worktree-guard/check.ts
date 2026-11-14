@@ -139,6 +139,29 @@ function mktempUsesTmpdir(command: string): boolean {
   }
   return false
 }
+// Inert argument text (issue #225): prose and patterns are data, not destinations. Blanked before the path and structure
+// checks, only where the quoted text is plainly an argument of a message option, echo/printf, a grep pattern or a
+// non-writing inline script. Single-quoted text is always inert; double-quoted text only when it has no `$` or backtick
+// (those run). A quoted destination (`cp a "/x"`), `sh -c`, a redirect or an inline script that writes is NOT blanked.
+const QUOTED = String.raw`(["'])((?:\\.|(?!\2)[^\\])*)\2`
+const INERT_CONTEXTS = [
+  new RegExp(String.raw`((?:^|\s)(?:-m|-am|--message|--body|--title|--subject|--notes)(?:=|\s+))` + QUOTED, "g"),
+  new RegExp(String.raw`(\b(?:echo|printf)(?:\s+-[a-zA-Z]+)*\s+)` + QUOTED, "g"),
+  new RegExp(String.raw`(\b(?:grep|egrep|rg)(?:\s+-[-\w=]+)*\s+)` + QUOTED, "g"),
+  new RegExp(String.raw`(\b(?:python3?|node|perl|ruby)\s+-[ce]\s+)` + QUOTED, "g"),
+]
+const WRITING_SCRIPT = /open\s*\(|\bwrite|\bos\.|shutil|subprocess|\bsystem\b|\bexec|unlink|remove|rename|mkdir|Path\s*\(|writeFile|fs\.|child_process|>/
+export function withoutInertText(command: string): string {
+  let out = command
+  INERT_CONTEXTS.forEach((re, i) => {
+    out = out.replace(re, (all: string, head: string, quote: string, body: string) => {
+      if (quote === '"' && /[$`]/.test(body)) return all
+      if (i === 3 && WRITING_SCRIPT.test(body)) return all
+      return `${head}${quote}${quote}`
+    })
+  })
+  return out
+}
 const PATCH_FILE = /^\*\*\* (?:Add|Update|Delete) File: (.+)$|^\*\*\* Move to: (.+)$/gm
 
 // Each refusal is a violation: counted in this process for the token-ratio plugin, which reports the count to the registry.
@@ -244,7 +267,7 @@ export function makeGuard(options: GuardOptions): Check {
       // Every role: a redirection never lands outside the worktree (/dev/null and the system prefixes excepted).
       const shellSyntax = withoutHeredocBodies(cmd)
       // What the delegate checks below see: the same text without its allowed trailing filters (issue #204).
-      const checked = delegate ? withoutTrailingFilters(shellSyntax) : shellSyntax
+      const checked = delegate ? withoutInertText(withoutTrailingFilters(shellSyntax)) : shellSyntax
       const redirected = [...shellSyntax.matchAll(REDIRECT)].map((m) => m[1])
       for (const t of redirected) if (!inside(t) && !system(t)) refuse(t)
       if (delegate) {

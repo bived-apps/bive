@@ -207,6 +207,11 @@ ROADMAP.md › 0.1 is done (2026-11-10, #80). The backlog of 2026-11-12 is close
   variable other than `$HOME`, a writing command naming `/tmp`, `/var`, `/private` or `$TMPDIR`, and a `mktemp` that
   defaults to `$TMPDIR` (#224). System paths stay readable. Scratch goes in `.bive/state/`. A text filter, not a
   sandbox: forms it does not recognise (for example a script file that writes to `/tmp`) are not covered.
+- Inert text (#225): for a delegate, quoted prose is blanked before the path and structure checks only after
+  `-m`/`--message`/`--body`/`--title`, `echo`/`printf`, a `grep` pattern or a non-writing `python -c`/`node -e` script
+  (single quotes always; double quotes only without `$` or a backtick). A quoted destination, `sh -c`, a redirect and
+  a script that writes are still refused. Still a text filter, not a shell parser: a form outside this list is read
+  as before.
 - The guard removes shell here-document bodies before looking for redirections and outside paths. It allows a quoted
   heredoc body containing `> ../x` while still refusing a live redirect; heredoc-like text inside quotes/comments does
   not hide a later redirect. This remains a conservative command-text filter, not a shell parser.

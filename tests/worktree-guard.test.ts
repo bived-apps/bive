@@ -3,7 +3,7 @@ import { describe, test } from "node:test"
 import assert from "node:assert/strict"
 import os from "node:os"
 import path from "node:path"
-import { isDelegate, isAdvisor, makeGuard, violations, type Check } from "../.opencode/plugins/worktree-guard/check.ts"
+import { isDelegate, isAdvisor, makeGuard, violations, withoutInertText, type Check } from "../.opencode/plugins/worktree-guard/check.ts"
 
 // Fake paths under the home folder, never created: /tmp is a system prefix the guard lets through.
 const base = path.join(os.homedir(), ".bive-guard-test")
@@ -359,6 +359,32 @@ describe("temporary-directory writes of a delegate (#224)", () => {
   })
   test("the coordinator is not restricted by the delegate-only rule", () => {
     passes(shell(coordinator, "cp a.py /tmp/a.py"))
+  })
+})
+
+describe("inert argument text versus real destinations (#225)", () => {
+  test("quoted prose and non-writing patterns do not count as outside paths", () => {
+    passes(shell(delegate, `git commit -m "fix ../x and /home/u/y in the path regex (#3)"`))
+    passes(shell(delegate, `git commit -m 'uses a | b and $(x) and ../z'`))
+    passes(shell(delegate, `grep -E "a|../b|/home/u/c" src/a.py`))
+    passes(shell(delegate, `echo "see /home/u/notes and ../x"`))
+    passes(shell(delegate, `python3 -c "import re; print(re.sub(r'../x|/home/u/y', '', 'a'))"`))
+    passes(shell(delegate, `gh issue comment 5 --body "paths like ../x are refused; see /home/u/doc"`))
+  })
+  test("real quoted destinations, live substitutions and writing scripts stay refused", () => {
+    refused(shell(delegate, `cp a.py "/home/u/other/a.py"`), /outside/)
+    refused(shell(delegate, `git commit -m "x" && cp a.py /home/u/other/a.py`), /outside/)
+    refused(shell(delegate, `python3 -c "open('/home/u/other/x','w').write('1')"`), /outside|temporary/)
+    refused(shell(delegate, `git commit -m "$(cat /home/u/other/x)"`), /invalid-structure/)
+    refused(shell(delegate, "git commit -m \"`cat /home/u/other/x`\""), /invalid-structure/)
+    refused(shell(delegate, `echo "x" > /home/u/other/y`), /outside/)
+    refused(shell(delegate, `sh -c "cp a.py /home/u/other/a.py"`), /outside/)
+    refused(shell(delegate, `grep "x" /home/u/other/file`), /outside/)
+  })
+  test("inert text is not blanked for other roles' checks and plain output is unchanged", () => {
+    assert.equal(withoutInertText("ls src"), "ls src")
+    assert.equal(withoutInertText(`git commit -m "a ../b"`), `git commit -m ""`)
+    assert.equal(withoutInertText(`git commit -m "a $(b)"`), `git commit -m "a $(b)"`)
   })
 })
 
