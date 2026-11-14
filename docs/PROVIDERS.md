@@ -16,6 +16,16 @@ with `node lib/models-check-cli.ts` (it prints found / alias / missing per role 
 sends one tiny prompt per role's first usable model, to reveal a used-up quota or a missing credit; the coordinator
 skill `bive-pick-model` says when to run it).
 
+## Least-cost capable order (issue #231; authority: bench `RESULTS.md` › Roles, Names)
+
+Each role takes the **least costly model that is capable of that role**, not its own rank. Capability comes from the
+bench (qualification on the latest released version); a model that is merely in the catalog is not available, and an
+unknown price is not free. In `.bive/models.json` write the canonical maker/model-version ID; a serving alias lives
+only in the ignored machine-local map. A missing credit or quota, or a cost nobody has verified, blocks automatic
+selection of that model. A lower-role exception for an unqualified model is the owner's, per role, and appoints nobody
+to a higher role. The owner approves the actual candidates and their order before any paid probe or rollout; this
+guide invents no prices and makes no live call.
+
 ## Owner route constraints (issue #262)
 
 An explicit route the owner sets (the `coordinator` allow-list in `.bive/models.json`, a named coordinator model, or any
