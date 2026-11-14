@@ -1,5 +1,5 @@
 {
-  "coordinator": ["opencode-go/beam-free"],
-  "delegate": ["opencode/deepseek-v4.1-flash-free", "opencode/glm-5.3-flash-free", "opencode-go/longcat-2.5-free",
-               "opencode/mimo-v2.6-flash-free"]
+  "coordinator": ["openai/gpt-6.1-sol"],
+  "delegate": ["openai/gpt-6-luna", "opencode/deepseek-v4.1-flash-free", "opencode/glm-5.3-flash-free",
+               "opencode-go/longcat-2.5-free", "opencode/mimo-v2.6-flash-free"]
 }
