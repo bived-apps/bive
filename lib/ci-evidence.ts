@@ -42,6 +42,7 @@ export function canReuse(
   if (run.totalTests === undefined || run.passedTests !== run.totalTests) {
     reasons.push("run does not cover the whole suite");
   }
+  if (run.totalTests === 0 || run.passedTests === 0) reasons.push("run reports no tests");
   if ((run.skippedTests ?? 0) > 0) reasons.push("run skipped tests");
   if ((run.requiredMarkersSkipped?.length ?? 0) > 0) {
     reasons.push("run skipped required markers");

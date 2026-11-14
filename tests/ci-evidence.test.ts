@@ -62,6 +62,12 @@ test("rejects a partial successful run", () => {
   if (!result.reuse) assert.ok(result.reasons.includes("run does not cover the whole suite"));
 });
 
+test("rejects a successful run reporting zero tests", () => {
+  const result = canReuse({ ...matchingRun, totalTests: 0, passedTests: 0 }, review);
+  assert.equal(result.reuse, false);
+  if (!result.reuse) assert.ok(result.reasons.includes("run reports no tests"));
+});
+
 test("rejects skipped tests and required markers", () => {
   for (const run of [
     { ...matchingRun, skippedTests: 1 },
