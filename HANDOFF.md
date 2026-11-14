@@ -26,6 +26,9 @@ It develops itself with its own flow: this repository is the template and its fi
 
 ## Decisions (owner, dated; reasoning in the history link)
 
+- 2026-11-14 GPT team (supersedes the free team below): coordinator `openai/gpt-6.1-sol`; delegates `openai/gpt-6-luna`,
+  then the free four as fallback (`.bive/models.json`). Both GPT routes answered a tool-free availability probe; not a
+  qualification. OpenAI prices are not shown in the catalog (owner's account).
 - 2026-11-14 free team: coordinator `opencode-go/beam-free`; delegates `opencode/deepseek-v4.1-flash-free`,
   `opencode/glm-5.3-flash-free`, `opencode-go/longcat-2.5-free`, `opencode/mimo-v2.6-flash-free` (`.bive/models.json`;
   availability probes, not qualification). Excluded: `big-pickle`, `iceman-contributor-free`, `beam-free` and
