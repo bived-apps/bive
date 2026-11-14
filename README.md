@@ -4,18 +4,22 @@ A repository template for building software with LLM agents in three roles, on O
 
 ```mermaid
 flowchart LR
-  S(["owner<br/>you authorize work, gates, teams and merges"])
-  A["advisor<br/>read-only worktree question, answer, stop"]
-  C["coordinator<br/>one agent: splits, reviews, never merges"]
-  D1["delegate<br/>issue 12, its own worktree"]
-  D2["delegate<br/>issue 13, its own worktree"]
-  S -- "plan · gate 1: the split" --> C
+  A["<b>Advisor</b><br/>read-only answer, then stops"]:::advisor
+  O(["<b>Owner</b><br/>decides gates and merges"]):::owner
+  C["<b>Coordinator</b><br/>splits, briefs, reviews, never merges"]:::coordinator
+  D1["<b>Delegate</b><br/>issue 12, own worktree, then it stops"]:::delegate
+  D2["<b>Delegate</b><br/>issue 13, own worktree, then it stops"]:::delegate
+  O -- "gate 1: the plan" --> C
   C -- "brief" --> D1 & D2
-  D1 & D2 -- "push + report, then stop" --> C
-  C -- "opens PR to integration branch" --> C
-  C -. "gate 2: failed twice" .-> S
-  C == "gate 3: pull request to main" ==> S
-  C -. "question / advice only" .-> A
+  D1 & D2 -- "push + report" --> C
+  C -- "opens PR to the integration branch" --> C
+  C -. "question, advice only" .-> A
+  C -. "gate 2: failed twice" .-> O
+  C == "gate 3: pull request to main, only the owner merges" ==> O
+  classDef owner fill:#FFFFFF,stroke:#B8860B,stroke-width:3px,color:#1F2430
+  classDef advisor fill:#FFFFFF,stroke:#0F766E,stroke-width:2px,color:#1F2430
+  classDef coordinator fill:#FFFFFF,stroke:#B45309,stroke-width:2px,color:#1F2430
+  classDef delegate fill:#FFFFFF,stroke:#6D28D9,stroke-width:2px,color:#1F2430
 ```
 
 Bive is a template and two small plugins, nothing else: a **guard** that refuses any write outside the session's
