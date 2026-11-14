@@ -1,5 +1,10 @@
 # Design brief for the bived-apps organization (Phase 1, text only; issue #278)
 
+> **Scope narrowed (owner, 2026-11-14): "I don't like the design, not for frontend, keep it for Bive."** The assets and
+> the style stay inside Bive (its docs and README). Not pursued: the organization front door, the profile repository,
+> per-repository descriptions and social images, a paid image team and Phase 3 and 4. The sections below that describe
+> them are kept as the record of the plan, not as work to do. Nothing in other repositories is changed for this batch.
+
 Status: a **brief for the owner's approval**. Text only: no image generated, no paid call, no repository, page or setting
 changed. It applies `docs/DESIGN-PLAN.md` and the owner's answers in issue #278. Nothing here is adopted until approved;
 Phase 2 (SVG diagrams and icons) starts only after approval.

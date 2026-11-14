@@ -1,7 +1,7 @@
 # Design assets (Phase 2, issue #278)
 
 SVG assets written by hand from the tokens of `docs/DESIGN-BRIEF.md`: no image provider, no generated picture. They are
-staged here until the organization profile repository exists, then they move there (Bive itself only needs the flow).
+for Bive only (owner, 2026-11-14: not for a public front end): its docs and README. No other repository uses them.
 
 | File | What | Colour |
 | --- | --- | --- |

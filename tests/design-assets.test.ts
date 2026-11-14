@@ -52,3 +52,9 @@ test("the flow names every role and both gates, and its text has real contrast",
     assert.ok((hi + 0.05) / (lo + 0.05) >= 4.5, `${text} on ${bg}`)
   }
 })
+
+test("the design stays inside Bive: the narrowed scope is recorded in the plan, the brief and the asset README", () => {
+  const read2 = (f: string) => fs.readFileSync(new URL(`../docs/${f}`, import.meta.url), "utf8")
+  for (const f of ["DESIGN-PLAN.md", "DESIGN-BRIEF.md"]) assert.match(read2(f), /Scope narrowed \(owner, 2026-11-14\)/)
+  assert.match(read2("design/README.md"), /for Bive only/)
+})
