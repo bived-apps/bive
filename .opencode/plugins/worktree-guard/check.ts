@@ -114,6 +114,54 @@ export function withoutTrailingFilters(syntax: string): string {
   }
   return s
 }
+// Temporary directories (issue #224): /tmp and the system folders stay readable for a delegate (interpreters, tools), but
+// a delegate writes scratch inside its worktree. A temp path word or $TMPDIR next to a writing command is refused, and so
+// is a redirect to any destination outside the worktree (but /dev/*), a redirect through a variable, and `mktemp` that
+// would default to $TMPDIR. A conservative text filter, not a sandbox: other constructs are not claimed to be covered.
+const TEMP_WORD = /(?:^|[\s=:"'])(?:\$\{?(?:TMPDIR|TMP|TEMP)\}?|\/tmp|\/var\/tmp|\/private\/tmp|\/private\/var|\/var\/folders)(?=\/|\s|$|["';&|)])/
+const TEMP_WRITERS = new RegExp([
+  String.raw`\btee\b`, String.raw`\btouch\b`, String.raw`\bmkdir\b`, String.raw`\binstall\b`, String.raw`\bdd\b`,
+  String.raw`\bcp\b`, String.raw`\bmv\b`, String.raw`\brm\b`, String.raw`\bln\b`, String.raw`\btruncate\b`,
+  String.raw`\bsed\s+-i`, String.raw`\bperl\s+-[a-z]*i`, String.raw`\bwget\b`, String.raw`\bunzip\b`,
+  String.raw`\bcurl\b[^;&|\n]*\s-[a-zA-Z]*[oO]\b`, String.raw`\btar\b[^;&|\n]*\s-?[a-zA-Z]*[xc]`,
+  String.raw`\bgit\s+(?:clone|worktree|checkout-index)`,
+  // inline scripts can write anywhere: refused when they name a temp path (stated limit: other forms are not covered)
+  String.raw`\b(?:python3?|node|perl|ruby|sh|bash|zsh)\b[^;&|\n]*\s-[a-zA-Z]*[ce]\b`,
+].join("|"))
+// `mktemp` writes to $TMPDIR unless it has a template or -p DIR of its own; `-t` and `--tmpdir` always use $TMPDIR.
+function mktempUsesTmpdir(command: string): boolean {
+  for (const m of command.matchAll(/\bmktemp\b([^;&|\n]*)/g)) {
+    const args = m[1].trim().split(/\s+/).filter(Boolean)
+    if (args.some((a) => a === "--tmpdir" || (/^-[a-zA-Z]*t[a-zA-Z]*$/.test(a)))) return true
+    const hasDir = args.some((a, i) => a === "-p" && args[i + 1] !== undefined || a.startsWith("--tmpdir="))
+    const template = args.filter((a, i) => !a.startsWith("-") && args[i - 1] !== "-p")
+    if (!hasDir && template.length === 0) return true
+  }
+  return false
+}
+// Inert argument text (issue #225): prose and patterns are data, not destinations. Blanked before the path and structure
+// checks, only where the quoted text is plainly an argument of a message option, echo/printf, a grep pattern or a
+// non-writing inline script. Single-quoted text is always inert; double-quoted text only when it has no `$` or backtick
+// (those run). A quoted destination (`cp a "/x"`), `sh -c`, a redirect or an inline script that writes is NOT blanked.
+const QUOTED = String.raw`(["'])((?:\\.|(?!\2)[^\\])*)\2`
+const INERT_CONTEXTS = [
+  new RegExp(String.raw`((?:^|\s)(?:-m|-am|--message|--body|--title|--subject|--notes)(?:=|\s+))` + QUOTED, "g"),
+  new RegExp(String.raw`(\b(?:echo|printf)(?:\s+-[a-zA-Z]+)*\s+)` + QUOTED, "g"),
+  new RegExp(String.raw`(\b(?:grep|egrep|rg)(?:\s+-[-\w=]+)*\s+)` + QUOTED, "g"),
+  new RegExp(String.raw`(\b(?:python3?|node|perl|ruby)\s+-[ce]\s+)` + QUOTED, "g"),
+]
+const WRITING_SCRIPT = /open\s*\(|\bwrite|\bos\.|shutil|subprocess|\bsystem\b|\bexec|unlink|remove|rename|mkdir|Path\s*\(|writeFile|fs\.|child_process|>/
+export function withoutInertText(command: string): string {
+  let out = command
+  INERT_CONTEXTS.forEach((re, i) => {
+    out = out.replace(re, (all: string, head: string, quote: string, body: string) => {
+      if (quote === '"' && /[$`]/.test(body)) return all
+      if (i === 3 && WRITING_SCRIPT.test(body)) return all
+      return `${head}${quote}${quote}`
+    })
+  })
+  return out
+}
 const PATCH_FILE = /^\*\*\* (?:Add|Update|Delete) File: (.+)$|^\*\*\* Move to: (.+)$/gm
 
 // Each refusal is a violation: counted in this process for the token-ratio plugin, which reports the count to the registry.
@@ -219,9 +267,18 @@ export function makeGuard(options: GuardOptions): Check {
       // Every role: a redirection never lands outside the worktree (/dev/null and the system prefixes excepted).
       const shellSyntax = withoutHeredocBodies(cmd)
       // What the delegate checks below see: the same text without its allowed trailing filters (issue #204).
-      const checked = delegate ? withoutTrailingFilters(shellSyntax) : shellSyntax
+      const checked = delegate ? withoutInertText(withoutTrailingFilters(shellSyntax)) : shellSyntax
       const redirected = [...shellSyntax.matchAll(REDIRECT)].map((m) => m[1])
       for (const t of redirected) if (!inside(t) && !system(t)) refuse(t)
+      if (delegate) {
+        // A delegate: a redirect leaves the worktree nowhere, system folders and /tmp included (#224).
+        for (const t of redirected) {
+          if (/\$/.test(t) && !/^\$\{?HOME\}?(?:\/|$)/.test(t)) {
+            violation(`worktree-guard: ${t} is a redirect through a variable the guard cannot resolve; write to a path inside your worktree.`)
+          }
+          if (!inside(t) && !t.startsWith("/dev/")) refuse(t)
+        }
+      }
       if (AUTHOR_OVERRIDE.some((re) => re.test(shellSyntax))) {
         violation("worktree-guard: author-override: a commit is signed by the identity set with `git config --worktree`; "
           + "it is never overridden for one command (-c user.name=, -c user.email=, --author, GIT_AUTHOR_*, GIT_COMMITTER_*).")
@@ -233,6 +290,11 @@ export function makeGuard(options: GuardOptions): Check {
         const hit = UNPARSEABLE.find((u) => u.re.test(checked))
         if (hit) violation(`worktree-guard: invalid-structure: ${hit.name} cannot be safely parsed by the portable `
           + "shell scanner, so the guard cannot verify which paths this command touches; it is refused.")
+      }
+      // A delegate: scratch files live in the worktree, not in /tmp or $TMPDIR (#224); reads of system paths stay allowed.
+      if (delegate && (checked.split(/&&|\|\||;|\n/).some((part) => TEMP_WORD.test(part) && TEMP_WRITERS.test(part)) || mktempUsesTmpdir(checked))) {
+        violation("worktree-guard: temporary-directory write: scratch files go inside your worktree (for example .bive/state/), "
+          + "not /tmp, /var or $TMPDIR; `mktemp` needs a template or -p DIR inside the worktree.")
       }
       // A delegate: no path outside its worktree at all, read or write, but the system prefixes.
       if (delegate) for (const w of pathWords(checked)) if (!inside(w) && !system(w)) refuse(w)

@@ -3,7 +3,7 @@ import { describe, test } from "node:test"
 import assert from "node:assert/strict"
 import os from "node:os"
 import path from "node:path"
-import { isDelegate, isAdvisor, makeGuard, violations, type Check } from "../.opencode/plugins/worktree-guard/check.ts"
+import { isDelegate, isAdvisor, makeGuard, violations, withoutInertText, type Check } from "../.opencode/plugins/worktree-guard/check.ts"
 
 // Fake paths under the home folder, never created: /tmp is a system prefix the guard lets through.
 const base = path.join(os.homedir(), ".bive-guard-test")
@@ -161,7 +161,8 @@ describe("shell, delegate", () => {
   })
   test("system prefixes, flags, URLs and relative names pass", () => {
     passes(shell(delegate, "/usr/bin/python3 -m pytest tests/test_a.py -q --tb=short"))
-    passes(shell(delegate, "curl -sS https://example.com/x.json -o /tmp/x.json"))
+    passes(shell(delegate, "curl -sS https://example.com/x.json -o .bive/state/x.json"))
+    passes(shell(delegate, "cat /tmp/notes.txt && ls /var/log && head -n 3 /private/var/x"))   // system reads stay usable
     passes(shell(delegate, `ls ${wt}/src && git add -A && git commit -m 'x (#3)'`))
     passes(shell(delegate, "ruff check src tests"))
   })
@@ -326,6 +327,64 @@ describe("author override and the advisor's commits (#197)", () => {
     // covered by advisor detection above; keep a quick check here for compatibility
     assert.equal(isAdvisor("advisor", undefined), true)
     assert.equal(isAdvisor("supervisor", undefined), true)
+  })
+})
+
+describe("temporary-directory writes of a delegate (#224)", () => {
+  test("a delegate writes no scratch outside its worktree", () => {
+    for (const c of ["echo x > /tmp/a.txt", "echo x >> /var/tmp/a", "cp a.py /tmp/a.py", "mv a.py /tmp/", "touch /tmp/x",
+      "mkdir -p /tmp/scratch", "tee /tmp/log < a.txt", "rm -f /tmp/x", "sed -i s/a/b/ /tmp/f", "dd if=a of=/private/tmp/b",
+      "curl -sS https://e.com -o /tmp/x.json", "tar -xf a.tar -C /tmp/d", "git clone https://e.com/r /tmp/r"]) {
+      refused(shell(delegate, c), /outside|temporary-directory/)
+    }
+  })
+  test("variables and mktemp defaults are refused", () => {
+    refused(shell(delegate, 'echo x > "$TMPDIR/a"'), /variable|temporary-directory/)
+    refused(shell(delegate, "echo x > ${TMPDIR}/a"), /variable|temporary-directory/)
+    refused(shell(delegate, "cp a.py $TMPDIR/a.py"), /temporary-directory/)
+    refused(shell(delegate, "TMPDIR=/tmp mktemp -d"), /temporary-directory/)
+    refused(shell(delegate, "mktemp"), /temporary-directory/)
+    refused(shell(delegate, "mktemp -t scratch"), /temporary-directory/)
+    refused(shell(delegate, "mktemp --tmpdir"), /temporary-directory/)
+    refused(shell(delegate, "python3 -c \"open('/tmp/x','w').write('1')\""), /temporary-directory/)
+  })
+  test("scratch inside the worktree and system reads pass", () => {
+    passes(shell(delegate, "echo x > .bive/state/scratch.txt"))
+    passes(shell(delegate, "echo x > /dev/null"))
+    passes(shell(delegate, "mkdir -p .bive/state/tmp && cp a.py .bive/state/tmp/a.py"))
+    passes(shell(delegate, "mktemp -d .bive/state/scratch.XXXXXX"))
+    passes(shell(delegate, "mktemp -p .bive/state -d"))
+    passes(shell(delegate, "cat /tmp/x && ls /var && ls $TMPDIR && python3 -c 'print(1)'"))
+    passes(shell(delegate, `echo x > ${wt}/out.txt`))
+  })
+  test("the coordinator is not restricted by the delegate-only rule", () => {
+    passes(shell(coordinator, "cp a.py /tmp/a.py"))
+  })
+})
+
+describe("inert argument text versus real destinations (#225)", () => {
+  test("quoted prose and non-writing patterns do not count as outside paths", () => {
+    passes(shell(delegate, `git commit -m "fix ../x and /home/u/y in the path regex (#3)"`))
+    passes(shell(delegate, `git commit -m 'uses a | b and $(x) and ../z'`))
+    passes(shell(delegate, `grep -E "a|../b|/home/u/c" src/a.py`))
+    passes(shell(delegate, `echo "see /home/u/notes and ../x"`))
+    passes(shell(delegate, `python3 -c "import re; print(re.sub(r'../x|/home/u/y', '', 'a'))"`))
+    passes(shell(delegate, `gh issue comment 5 --body "paths like ../x are refused; see /home/u/doc"`))
+  })
+  test("real quoted destinations, live substitutions and writing scripts stay refused", () => {
+    refused(shell(delegate, `cp a.py "/home/u/other/a.py"`), /outside/)
+    refused(shell(delegate, `git commit -m "x" && cp a.py /home/u/other/a.py`), /outside/)
+    refused(shell(delegate, `python3 -c "open('/home/u/other/x','w').write('1')"`), /outside|temporary/)
+    refused(shell(delegate, `git commit -m "$(cat /home/u/other/x)"`), /invalid-structure/)
+    refused(shell(delegate, "git commit -m \"`cat /home/u/other/x`\""), /invalid-structure/)
+    refused(shell(delegate, `echo "x" > /home/u/other/y`), /outside/)
+    refused(shell(delegate, `sh -c "cp a.py /home/u/other/a.py"`), /outside/)
+    refused(shell(delegate, `grep "x" /home/u/other/file`), /outside/)
+  })
+  test("inert text is not blanked for other roles' checks and plain output is unchanged", () => {
+    assert.equal(withoutInertText("ls src"), "ls src")
+    assert.equal(withoutInertText(`git commit -m "a ../b"`), `git commit -m ""`)
+    assert.equal(withoutInertText(`git commit -m "a $(b)"`), `git commit -m "a $(b)"`)
   })
 })
 
