@@ -1,42 +1,85 @@
 import assert from "node:assert/strict"
-import test from "node:test"
+import { createPublicKey, generateKeyPairSync, sign, verify } from "node:crypto"
+import { mkdtempSync, readFileSync, rmSync } from "node:fs"
+import { tmpdir } from "node:os"
+import path from "node:path"
+import test, { after } from "node:test"
+import { APPROVAL_LIFETIME_MS, APPROVAL_PREFIX, approvalBytes } from "../.github/scripts/coordinator-approval-lib.mjs"
 import { registerCoordinatorMerge } from "../.opencode/plugins/worktree-guard/merge-tool.ts"
 
 const PARENT = "ses_parent"
 const CHILD = "ses_child"
-const ROOT = "/repo/root"
-const CHILD_DIR = "/repo/child"
+const REPOSITORY = "owner/repo"
+const BASE = "bived"
+const HEAD_BRANCH = "issue/266-adapter-tests"
 const SHA = "a".repeat(40)
 const OTHER_SHA = "b".repeat(40)
+const ROOT = mkdtempSync(path.join(tmpdir(), "bive-coordinator-merge-"))
+const CHILD_DIR = "/repo/child"
 
-function todayUtc() {
-  return new Date().toISOString().slice(0, 10)
+// The parent coordinator's signing key is handed over by the owner; the grant on the base carries its public half.
+const { privateKey, publicKey } = generateKeyPairSync("ed25519")
+const PRIVATE_PEM = privateKey.export({ type: "pkcs8", format: "pem" }).toString()
+const PUBLIC_PEM = publicKey.export({ type: "spki", format: "pem" }).toString()
+const { privateKey: forgedKey } = generateKeyPairSync("ed25519")
+
+process.env.BIVE_PARENT_APPROVAL_KEY = PRIVATE_PEM
+
+after(() => rmSync(ROOT, { recursive: true, force: true }))
+
+let grantSeq = 0
+function makeGrant(overrides: any = {}) {
+  grantSeq++
+  return {
+    id: `grant-266-${grantSeq}`,
+    repository: REPOSITORY,
+    executor: PARENT,
+    base: BASE,
+    maxApprovals: 2,
+    expiresAt: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
+    publicKey: PUBLIC_PEM,
+    children: [{ id: CHILD, branch: HEAD_BRANCH }],
+    ...overrides,
+  }
+}
+
+function passChecks() {
+  return [
+    { workflow: "bive-tests", name: "tests", bucket: "pass", state: "SUCCESS" },
+    { workflow: "bive-inviolable", name: "check", bucket: "pass", state: "SUCCESS" },
+    { workflow: "bive-merge-gate", name: "merge-gate", bucket: "pass", state: "SUCCESS" },
+  ]
+}
+
+function pendingGate() {
+  const checks = passChecks()
+  checks[2] = { workflow: "bive-merge-gate", name: "merge-gate", bucket: "pending", state: "IN_PROGRESS" }
+  return checks
 }
 
 function createEnv(overrides: any = {}) {
-  const today = todayUtc()
-  const authLabel = `bive-merge-authorized-until-${today}`
+  const grant = overrides.grant ?? makeGrant()
   const S: any = {
     root: ROOT,
     childDir: CHILD_DIR,
     parentSession: PARENT,
     childSession: CHILD,
-    today,
     sha: SHA,
-    repository: "owner/repo",
-    gateConfig: { owner: "human", coordinatorMerges: true, skippable: [] },
+    repository: REPOSITORY,
+    grant,
+    gateConfig: { owner: "human", coordinatorMerges: true, skippable: [], coordinatorMergeGrants: [grant] },
     pr: {
       number: 123,
       state: "OPEN",
       headRefOid: SHA,
-      baseRefName: "bived",
-      headRefName: "issue/264-test",
+      baseRefName: BASE,
+      headRefName: HEAD_BRANCH,
       headRepository: { name: "repo" },
       headRepositoryOwner: { login: "owner" },
       isCrossRepository: false,
       commits: [{ authors: [{ name: "coordinator model [session=ses_child]" }] }],
     },
-    childBranch: "issue/264-test",
+    childBranch: HEAD_BRANCH,
     childHead: SHA,
     rootBranch: "main",
     authorName: "coordinator model [session=ses_parent]",
@@ -45,104 +88,77 @@ function createEnv(overrides: any = {}) {
     childAgent: "coordinator",
     childParentID: PARENT,
     gatePr: {
-      baseRefName: "bived",
+      baseRefName: BASE,
       headRefOid: SHA,
-      labels: ["coordinator", authLabel],
+      labels: ["coordinator"],
     },
-    checks: [
-      { workflow: "bive-tests", name: "tests", bucket: "pass", state: "SUCCESS" },
-      { workflow: "bive-inviolable", name: "check", bucket: "pass", state: "SUCCESS" },
-      { workflow: "bive-merge-gate", name: "merge-gate", bucket: "pass", state: "SUCCESS" },
-    ],
-    labelEvents: [
-      {
-        event: "labeled",
-        label: { name: authLabel },
-        actor: { login: "human", type: "User" },
-        performed_via_github_app: null,
-        created_at: `${today}T12:00:00.000Z`,
-      },
-    ],
-    permissionDeny: false,
-    mutateOnApprove: null,
+    checks: passChecks(),
+    files: ["tests/coordinator-merge-tool.test.ts"],
+    comments: [] as any[],
+    commentCalls: [] as any[],
     mergeCalls: [] as any[],
+    mutateAfterApprove: null,
     ...overrides,
   }
 
-  const execute = async (command: string, args: string[], cwd?: string, signal?: any) => {
+  // Every process is stubbed: this test never calls the real gh or git and never merges.
+  const execute = async (command: string, args: string[], cwd?: string) => {
     if (command === "gh") {
       if (args[0] === "repo" && args[1] === "view") return S.repository
       if (args[0] === "pr" && args[1] === "view") {
-        if (args.includes("baseRefName,headRefOid,labels")) {
+        const fields = args[args.indexOf("--json") + 1]
+        if (fields === "files") return JSON.stringify({ files: S.files.map((file: string) => ({ path: file })) })
+        if (fields === "baseRefName,headRefOid,labels") {
           return JSON.stringify({
             baseRefName: S.gatePr.baseRefName,
             headRefOid: S.gatePr.headRefOid,
-            labels: S.gatePr.labels.map((n: string) => ({ name: n })),
+            labels: S.gatePr.labels.map((name: string) => ({ name })),
           })
         }
         return JSON.stringify(S.pr)
       }
-      if (args[0] === "pr" && args[1] === "checks") {
-        return JSON.stringify(S.checks)
+      if (args[0] === "pr" && args[1] === "checks") return JSON.stringify(S.checks)
+      if (args[0] === "pr" && args[1] === "comment") {
+        const body = readFileSync(args[args.indexOf("--body-file") + 1], "utf8")
+        S.commentCalls.push({ command, args: [...args], cwd, body })
+        S.comments.push({ body })
+        if (typeof S.mutateAfterApprove === "function") S.mutateAfterApprove(S)
+        return ""
       }
       if (args[0] === "pr" && args[1] === "merge") {
         S.mergeCalls.push({ command, args: [...args], cwd })
         return "Merged #123"
       }
       if (args[0] === "api") {
-        const p = args[1]
-        if (p.includes("/contents/.bive/gate.json")) {
+        const target = args[1]
+        if (target.includes("/contents/.bive/gate.json")) {
           if (S.gateConfig === null) throw new Error("not found")
-          if (typeof S.gateConfig === "string") return S.gateConfig
-          return Buffer.from(JSON.stringify(S.gateConfig)).toString("base64")
+          const text = typeof S.gateConfig === "string" ? S.gateConfig : JSON.stringify(S.gateConfig)
+          return Buffer.from(text, "utf8").toString("base64")
         }
-        if (p.includes("/events")) {
-          return JSON.stringify(S.labelEvents)
+        if (target.endsWith("/comments")) {
+          return S.comments.map((comment: any) => JSON.stringify({ body: comment.body })).join("\n")
         }
-        return "owner"
+        throw new Error(`unknown gh api path: ${target}`)
       }
       throw new Error(`unknown gh args: ${args.join(" ")}`)
     }
     if (command === "git") {
-      if (args[0] === "rev-parse") {
-        if (args[1] === "--abbrev-ref" && args[2] === "HEAD") {
-          return cwd === S.childDir ? S.childBranch : S.rootBranch
-        }
-        if (args[1] === "HEAD") {
-          return cwd === S.childDir ? S.childHead : S.sha
-        }
+      if (args[0] === "rev-parse" && args[1] === "--abbrev-ref" && args[2] === "HEAD") {
+        return cwd === S.childDir ? S.childBranch : S.rootBranch
       }
-      if (args[0] === "config" && args[1] === "--get" && args[2] === "user.name") {
-        return S.authorName
-      }
+      if (args[0] === "rev-parse" && args[1] === "HEAD") return cwd === S.childDir ? S.childHead : S.sha
+      if (args[0] === "config" && args[1] === "--get" && args[2] === "user.name") return S.authorName
       throw new Error(`unknown git args: ${args.join(" ")}`)
     }
     throw new Error(`unknown command: ${command}`)
   }
 
-  const captured: any = {
-    permissionHook: null,
-    permissionHookName: null,
-    tool: null,
-    permissionAssert: null,
-    permissionAssertCalls: 0,
-  }
+  const captured: any = { tool: null }
   const ctx: any = {
-    permission: {
-      hook: async (name: string, cb: any) => {
-        captured.permissionHookName = name
-        captured.permissionHook = cb
-      },
-      assert: async (payload: any) => {
-        captured.permissionAssert = payload
-        captured.permissionAssertCalls++
-        if (typeof S.mutateOnApprove === "function") S.mutateOnApprove(S)
-        if (S.permissionDeny) throw new Error("permission denied by owner")
-      },
-    },
     tool: {
       transform: async (cb: any) => {
-        const editor = { add: (t: any) => { captured.tool = t } }
+        const editor = { add: (tool: any) => { captured.tool = tool } }
         cb(editor)
       },
     },
@@ -159,7 +175,7 @@ function createEnv(overrides: any = {}) {
     },
   }
 
-  return { S, root: ROOT, childDir: CHILD_DIR, parentSession: PARENT, childSession: CHILD, today, sha: SHA, execute, ctx, captured }
+  return { S, root: ROOT, parentSession: PARENT, childSession: CHILD, sha: SHA, execute, ctx, captured }
 }
 
 async function register(env: any, role = "coordinator", roleFile?: string) {
@@ -172,239 +188,293 @@ function contextFor(env: any, agent = "coordinator") {
   return { agent, sessionID: env.parentSession, messageID: "msg", id: "toolcall", signal: undefined }
 }
 
-test("permission hook forces ask and records evaluate hook", async () => {
-  const env = createEnv()
-  await register(env)
-  assert.equal(env.captured.permissionHookName, "evaluate")
-  assert.equal(typeof env.captured.permissionHook, "function")
-  const ev = { action: "bive.coordinator.merge", effect: "allow" }
-  env.captured.permissionHook(ev)
-  assert.equal(ev.effect, "ask")
-  assert.equal(ev.message, "Human owner only: one named sub-coordinator PR, exact head/base/session, expires in two minutes. No standing merge right.")
-  const other = { action: "other", effect: "allow" }
-  env.captured.permissionHook(other)
-  assert.equal(other.effect, "allow")
-})
-
-test("success: merges pinned head after two reads and owner permission", async () => {
-  const env = createEnv()
-  const tool = await register(env)
-  const callsBefore = env.S.mergeCalls.length
-  const res = await tool.execute({ number: 123, childSession: CHILD }, contextFor(env))
-  assert.deepEqual(res, { content: "Merged #123" })
-  assert.equal(env.captured.permissionAssertCalls, 1)
-  assert.equal(env.S.mergeCalls.length - callsBefore, 1)
-  const mergeCall = env.S.mergeCalls[env.S.mergeCalls.length - 1]
-  assert.equal(mergeCall.command, "gh")
-  assert.deepEqual(mergeCall.args, ["pr", "merge", "123", "--repo", "owner/repo", "--merge", "--match-head-commit", SHA])
-  assert.equal(mergeCall.cwd, ROOT)
-
-  const assertPayload = env.captured.permissionAssert
-  assert.equal(assertPayload.sessionID, PARENT)
-  assert.equal(assertPayload.agent, "coordinator")
-  assert.deepEqual(assertPayload.source, { type: "tool", messageID: "msg", id: "toolcall" })
-  assert.equal(assertPayload.action, "bive.coordinator.merge")
-  assert.deepEqual(assertPayload.save, [])
-  assert.equal(assertPayload.metadata.owner, "human")
-  const scope = JSON.parse(assertPayload.resources[0])
-  assert.deepEqual(scope, {
-    repository: "owner/repo",
+// A comment shaped like the parent's signed approval; `signer` and `signature` let a test forge or strip it.
+function approvalComment(env: any, options: any = {}) {
+  const issuedAt = Date.now()
+  const payload = {
+    grant: env.S.grant.id,
+    repository: REPOSITORY,
     number: 123,
     head: SHA,
-    base: "bived",
+    base: BASE,
     executor: PARENT,
     childSession: CHILD,
-    expiresAt: scope.expiresAt,
-  })
-  assert.equal(typeof scope.expiresAt, "number")
-  assert.equal(assertPayload.metadata.warning, "One-call owner opt-in, not supervisory authority. Reject if you are not the owner.")
-  assert.deepEqual(assertPayload.metadata.scope, scope)
+    headBranch: HEAD_BRANCH,
+    issuedAt,
+    expiresAt: Math.min(issuedAt + APPROVAL_LIFETIME_MS, Date.parse(env.S.grant.expiresAt)),
+    sequence: 1,
+    ...options.payload,
+  }
+  const signature = options.signature !== undefined
+    ? options.signature
+    : sign(null, approvalBytes(payload), options.signer ?? privateKey).toString("base64")
+  return { body: APPROVAL_PREFIX + JSON.stringify({ payload, signature }) }
+}
+
+async function refused(env: any, pattern: RegExp, role = "coordinator", roleFile?: string, input: any = { number: 123, childSession: CHILD }) {
+  const tool = await register(env, role, roleFile)
+  await assert.rejects(tool.execute(input, contextFor(env)), pattern)
+  assert.equal(env.S.mergeCalls.length, 0, "a refused merge must never run gh pr merge")
+  return env
+}
+
+test("registers the tool with no owner permission prompt", async () => {
+  const env = createEnv()
+  const tool = await register(env)
+  assert.equal(tool.name, "bive_coordinator_merge")
+  assert.equal(env.ctx.permission, undefined)
+  assert.deepEqual(tool.input.required, ["number", "childSession"])
+})
+
+test("first call records the parent approval and waits for the merge gate", async () => {
+  const env = createEnv({ checks: pendingGate() })
+  const tool = await register(env)
+  const res = await tool.execute({ number: 123, childSession: CHILD }, contextFor(env))
+
+  assert.match(res.content, /Parent head approval recorded; wait for bive-merge-gate/)
+  assert.equal(env.S.mergeCalls.length, 0)
+  assert.equal(env.S.commentCalls.length, 1)
+
+  const call = env.S.commentCalls[0]
+  assert.deepEqual(call.args.slice(0, 2), ["pr", "comment"])
+  assert.ok(call.args.includes("--repo") && call.args.includes(REPOSITORY))
+  assert.ok(call.args.includes("--body-file"))
+  assert.equal(call.args[call.args.indexOf("--body-file") + 1], path.join(ROOT, ".bive", "state", "approval-123.md"))
+  assert.ok(call.body.startsWith(APPROVAL_PREFIX))
+
+  const envelope = JSON.parse(call.body.slice(APPROVAL_PREFIX.length))
+  assert.deepEqual(Object.keys(envelope.payload).sort(), ["base", "childSession", "executor", "expiresAt", "grant",
+    "head", "headBranch", "issuedAt", "number", "repository", "sequence"])
+  assert.equal(envelope.payload.grant, env.S.grant.id)
+  assert.equal(envelope.payload.repository, REPOSITORY)
+  assert.equal(envelope.payload.number, 123)
+  assert.equal(envelope.payload.head, SHA)
+  assert.equal(envelope.payload.base, BASE)
+  assert.equal(envelope.payload.executor, PARENT)
+  assert.equal(envelope.payload.childSession, CHILD)
+  assert.equal(envelope.payload.headBranch, HEAD_BRANCH)
+  assert.equal(envelope.payload.sequence, 1)
+  assert.equal(typeof envelope.signature, "string")
+  assert.ok(verify(null, approvalBytes(envelope.payload), createPublicKey(PUBLIC_PEM),
+    Buffer.from(envelope.signature, "base64")), "the parent approval must be signed by the granted key")
+})
+
+test("a valid approval already present plus a green gate merges the pinned head", async () => {
+  const env = createEnv()
+  env.S.comments.push(approvalComment(env))
+  const tool = await register(env)
+
+  const res = await tool.execute({ number: 123, childSession: CHILD }, contextFor(env))
+  assert.deepEqual(res, { content: "Merged #123" })
+  assert.equal(env.S.commentCalls.length, 0, "an existing valid approval is reused, not posted twice")
+  assert.equal(env.S.mergeCalls.length, 1)
+  assert.deepEqual(env.S.mergeCalls[0].args,
+    ["pr", "merge", "123", "--repo", REPOSITORY, "--merge", "--match-head-commit", SHA])
+  assert.equal(env.S.mergeCalls[0].cwd, ROOT)
+})
+
+test("after the gate turns green the recorded approval is reused and the head is merged", async () => {
+  const env = createEnv({ checks: pendingGate() })
+  const tool = await register(env)
+  const first = await tool.execute({ number: 123, childSession: CHILD }, contextFor(env))
+  assert.match(first.content, /wait for bive-merge-gate/)
+  assert.equal(env.S.mergeCalls.length, 0)
+
+  env.S.checks = passChecks()
+  const res = await tool.execute({ number: 123, childSession: CHILD }, contextFor(env))
+  assert.deepEqual(res, { content: "Merged #123" })
+  assert.equal(env.S.commentCalls.length, 1)
+  assert.equal(env.S.mergeCalls.length, 1)
+  assert.deepEqual(env.S.mergeCalls[0].args,
+    ["pr", "merge", "123", "--repo", REPOSITORY, "--merge", "--match-head-commit", SHA])
 })
 
 test("denies advisor role", async () => {
-  const env = createEnv()
-  const tool = await register(env, "advisor")
-  await assert.rejects(tool.execute({ number: 123, childSession: CHILD }, contextFor(env)), /only a coordinator may request owner opt-in/)
-  assert.equal(env.S.mergeCalls.length, 0)
+  await refused(createEnv(), /only a coordinator may request owner opt-in/, "advisor")
 })
 
 test("denies legacy supervisor role", async () => {
-  const env = createEnv()
-  const tool = await register(env, "supervisor")
-  await assert.rejects(tool.execute({ number: 123, childSession: CHILD }, contextFor(env)), /only a coordinator may request owner opt-in/)
-  assert.equal(env.S.mergeCalls.length, 0)
+  await refused(createEnv(), /only a coordinator may request owner opt-in/, "supervisor")
 })
 
 test("denies delegate role", async () => {
-  const env = createEnv()
-  const tool = await register(env, "delegate")
-  await assert.rejects(tool.execute({ number: 123, childSession: CHILD }, contextFor(env)), /only a coordinator may request owner opt-in/)
-  assert.equal(env.S.mergeCalls.length, 0)
+  await refused(createEnv(), /only a coordinator may request owner opt-in/, "delegate")
+})
+
+test("denies delegate role file", async () => {
+  await refused(createEnv(), /only a coordinator may request owner opt-in/, "coordinator", "delegate")
 })
 
 test("denies non-coordinator agent", async () => {
   const env = createEnv()
   const tool = await register(env)
-  await assert.rejects(tool.execute({ number: 123, childSession: CHILD }, contextFor(env, "build")), /only a coordinator may request owner opt-in/)
+  await assert.rejects(tool.execute({ number: 123, childSession: CHILD }, contextFor(env, "build")),
+    /only a coordinator may request owner opt-in/)
   assert.equal(env.S.mergeCalls.length, 0)
 })
 
 test("denies when opt-in is false", async () => {
-  const env = createEnv({ gateConfig: { owner: "human", coordinatorMerges: false } })
-  const tool = await register(env)
-  await assert.rejects(tool.execute({ number: 123, childSession: CHILD }, contextFor(env)), /base owner opt-in is off or invalid/)
-  assert.equal(env.S.mergeCalls.length, 0)
+  await refused(createEnv({ gateConfig: { owner: "human", coordinatorMerges: false } }),
+    /base owner opt-in is off or invalid/)
 })
 
 test("denies when opt-in is missing", async () => {
-  const env = createEnv({ gateConfig: { owner: "human" } })
-  const tool = await register(env)
-  await assert.rejects(tool.execute({ number: 123, childSession: CHILD }, contextFor(env)), /base owner opt-in is off or invalid/)
-  assert.equal(env.S.mergeCalls.length, 0)
+  await refused(createEnv({ gateConfig: { owner: "human" } }), /base owner opt-in is off or invalid/)
 })
 
 test("denies when opt-in config is corrupt", async () => {
-  const env = createEnv({ gateConfig: "{bad json" })
-  const tool = await register(env)
-  await assert.rejects(tool.execute({ number: 123, childSession: CHILD }, contextFor(env)))
-  assert.equal(env.S.mergeCalls.length, 0)
+  await refused(createEnv({ gateConfig: "{bad json" }), /./)
 })
 
 test("denies when human owner is missing", async () => {
-  const env = createEnv({ gateConfig: { coordinatorMerges: true } })
-  const tool = await register(env)
-  await assert.rejects(tool.execute({ number: 123, childSession: CHILD }, contextFor(env)), /base owner opt-in is off or invalid/)
-  assert.equal(env.S.mergeCalls.length, 0)
+  await refused(createEnv({ gateConfig: { coordinatorMerges: true } }), /base owner opt-in is off or invalid/)
+})
+
+test("denies when the base lists no grants", async () => {
+  await refused(createEnv({ gateConfig: { owner: "human", coordinatorMerges: true, coordinatorMergeGrants: [] } }),
+    /current owner authorization is missing, expired or revoked/)
+})
+
+test("denies a grant for another repository", async () => {
+  await refused(createEnv({ grant: makeGrant({ repository: "other/repo" }) }),
+    /current owner authorization is missing, expired or revoked/)
+})
+
+test("denies a grant for another executor session", async () => {
+  await refused(createEnv({ grant: makeGrant({ executor: "ses_other" }) }),
+    /current owner authorization is missing, expired or revoked/)
+})
+
+test("denies a grant for another base", async () => {
+  await refused(createEnv({ grant: makeGrant({ base: "milestone/0.2" }) }),
+    /current owner authorization is missing, expired or revoked/)
+})
+
+test("denies a grant whose child session is not listed", async () => {
+  await refused(createEnv({ grant: makeGrant({ children: [{ id: "ses_other", branch: HEAD_BRANCH }] }) }),
+    /current owner authorization is missing, expired or revoked/)
+})
+
+test("denies a grant for another child branch", async () => {
+  await refused(createEnv({ grant: makeGrant({ children: [{ id: CHILD, branch: "issue/999-other" }] }) }),
+    /current owner authorization is missing, expired or revoked/)
+})
+
+test("denies an expired grant", async () => {
+  await refused(createEnv({ grant: makeGrant({ expiresAt: new Date(Date.now() - 60_000).toISOString() }) }),
+    /current owner authorization is missing, expired or revoked/)
+})
+
+test("denies a grant with an invalid public key", async () => {
+  await refused(createEnv({ grant: makeGrant({ publicKey: "not an ed25519 key" }) }),
+    /current owner authorization is missing, expired or revoked/)
+})
+
+test("denies a grant with an invalid approval budget", async () => {
+  await refused(createEnv({ grant: makeGrant({ maxApprovals: 0 }) }),
+    /current owner authorization is missing, expired or revoked/)
+})
+
+test("denies once the grant's approvals are used up", async () => {
+  const env = createEnv({ grant: makeGrant({ maxApprovals: 1 }) })
+  env.S.comments.push({ body: APPROVAL_PREFIX + JSON.stringify({ payload: { grant: env.S.grant.id } }) })
+  await refused(env, /the grant's approvals are used up/)
+  assert.equal(env.S.commentCalls.length, 0)
+})
+
+test("denies when the parent approval key is missing", async () => {
+  const saved = process.env.BIVE_PARENT_APPROVAL_KEY
+  delete process.env.BIVE_PARENT_APPROVAL_KEY
+  try {
+    const env = createEnv()
+    await refused(env, /no grant, or no approval key handed over by the owner/)
+    assert.equal(env.S.commentCalls.length, 0)
+  } finally {
+    process.env.BIVE_PARENT_APPROVAL_KEY = saved
+  }
+})
+
+test("denies a forged approval comment", async () => {
+  const env = createEnv()
+  env.S.comments.push(approvalComment(env, { signer: forgedKey }))
+  const saved = process.env.BIVE_PARENT_APPROVAL_KEY
+  delete process.env.BIVE_PARENT_APPROVAL_KEY
+  try {
+    await refused(env, /no grant, or no approval key handed over by the owner/)
+    assert.equal(env.S.commentCalls.length, 0)
+  } finally {
+    process.env.BIVE_PARENT_APPROVAL_KEY = saved
+  }
+})
+
+test("denies an unsigned approval comment", async () => {
+  const env = createEnv()
+  env.S.comments.push(approvalComment(env, { signature: "" }))
+  const saved = process.env.BIVE_PARENT_APPROVAL_KEY
+  delete process.env.BIVE_PARENT_APPROVAL_KEY
+  try {
+    await refused(env, /no grant, or no approval key handed over by the owner/)
+    assert.equal(env.S.commentCalls.length, 0)
+  } finally {
+    process.env.BIVE_PARENT_APPROVAL_KEY = saved
+  }
 })
 
 test("denies wrong executor location", async () => {
-  const env = createEnv({ executorDir: "/elsewhere" })
-  const tool = await register(env)
-  await assert.rejects(tool.execute({ number: 123, childSession: CHILD }, contextFor(env)), /not a direct sub-coordinator session/)
-  assert.equal(env.S.mergeCalls.length, 0)
+  await refused(createEnv({ executorDir: "/elsewhere" }), /not a direct sub-coordinator session/)
 })
 
-test("denies wrong executor role/agent", async () => {
-  const env = createEnv({ executorAgent: "delegate" })
-  const tool = await register(env)
-  await assert.rejects(tool.execute({ number: 123, childSession: CHILD }, contextFor(env)), /not a direct sub-coordinator session/)
-  assert.equal(env.S.mergeCalls.length, 0)
+test("denies wrong executor agent", async () => {
+  await refused(createEnv({ executorAgent: "delegate" }), /not a direct sub-coordinator session/)
 })
 
 test("denies wrong child parent", async () => {
-  const env = createEnv({ childParentID: "someone-else" })
-  const tool = await register(env)
-  await assert.rejects(tool.execute({ number: 123, childSession: CHILD }, contextFor(env)), /not a direct sub-coordinator session/)
-  assert.equal(env.S.mergeCalls.length, 0)
+  await refused(createEnv({ childParentID: "someone-else" }), /not a direct sub-coordinator session/)
 })
 
 test("denies wrong child agent", async () => {
-  const env = createEnv({ childAgent: "delegate" })
-  const tool = await register(env)
-  await assert.rejects(tool.execute({ number: 123, childSession: CHILD }, contextFor(env)), /not a direct sub-coordinator session/)
-  assert.equal(env.S.mergeCalls.length, 0)
+  await refused(createEnv({ childAgent: "delegate" }), /not a direct sub-coordinator session/)
 })
 
 test("denies wrong child branch", async () => {
-  const env = createEnv({ childBranch: "other-branch" })
-  const tool = await register(env)
-  await assert.rejects(tool.execute({ number: 123, childSession: CHILD }, contextFor(env)), /sub-coordinator branch or head changed/)
-  assert.equal(env.S.mergeCalls.length, 0)
+  await refused(createEnv({ childBranch: "other-branch" }), /sub-coordinator branch or head changed/)
 })
 
 test("denies wrong child head", async () => {
-  const env = createEnv({ childHead: OTHER_SHA })
-  const tool = await register(env)
-  await assert.rejects(tool.execute({ number: 123, childSession: CHILD }, contextFor(env)), /sub-coordinator branch or head changed/)
-  assert.equal(env.S.mergeCalls.length, 0)
+  await refused(createEnv({ childHead: OTHER_SHA }), /sub-coordinator branch or head changed/)
 })
 
 test("denies same own branch (self-authored)", async () => {
-  const env = createEnv({ rootBranch: "issue/264-test" })
-  const tool = await register(env)
-  await assert.rejects(tool.execute({ number: 123, childSession: CHILD }, contextFor(env)), /executor authored work in this PR, or authorship is unknown/)
-  assert.equal(env.S.mergeCalls.length, 0)
+  await refused(createEnv({ rootBranch: HEAD_BRANCH }),
+    /executor authored work in this PR, or authorship is unknown/)
 })
 
 test("denies self-authored commit", async () => {
   const env = createEnv()
   env.S.pr.commits = [{ authors: [{ name: "coordinator model [session=ses_parent]" }] }]
-  const tool = await register(env)
-  await assert.rejects(tool.execute({ number: 123, childSession: CHILD }, contextFor(env)), /executor authored work in this PR, or authorship is unknown/)
-  assert.equal(env.S.mergeCalls.length, 0)
+  await refused(env, /executor authored work in this PR, or authorship is unknown/)
 })
 
 test("denies unknown authorship (no commits)", async () => {
   const env = createEnv()
   env.S.pr.commits = []
-  const tool = await register(env)
-  await assert.rejects(tool.execute({ number: 123, childSession: CHILD }, contextFor(env)), /executor authored work in this PR, or authorship is unknown/)
-  assert.equal(env.S.mergeCalls.length, 0)
+  await refused(env, /executor authored work in this PR, or authorship is unknown/)
 })
 
 test("denies ambiguous old coordinator author", async () => {
   const env = createEnv()
   env.S.pr.commits = [{ authors: [{ name: "coordinator legacy" }] }]
-  const tool = await register(env)
-  await assert.rejects(tool.execute({ number: 123, childSession: CHILD }, contextFor(env)), /executor authored work in this PR, or authorship is unknown/)
-  assert.equal(env.S.mergeCalls.length, 0)
+  await refused(env, /executor authored work in this PR, or authorship is unknown/)
 })
 
-test("denies wrong owner actor in label event", async () => {
-  const env = createEnv()
-  env.S.labelEvents = [
-    {
-      event: "labeled",
-      label: { name: `bive-merge-authorized-until-${env.S.today}` },
-      actor: { login: "someone-else", type: "User" },
-      performed_via_github_app: null,
-      created_at: `${env.S.today}T12:00:00.000Z`,
-    },
-  ]
-  const tool = await register(env)
-  await assert.rejects(tool.execute({ number: 123, childSession: CHILD }, contextFor(env)), /authorization provenance is not the configured human owner|current owner authorization/)
-  assert.equal(env.S.mergeCalls.length, 0)
-})
-
-test("denies bot actor in label event", async () => {
-  const env = createEnv()
-  env.S.labelEvents = [
-    {
-      event: "labeled",
-      label: { name: `bive-merge-authorized-until-${env.S.today}` },
-      actor: { login: "human", type: "Bot" },
-      performed_via_github_app: null,
-      created_at: `${env.S.today}T12:00:00.000Z`,
-    },
-  ]
-  const tool = await register(env)
-  await assert.rejects(tool.execute({ number: 123, childSession: CHILD }, contextFor(env)))
-  assert.equal(env.S.mergeCalls.length, 0)
-})
-
-test("denies app-performed label event", async () => {
-  const env = createEnv()
-  env.S.labelEvents = [
-    {
-      event: "labeled",
-      label: { name: `bive-merge-authorized-until-${env.S.today}` },
-      actor: { login: "human", type: "User" },
-      performed_via_github_app: true,
-      created_at: `${env.S.today}T12:00:00.000Z`,
-    },
-  ]
-  const tool = await register(env)
-  await assert.rejects(tool.execute({ number: 123, childSession: CHILD }, contextFor(env)))
-  assert.equal(env.S.mergeCalls.length, 0)
-})
-
-test("denies missing authorization label", async () => {
-  const env = createEnv()
-  env.S.gatePr.labels = ["coordinator"]
-  const tool = await register(env)
-  await assert.rejects(tool.execute({ number: 123, childSession: CHILD }, contextFor(env)), /current owner authorization missing/)
-  assert.equal(env.S.mergeCalls.length, 0)
-})
+for (const file of [".bive/gate.json", "AGENTS.md", "opencode.jsonc", ".bive/prompts/DELEGATE.md",
+  ".opencode/plugins/worktree-guard/merge-tool.ts", ".github/scripts/coordinator-approval-lib.mjs",
+  ".github/workflows/bive-tests.yml"]) {
+  test(`denies authority or enforcement change: ${file}`, async () => {
+    const env = await refused(createEnv({ files: [file] }), /owner must merge changes to authority or enforcement/)
+    assert.equal(env.S.commentCalls.length, 0)
+  })
+}
 
 test("denies pending checks", async () => {
   const env = createEnv()
@@ -413,9 +483,7 @@ test("denies pending checks", async () => {
     { workflow: "bive-inviolable", name: "check", bucket: "pass", state: "SUCCESS" },
     { workflow: "bive-merge-gate", name: "merge-gate", bucket: "pass", state: "SUCCESS" },
   ]
-  const tool = await register(env)
-  await assert.rejects(tool.execute({ number: 123, childSession: CHILD }, contextFor(env)))
-  assert.equal(env.S.mergeCalls.length, 0)
+  await refused(env, /required check bive-tests \/ tests is not green/)
 })
 
 test("denies red checks", async () => {
@@ -425,9 +493,7 @@ test("denies red checks", async () => {
     { workflow: "bive-inviolable", name: "check", bucket: "pass", state: "SUCCESS" },
     { workflow: "bive-merge-gate", name: "merge-gate", bucket: "pass", state: "SUCCESS" },
   ]
-  const tool = await register(env)
-  await assert.rejects(tool.execute({ number: 123, childSession: CHILD }, contextFor(env)))
-  assert.equal(env.S.mergeCalls.length, 0)
+  await refused(env, /required check bive-tests \/ tests is not green/)
 })
 
 test("denies missing required checks", async () => {
@@ -436,82 +502,80 @@ test("denies missing required checks", async () => {
     { workflow: "bive-inviolable", name: "check", bucket: "pass", state: "SUCCESS" },
     { workflow: "bive-merge-gate", name: "merge-gate", bucket: "pass", state: "SUCCESS" },
   ]
-  const tool = await register(env)
-  await assert.rejects(tool.execute({ number: 123, childSession: CHILD }, contextFor(env)))
-  assert.equal(env.S.mergeCalls.length, 0)
+  await refused(env, /required check bive-tests \/ tests is not green/)
 })
 
-test("denies when owner rejects permission prompt", async () => {
-  const env = createEnv({ permissionDeny: true })
+test("a red merge gate only waits and never merges", async () => {
+  const env = createEnv({
+    checks: [
+      { workflow: "bive-tests", name: "tests", bucket: "pass", state: "SUCCESS" },
+      { workflow: "bive-inviolable", name: "check", bucket: "pass", state: "SUCCESS" },
+      { workflow: "bive-merge-gate", name: "merge-gate", bucket: "fail", state: "FAILURE" },
+    ],
+  })
   const tool = await register(env)
-  await assert.rejects(tool.execute({ number: 123, childSession: CHILD }, contextFor(env)), /permission denied by owner/)
+  const res = await tool.execute({ number: 123, childSession: CHILD }, contextFor(env))
+  assert.match(res.content, /Parent head approval recorded; wait for bive-merge-gate/)
   assert.equal(env.S.mergeCalls.length, 0)
+  assert.equal(env.S.commentCalls.length, 1)
 })
 
 test("denies when head changes during approval", async () => {
   const env = createEnv()
-  env.S.mutateOnApprove = (S: any) => {
+  env.S.mutateAfterApprove = (S: any) => {
     S.pr.headRefOid = OTHER_SHA
     S.gatePr.headRefOid = OTHER_SHA
+    S.childHead = OTHER_SHA
   }
-  const tool = await register(env)
-  await assert.rejects(tool.execute({ number: 123, childSession: CHILD }, contextFor(env)), /scope changed or one-call grant expired|head changed/)
-  assert.equal(env.S.mergeCalls.length, 0)
+  await refused(env, /scope changed or one-call grant expired/)
 })
 
 test("denies when base changes during approval", async () => {
   const env = createEnv()
-  env.S.mutateOnApprove = (S: any) => {
+  env.S.mutateAfterApprove = (S: any) => {
     S.pr.baseRefName = "milestone/0.2"
     S.gatePr.baseRefName = "milestone/0.2"
   }
-  const tool = await register(env)
-  await assert.rejects(tool.execute({ number: 123, childSession: CHILD }, contextFor(env)), /scope changed or one-call grant expired|base changed/)
-  assert.equal(env.S.mergeCalls.length, 0)
+  await refused(env, /current owner authorization is missing, expired or revoked|scope changed/)
 })
 
-test("denies when opt-in disabled during approval", async () => {
+test("denies when opt-in is disabled during approval", async () => {
   const env = createEnv()
-  env.S.mutateOnApprove = (S: any) => {
+  env.S.mutateAfterApprove = (S: any) => {
     S.gateConfig = { owner: "human", coordinatorMerges: false }
   }
-  const tool = await register(env)
-  await assert.rejects(tool.execute({ number: 123, childSession: CHILD }, contextFor(env)), /base owner opt-in is off or invalid|scope changed/)
-  assert.equal(env.S.mergeCalls.length, 0)
+  await refused(env, /base owner opt-in is off or invalid/)
 })
 
 test("cross-repository PR is denied", async () => {
   const env = createEnv()
   env.S.pr.isCrossRepository = true
   env.S.pr.headRepositoryOwner = { login: "other" }
-  const tool = await register(env)
-  await assert.rejects(tool.execute({ number: 123, childSession: CHILD }, contextFor(env)), /not an open same-repository head/)
-  assert.equal(env.S.mergeCalls.length, 0)
+  await refused(env, /not an open same-repository head/)
 })
 
 test("closed PR is denied", async () => {
   const env = createEnv()
   env.S.pr.state = "CLOSED"
-  const tool = await register(env)
-  await assert.rejects(tool.execute({ number: 123, childSession: CHILD }, contextFor(env)), /not an open same-repository head/)
-  assert.equal(env.S.mergeCalls.length, 0)
+  await refused(env, /not an open same-repository head/)
 })
 
 test("non-coordinator labelled PR is denied", async () => {
   const env = createEnv()
-  env.S.gatePr.labels = ["coordinator".replace("coordinator", "other"), `bive-merge-authorized-until-${env.S.today}`]
-  // ensure no coordinator label
-  env.S.gatePr.labels = [`bive-merge-authorized-until-${env.S.today}`]
-  const tool = await register(env)
-  await assert.rejects(tool.execute({ number: 123, childSession: CHILD }, contextFor(env)), /PR is not labelled coordinator/)
-  assert.equal(env.S.mergeCalls.length, 0)
+  env.S.gatePr.labels = []
+  await refused(env, /PR is not labelled coordinator/)
+})
+
+test("main as base is denied", async () => {
+  const env = createEnv()
+  env.S.pr.baseRefName = "main"
+  env.S.gatePr.baseRefName = "main"
+  await refused(env, /main is the owner's alone/)
 })
 
 test("unsupported base is denied", async () => {
   const env = createEnv()
-  env.S.pr.baseRefName = "main"
-  env.S.gatePr.baseRefName = "main"
-  const tool = await register(env)
-  await assert.rejects(tool.execute({ number: 123, childSession: CHILD }, contextFor(env)), /merge gate only runs for pull requests targeting bived or milestone/)
-  assert.equal(env.S.mergeCalls.length, 0)
+  env.S.pr.baseRefName = "develop"
+  env.S.gatePr.baseRefName = "develop"
+  await refused(env, /unsupported integration base/)
 })
