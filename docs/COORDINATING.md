@@ -219,6 +219,14 @@ Never write "Done" in an issue, a checklist or a report for an issue whose pull 
 `bive-merge-authorized-until-YYYY-MM-DD` (`docs/REQUIRED-CHECKS.md`): read that red as "waiting for the owner's label",
 not as a failure to brief again. The coordinator never applies the label.
 
+## Short handoffs (issue #234)
+
+`HANDOFF.md` holds the current state: branch and milestone, blockers, gate decisions, commands. It aims for at most
+100 lines. History (old session logs, closed decisions' reasoning) goes to a durable link (issue, comment or commit URL)
+in one line; a dated owner decision keeps its line and its link, it is never deleted without one. Qualification claims
+point at the bench, not a copy. A new coordinator reads the handoff once, then the milestone queries below; it does not
+replay history. `tests/handoff-size.test.ts` holds the skeleton to the budget and stops the root from growing.
+
 ## Reuse complete trusted CI evidence (issue #227)
 
 A green summary is not proof. A coordinator may skip an equivalent per-PR local run only when it records, from the CI
