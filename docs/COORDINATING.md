@@ -136,7 +136,7 @@ where it says it was not. Bive ships no script (HANDOFF › *No machinery*): `li
    id, set in its shell. The answer is `{data: {id, ...}}`. A child session lands in its parent's directory, so then send
    `buildMoveRequest({sessionID, worktree})` (`POST /api/session/<id>/move`), then `GET /api/session/<id>` and test it
    with `isInWorktree(answer, worktree)`. **Prompt only when it is true**; otherwise remove the session and stop (#256).
-   The session then shows under the coordinator's session (#243).
+   Whether it then shows under the coordinator's session is **not verified** (#243: delegates seen live had no parent).
 5. **Prompt it with the brief**: `buildPromptRequest({sessionID, brief})` is `POST /api/session/<id>/prompt` with
    `delivery: "queue"`, which is also how to talk to a busy delegate.
 6. **Wait**: `buildWaitRequest(sessionID)` is `POST /api/experimental/session/<id>/wait` (204 when it finishes). It is
