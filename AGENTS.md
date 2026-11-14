@@ -60,6 +60,9 @@ Read this file, then [`HANDOFF.md`](HANDOFF.md), before changing anything. Your 
   private paths listed in `opencode.jsonc`.
 - **Keep sessions and prompts short**: continue a stuck delegate with one short message rather than a new session;
   a brief names files to read instead of pasting them. Delegate in small tasks with their own done-when and tests.
+- **Issues and pull requests as links (owner, 2026-11-14)**: in every message to the owner, write each `#N` as a
+  Markdown link to the current repository, `[#N](https://github.com/<owner>/<repo>/issues/N)` (GitHub redirects a pull
+  request's number there), and end a hand-over with a direct link to each pull request ready to merge.
 - **Keep `HANDOFF.md` and `ROADMAP.md` true**: the coordinator updates them once per batch of merges, in the same
   commit as the code they describe. Delete what is no longer accurate rather than adding contradictions.
 
