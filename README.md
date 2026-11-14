@@ -22,6 +22,11 @@ flowchart LR
   classDef delegate fill:#FFFFFF,stroke:#6D28D9,stroke-width:2px,color:#1F2430
 ```
 
+![The Bive cast: Maren the owner holds the only pen; Sill the advisor has no arms and only looks; Brae the coordinator hands out task cards; three delegates each hold one tool; Tally records.](docs/design/cast/cast-sheet.svg)
+
+Meet the cast: the owner decides, the advisor only looks, the coordinator splits and reviews, delegates each do one
+thing, and peers point out problems without touching the work ([who is who](docs/design/cast/README.md)).
+
 Bive is a template and two small plugins, nothing else: a **guard** that refuses any write outside the session's
 worktree, and a **counter** of human and agent tokens. No delegation tools (OpenCode 2's subagents do that), no
 provider probe (a fallback rule on error), no package to install. The flow ran by hand on
