@@ -71,6 +71,12 @@ test("storing: random letter, anonymised package under packages/, key kept apart
     assert.deepEqual(key[r.letter], { site: "site-x", model: "model-y", trial: "1" })
     assert.doesNotMatch(pkg, /site-x|model-y/)
     assert.equal(fs.readdirSync(path.join(dir, "packages", r.letter)).includes("key.json"), false)
+    // images are copied beside the package, listed in the key, and a non-image is refused
+    const pic = path.join(dir, "x.png"); fs.writeFileSync(pic, "png")
+    const r3 = addPackage(raw, "site-i", "model-i", "3", dir, { images: [pic], note: "owner: memorable" })
+    assert.ok(fs.existsSync(path.join(dir, "packages", r3.letter, "images", "image-1.png")))
+    assert.deepEqual(JSON.parse(fs.readFileSync(path.join(dir, "key.json"), "utf8"))[r3.letter].images, ["image-1.png"])
+    assert.throws(() => addPackage(raw, "s", "m", "4", dir, { images: [raw] }), /not an image/)
     // letters are not reused
     const r2 = addPackage(raw, "site-z", "model-w", undefined, dir)
     assert.notEqual(r2.letter, r.letter)
