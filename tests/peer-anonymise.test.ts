@@ -58,6 +58,13 @@ test("a heading that ends with a colon starts the package, and the echoed prompt
   assert.doesNotMatch(text, /More prompt|max 120/)
 })
 
+test("user handles and short French dates are removed", () => {
+  const { text } = anonymise("Bive cast: the Folds 14 nov. 2026 \u00b7 @JJ\nA plain cast.")
+  assert.doesNotMatch(text, /@JJ|14 nov\. 2026/)
+  assert.deepEqual(leaks(text), [])
+  assert.ok(leaks("hi @someone").includes("handle"))
+})
+
 test("a clean text is left alone, and leaks() sees what remains", () => {
   assert.equal(anonymise("1. CONCEPT\nA plain idea.\nPACKAGE COMPLETE.\n").text, "1. CONCEPT\nA plain idea.\nPACKAGE COMPLETE.\n")
   assert.deepEqual(leaks("fine text"), [])
@@ -84,6 +91,11 @@ test("storing: random letter, anonymised package under packages/, key kept apart
     assert.ok(fs.existsSync(path.join(dir, "packages", r3.letter, "images", "image-1.png")))
     assert.deepEqual(JSON.parse(fs.readFileSync(path.join(dir, "key.json"), "utf8"))[r3.letter].images, ["image-1.png"])
     assert.throws(() => addPackage(raw, "s", "m", "4", dir, { images: [raw] }), /not an image/)
+    const clean = path.join(dir, "ok.svg"); fs.writeFileSync(clean, '<svg xmlns="http://www.w3.org/2000/svg"><circle r="1"/></svg>')
+    const r4 = addPackage(raw, "s", "m", "5", dir, { images: [clean] })
+    assert.ok(fs.existsSync(path.join(dir, "packages", r4.letter, "images", "image-1.svg")))
+    const bad = path.join(dir, "bad.svg"); fs.writeFileSync(bad, '<svg onload="alert(1)"></svg>')
+    assert.throws(() => addPackage(raw, "s", "m", "6", dir, { images: [bad] }), /refusing an SVG/)
     // letters are not reused
     const r2 = addPackage(raw, "site-z", "model-w", undefined, dir)
     assert.notEqual(r2.letter, r.letter)

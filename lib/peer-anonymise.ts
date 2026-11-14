@@ -61,9 +61,10 @@ export function anonymise(raw: string): Anonymised {
   const before = text
   text = text.replace(/https?:\/\/\S+/g, "[link removed]")
   text = text.replace(/\b[\w.+-]+@[\w-]+\.[\w.-]+\b/g, "[email removed]")
+  text = text.replace(/(^|[\s(·,])@[A-Za-z0-9_][\w.-]{0,38}/g, "$1[handle removed]")
   if (text !== before) removed.push("links and email addresses")
 
-  const dateRe = /\b(20\d{2}-\d{2}-\d{2}|\d{1,2} (?:janvier|f[ée]vrier|mars|avril|mai|juin|juillet|ao[uû]t|septembre|octobre|novembre|d[ée]cembre) 20\d{2}|(?:January|February|March|April|May|June|July|August|September|October|November|December) \d{1,2}, 20\d{2})\b/gi
+  const dateRe = /\b(20\d{2}-\d{2}-\d{2}|\d{1,2} (?:janv|f[ée]vr|mars|avr|mai|juin|juil|ao[uû]t|sept|oct|nov|d[ée]c)\.? 20\d{2}|\d{1,2} (?:janvier|f[ée]vrier|mars|avril|mai|juin|juillet|ao[uû]t|septembre|octobre|novembre|d[ée]cembre) 20\d{2}|(?:January|February|March|April|May|June|July|August|September|October|November|December) \d{1,2}, 20\d{2})\b/gi
   if (dateRe.test(text)) removed.push("dates")
   text = text.replace(dateRe, "[date]")
 
@@ -84,5 +85,6 @@ export function leaks(text: string): string[] {
   }
   if (/https?:\/\//i.test(text)) found.push("url")
   if (/\b[\w.+-]+@[\w-]+\.[\w.-]+\b/.test(text)) found.push("email")
+  if (/(^|[\s(·,])@[A-Za-z0-9_]/.test(text)) found.push("handle")
   return found
 }

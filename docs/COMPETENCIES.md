@@ -15,7 +15,7 @@ owner approves a team.
 
 1. **Competency**: one observable behaviour and the evidence that shows it.
 2. **First test**: a held-out case, unpublished, that tests only that competency.
-3. **Review**: anonymous peer review (below) plus mechanical checks that need no opinion (contrast recomputed, palette,
+3. **Review**: the owner's own reading plus mechanical checks that need no opinion (contrast recomputed, palette,
    forbidden words, file names).
 4. **Lesson**: if the model fails, one short targeted lesson (what to do and why), never the corrected answer.
 5. **Second test**: a different held-out case for the same competency.
@@ -43,23 +43,18 @@ three-bar counter (registry opt-in, `bive-registry-optin`), a graduation cap (a 
 badge for future skills. No crowns, stars, medals or ranks: only the owner carries the key or decision card. An accessory
 appears only for a competency that passed its second test.
 
-## Anonymous peer review
+## Peer review is a casting concept, not a jury (owner, 2026-11-14)
 
-- Remove model names, versions, the provenance section and style tells; label packages by random letters, in a different
-  order for each reviewer; add a hand-made bad control and a good reference package. A reviewer who scores the bad control
-  above the good one is discarded.
-- Each model reviews every package but its own, with the rubric: fixed rules 25 %, honesty 25 %, originality and
-  readability 20 %, variety without authority 15 %, provenance 15 %. Each score carries one sentence of evidence; a score of
-  0 or 1 quotes the line that justifies it. A truthful "not delivered" beats a false completion. Length and polish earn
-  nothing.
-- Aggregate by median per criterion and report the spread; a large disagreement is shown, not smoothed. Mechanical checks
-  are reported next to it and never depend on a reviewer.
-- The owner chooses. The result is a table, not a ranking that decides anything.
+The owner's "peer review" idea is a gesture of the cast: in Bive, a peer reads a colleague's work and points out a problem,
+the author fixes it, and only the owner decides. A review is advice: the reviewer never stamps, merges or overrules, and
+peers never grade or rank one another. It goes into the design prompts and scenes, not into a scoring machine. An earlier
+reading (models scoring each other's packages blind) was a misunderstanding; its tooling was
+removed. The capture tools stay: `lib/peer-anonymise.ts` and `lib/peer-collect-cli.ts` record the owner's own trials,
+anonymised, in the git-ignored `.bive/state/peer/`.
 
 ## Limits
 
-Reviewers favour their own style, long answers and the first package: anonymising and shuffling reduce this and do not remove
-it. Held-out cases leak if reused, so each competency needs a fresh one per attempt. Usage rights of generated images are not
+Held-out cases leak if reused, so each competency needs a fresh one per attempt. Usage rights of generated images are not
 verified by any reviewer and stay with the owner, per service. A kept lesson shows an effect on these cases, not a general
 capability.
 
