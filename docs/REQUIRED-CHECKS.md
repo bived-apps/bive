@@ -221,7 +221,7 @@ the authorization only the owner can give.
 | An agent applies the dated label | App | refused by the gate | verified 2026-11-14 on scratch PR #300 |
 | An agent comments | App | shows as `bive-agents[bot]` | verified 2026-11-14 |
 | An agent merges into `bived` with a green gate | App | needs the owner's dated label first | by design |
-| A non-owner updates `main` | App | refused by Restrict updates | configured 2026-11-14, live denial not yet tested |
+| A non-owner updates `main` | App | refused by Restrict updates | verified 2026-11-15 |
 | A force push or a branch deletion on `bived` or `main` | anyone | refused by the rulesets | configured 2026-11-14 |
 | The owner merges after labelling | owner | passes | verified on every merged PR |
 
