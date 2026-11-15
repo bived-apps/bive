@@ -12,6 +12,7 @@ for Bive only (owner, 2026-11-14: not for a public front end): its docs and READ
 | `role-delegate.svg` | a laptop | violet |
 | `icon-template.svg`, `icon-workspace.svg`, `icon-registry.svg`, `icon-bench.svg`, `icon-university.svg` | page icons | ink |
 | `icon/` | three candidate icons for the project, the organization and the GitHub App, until the owner chooses ([guide](icon/README.md)) | the cast's colours |
+| `companions/` | one square icon per companion of the cast, for the README's role table ([guide](companions/README.md)) | the cast's colours |
 
 Rules each file follows (checked by `tests/design-assets.test.ts`): a 24 x 24 grid with a 2 px round stroke for glyphs and
 icons; `role="img"` with a `<title>` and a `<desc>`; only the brief's palette; no script, no external reference, no
