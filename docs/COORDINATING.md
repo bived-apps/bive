@@ -247,6 +247,24 @@ if [ -n "$timed_out" ]; then
 fi
 ```
 
+## Batch pull requests (issue #254, owner 2026-11-15)
+
+One pull request per outcome, not per file. Fewer, bounded pull requests save the owner's touches (#336: 87 pull
+requests in two days, 17 of them state-only), without hiding unfinished work.
+
+- **When**: several issues that serve **one** outcome (the same rule, the same page, the same tool). Unrelated issues
+  never travel together; an authority file and an unrelated change never share a pull request.
+- **Branch**: `batch/<slug>` from the integration branch; each delegate still works one issue in its own worktree and
+  pushes `issue/<n>-<slug>`; the coordinator merges those branches into `batch/<slug>` (merge commits, every commit
+  keeps its author) and opens one pull request.
+- **Body**: the outcome in one line; one `Closes #N` line per issue; what is excluded; the acceptance checks run in
+  that turn; each delegate's report under its issue's heading.
+- **Scope cap**: at most 6 files changed besides tests, unless the owner raises it for that batch.
+- **State files ride along**: the `HANDOFF.md`, `ROADMAP.md` or `.bive/models.json` change a batch needs goes in
+  that batch's pull request, not in one of its own.
+- **Review**: the order of step 7, for each issue's part, then for the whole: does it deliver the one outcome, nothing
+  more?
+
 ## Open and review a pull request (step 7)
 
 The delegate pushes its branch and returns the filled report; it never opens a pull request. The coordinator creates
