@@ -195,7 +195,7 @@ settings.
 
 ## Owner rollout and denial matrix (issue #239)
 
-One GitHub App for all agents (`bive-agents`), installed on `bived-apps/bive` only (owner decision, 2026-11-14). There
+One GitHub App for all agents (`bived-agents`), installed on `bived-apps/bive` only (owner decision, 2026-11-14). There
 is no per-role App and no supervisor App: the owner alone merges, and the gate proves the owner applied the dated
 label. This section separates what GitHub enforces natively from what Bive's gate enforces, and records the denials
 the owner tested.
@@ -208,7 +208,7 @@ GitHub rulesets, in the repository's settings (the owner's configuration):
   required, merge method `merge` only, required checks `tests` and `merge-gate`.
 - **`main` ruleset**: the same, plus Restrict updates with the Repository admin role as the only bypass, pull requests
   only.
-- **No bypass for any App**: no rule names an App, so `bive-agents` is refused like any other actor.
+- **No bypass for any App**: no rule names an App, so `bived-agents` is refused like any other actor.
 
 The gate `bive-merge-gate` enforces the dated label `bive-merge-authorized-until-YYYY-MM-DD` applied by the owner's
 own account: a label applied by a Bot or an App is refused. The rulesets block what GitHub can block; the gate blocks
@@ -219,13 +219,13 @@ the authorization only the owner can give.
 | Action | Actor | Expected | Verified |
 | --- | --- | --- | --- |
 | An agent applies the dated label | App | refused by the gate | verified 2026-11-14 on scratch PR #300 |
-| An agent comments | App | shows as `bive-agents[bot]` | verified 2026-11-14 |
+| An agent comments | App | shows as `bived-agents[bot]` | verified 2026-11-14 |
 | An agent merges into `bived` with a green gate | App | needs the owner's dated label first | by design |
 | A non-owner updates `main` | App | refused by Restrict updates | verified 2026-11-15 |
 | A force push or a branch deletion on `bived` or `main` | App | refused by the rulesets | verified 2026-11-15 (below) |
 | The owner merges after labelling | owner | passes | verified on every merged PR |
 
-`App` is an installation token of `bive-agents` (`docs/GITHUB-APP.md`); the owner applies the dated label.
+`App` is an installation token of `bived-agents` (`docs/GITHUB-APP.md`); the owner applies the dated label.
 Force push and deletion were tried on `milestone/denial-test` (the integration ruleset of `bived`): GitHub refused
 both (GH013). On `main` the API lists the same two rules; they were not pushed against.
 

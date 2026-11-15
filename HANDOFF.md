@@ -53,7 +53,7 @@ It develops itself with its own flow: this repository is the template and its fi
 - Live since 2026-11-15, each in its own repository: the site https://bived-apps.github.io/ (`bived-apps.github.io`),
   the organization page (`.github`, `profile/README.md`), the registry page (`registry`, the cube from one project).
   The App's logo is the flower; the organization picture is the B; the social card is uploaded.
-- App `bive-agents` (ID 5761164): agents act as `bive-agents[bot]` in the sessions the broker serves
+- App `bived-agents` (ID 5761164): agents act as `bived-agents[bot]` in the sessions the broker serves
   (`docs/GITHUB-APP.md`); the other sessions act as the owner and must sign. OpenCode is 2.3.0 (guard, token counter,
   schedules re-checked live 2026-11-15).
 - Coordinator since 2026-11-15: `anthropic/claude-opus-5-5`, started as OpenCode's `build`; next sessions pick the
