@@ -45,4 +45,9 @@ test("the README front page uses the design assets", () => {
     const p = path.join(repoRoot, m[1])
     assert.ok(fs.existsSync(p), `missing referenced file: ${m[1]}`)
   }
+  // Bive's mark sits directly above the title
+  assert.match(r, /^<img src="docs\/design\/icon\/icon-d\.svg" width="96" alt="Bive's mark: a capital B drawn by small delegates">\n\n# Bive/m)
+  // one line of badges right after the BIVE line; tests badge points at bive-tests.yml, which exists
+  const badgesLine = "[![tests](https://github.com/bived-apps/bive/actions/workflows/bive-tests.yml/badge.svg?branch=bived)](https://github.com/bived-apps/bive/actions/workflows/bive-tests.yml) [![release](https://img.shields.io/github/v/release/bived-apps/bive?color=6D28D9)](https://github.com/bived-apps/bive/releases/latest) [![licence: MIT](https://img.shields.io/badge/licence-MIT-0F766E)](LICENSE) [![site](https://img.shields.io/badge/site-bived--apps.github.io-B45309)](https://bived-apps.github.io/bive/)"
+  assert.ok(r.includes("**BIVE**: Bive Is Verifiably Endorsed\n\n" + badgesLine + "\n") && fs.existsSync(path.join(repoRoot, ".github", "workflows", "bive-tests.yml")), "badges line after BIVE line and tests badge workflow exists")
 })

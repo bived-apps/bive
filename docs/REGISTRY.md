@@ -15,7 +15,8 @@ Bive asks in return; the licence (MIT) does not require it.
 
 - **What is sent**, when a root session goes idle: the human tokens, agent tokens and violations (writes the guard
   refused: outside the worktree, or a delegate on an inviolable file) since the last report, the agent tokens per
-  OpenCode agent name and provider/model (the llm variable, with input tokens and summed response time, for the
+  Bive role (coordinator, delegate, advisor; else the OpenCode agent name) and canonical provider/model (the
+  route of `.bive/state/models.local.json` read backwards; #376) (the llm variable, with input tokens and summed response time, for the
   speed columns: seconds per reply, output tokens per second, tokens in per token out), the
   project's size in tracked text lines rounded to two significant figures (48 213 → 48 000), and the random id in
   `.bive/registry-id`. That id is the app's unique identifier: commit it so every clone

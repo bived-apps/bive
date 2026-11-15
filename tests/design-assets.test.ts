@@ -3,7 +3,8 @@ import assert from "node:assert/strict"
 import fs from "node:fs"
 
 const DIR = new URL("../docs/design/", import.meta.url)
-const files = fs.readdirSync(DIR).filter((f) => f.endsWith(".svg") && f !== "role-column-board.svg").sort()
+// The board and the flower are not glyphs of the brief: they follow the cast's rules (tests/design-flower.test.ts).
+const files = fs.readdirSync(DIR).filter((f) => f.endsWith(".svg") && f !== "role-column-board.svg" && f !== "flower.svg").sort()
 const read = (f: string) => fs.readFileSync(new URL(f, DIR), "utf8")
 const PALETTE = new Set(["#1F2430", "#5B6270", "#0F766E", "#B45309", "#6D28D9", "#B8860B", "#F7F5F0", "#FFFFFF", "NONE"])
 

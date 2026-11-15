@@ -85,6 +85,13 @@ gh api repos/<owner>/<repo>/issues/<epic>/comments --paginate --jq \
 A hand-over whose `Read:` field is empty is still returned to the owner (`COORDINATOR.md`). A second hand-over
 comment replaces the first: the newest wins, and the history stays on the issue.
 
+## Reading another repository
+
+To read another of the owner's repositories, use the API (`gh api repos/<owner>/<repo>/contents/<path>`) where the App
+can reach it. A clone, when one is needed, goes under `.worktrees/` (git-ignored, inside the checkout) and is named in
+the hand-over; the owner removes it after use (agents never `rm -rf`). A private repository's copy never stays in
+`.bive/state/` unannounced.
+
 ## Start a delegate (step 5)
 
 ```bash

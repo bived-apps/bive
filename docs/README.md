@@ -1,3 +1,5 @@
+<img src="design/icon/icon-d.svg" width="64" alt="Bive's mark: a capital B drawn by small delegates">
+
 # Bive's docs
 
 These pages are grouped by who reads them first.

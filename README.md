@@ -1,6 +1,10 @@
+<img src="docs/design/icon/icon-d.svg" width="96" alt="Bive's mark: a capital B drawn by small delegates">
+
 # Bive: Agents write, you decide.
 
 **BIVE**: Bive Is Verifiably Endorsed
+
+[![tests](https://github.com/bived-apps/bive/actions/workflows/bive-tests.yml/badge.svg?branch=bived)](https://github.com/bived-apps/bive/actions/workflows/bive-tests.yml) [![release](https://img.shields.io/github/v/release/bived-apps/bive?color=6D28D9)](https://github.com/bived-apps/bive/releases/latest) [![licence: MIT](https://img.shields.io/badge/licence-MIT-0F766E)](LICENSE) [![site](https://img.shields.io/badge/site-bived--apps.github.io-B45309)](https://bived-apps.github.io/bive/)
 
 A repository template for building software with LLM agents in three roles, on OpenCode 2.
 

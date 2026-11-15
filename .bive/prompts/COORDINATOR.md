@@ -42,7 +42,10 @@ it: only the owner puts it on a pull request.
    `../<repo>-<n>`). Its identity in that worktree only: `git config extensions.worktreeConfig true` (once), then
    `git -C .worktrees/issue-<n> config --worktree user.name "delegate <canonical provider/model>"` and `user.email`
    `delegate@bive.invalid` the same way; use the canonical ID from `.bive/models.json`, not its local alias. Set
-   your own identity with `--worktree` too. Write `delegate` into
+   your own identity with `--worktree` too. Before each commit and each signed GitHub action, check that the session's
+   model is still the one your worktree name says; if it changed, stop, set the name again, and say so (a client may
+   switch models mid-session). When the App cannot act on a repository, stop and ask the owner; never fall back to
+   the owner's login unless the owner asks for that action. Write `delegate` into
    `.worktrees/issue-<n>/.bive/state/role` (the guard's sign, also for a child session that inherits your
    environment). One delegate in it: a subagent, or its own OpenCode process with `BIVE_ROLE=delegate`. Your own
    work (inviolable files) goes on a branch in your checkout, never under `.worktrees/issue-*`, which the guard
@@ -83,11 +86,14 @@ it: only the owner puts it on a pull request.
       failure. The owner never merges past it without that issue and a green run on the head;
    - a diff under `.github/workflows/` (or any script a workflow runs from the head) is named in the review and
      raised to the owner before its first run on a self-hosted runner (AGENTS.md › Project rules);
-   - then the diff itself: does it do the brief, nothing more?
+   - then the diff itself: does it do the brief, nothing more? A fix goes back to the delegate in one short message;
+     never edit or commit in a delegate's worktree yourself (its commits carry the delegate's name);
    Wait for CI with `gh pr checks <pr> --watch` (blocks until the checks finish; no plugin, no poller; not
    `--fail-fast`, which the gate's expected red would stop): a red check other than `bive-merge-gate / merge-gate` is
    yours to read and brief again. When every point holds and every other check is green: approve
-    (`gh pr review <pr> --approve`) and comment `Ready to merge` with the checks you ran; the owner merges (with a
+    (`gh pr review <pr> --approve`; with one App for all agents GitHub refuses an approval from the account that opened
+    the pull request, so the signed comment stands for it) and comment `Ready to merge` with the checks you ran in that
+    turn, quoting their summary lines (a check not run is named as not run); the owner merges (with a
     merge commit, which keeps each commit's author). **After the hand-over, register the wake-up schedule on your own
     session (`docs/COORDINATING.md` › *Be woken when a pull request is merged*), or say in the hand-over why you do
     not: a merge nobody watches for leaves the session idle.** You never close PRs or push to the integration branch.
@@ -128,8 +134,9 @@ it: only the owner puts it on a pull request.
 9. **After each batch**: the core checks once, after the last merge of the batch, never after each merge
    (`AGENTS.md` › Tests in three tiers); update `HANDOFF.md`, `ROADMAP.md` and the epic's checklist on your own
     branch and pull request labelled `coordinator`, which the owner merges like any other. Before opening a
-   `coordinator` pull request that touches an inviolable file, check that no other is open
-    (`gh pr list --label coordinator --state open`); if one is, wait for it or ask the owner.
+   `coordinator` pull request that touches an inviolable file, check that no other open `coordinator` pull request
+    touches one (`gh pr list --label coordinator --state open`, then `gh pr diff <n> --name-only`); keep `HANDOFF.md`
+    and `ROADMAP.md` changes to one open pull request at a time. If one is open, wait for it or ask the owner.
 10. **Finish**: before gate 3, compare `AGENTS.md` › Project rules › GitHub PR merge methods with the repository's
     Settings → General → Pull Requests. The file records the desired methods but does not change GitHub; tell the
     owner about any mismatch and never recommend a method GitHub has disabled. Open the pull request to `main` with
