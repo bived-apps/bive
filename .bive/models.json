@@ -1,5 +1,5 @@
 {
-  "coordinator": ["openai/gpt-6.1-sol"],
-  "delegate": ["opencode/iceman-free", "opencode/minimax-m3.1-flash-free", "opencode/flint-40b-free",
-               "opencode/deepseek-v4.1-flash-free", "opencode/glm-5.3-flash-free"]
+  "coordinator": ["opencode/minimax-m3.1-flash-free"],
+  "delegate": ["opencode/iceman-free", "opencode/deepseek-v4.1-flash-free", "opencode/glm-5.3-flash-free",
+               "opencode/mimo-v2.6-flash-free", "opencode/nemotron-3.5-super-vl-free"]
 }

@@ -26,6 +26,10 @@ It develops itself with its own flow: this repository is the template and its fi
 
 ## Decisions (owner, dated; reasoning in the history link)
 
+- 2026-11-15 free team, no OpenAI (supersedes the lines below): coordinator `opencode/minimax-m3.1-flash-free`;
+  delegates `opencode/iceman-free`, `opencode/deepseek-v4.1-flash-free`, `opencode/glm-5.3-flash-free`,
+  `opencode/mimo-v2.6-flash-free`, `opencode/nemotron-3.5-super-vl-free`. One-tool-call probes the same day; chosen from
+  three real tasks (#222, #223, #243): minimax best substance, iceman most disciplined, flint dropped (unverified claims).
 - 2026-11-14 free dev team (supersedes the delegates below): coordinator `openai/gpt-6.1-sol`; delegates
   `opencode/iceman-free`, `opencode/minimax-m3.1-flash-free`, `opencode/flint-40b-free`, then
   `opencode/deepseek-v4.1-flash-free`, `opencode/glm-5.3-flash-free` (one-tool-call probes, not qualification).
