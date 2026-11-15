@@ -45,4 +45,6 @@ test("the README front page uses the design assets", () => {
     const p = path.join(repoRoot, m[1])
     assert.ok(fs.existsSync(p), `missing referenced file: ${m[1]}`)
   }
+  // Bive's mark sits directly above the title
+  assert.match(r, /^<img src="docs\/design\/icon\/icon-d\.svg" width="96" alt="Bive's mark: a capital B drawn by small delegates">\n\n# Bive/m)
 })

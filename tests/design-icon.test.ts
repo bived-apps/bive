@@ -26,6 +26,7 @@ test("the guide shows the four candidates, says who chooses and records unverifi
     /no agent can set them/]) assert.match(r, re)
   const index = fs.readFileSync(new URL("../README.md", DIR), "utf8")
   assert.match(index, /\| `icon\/` \|[^\n]*\(icon\/README\.md\)/)
+  assert.match(r, /Chosen.*icon-d/)
 })
 
 for (const n of NAMES) {
