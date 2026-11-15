@@ -49,12 +49,14 @@ It develops itself with its own flow: this repository is the template and its fi
 
 - Milestone 0.2.1 (`https://github.com/bived-apps/bive/milestone/5`) is the queue; 0.3 (milestone 6) holds #231, #243,
   #245, #254. Closed in 0.2.1 since 2026-11-14: #222, #223, #232, #235, #238 and #240 (declined), #242, #244, #261, #278.
-- Open: #236 (git push as the App: the change in the owner's private helper is written, helper PR #3; the owner's live
-  push test next); #239 (live denial of a non-owner update of `main`, owner-run with the App token); #237 (PRs #310 and
-  #311 merged; the issue closes itself once the close workflow reaches `main`); #299 (options C + D written, helper
-  PR #3 for the owner's review, then the live tests); #241 tracker.
-- App `bive-agents` (ID 5761164): agents act as `bive-agents[bot]` only in sessions started with an App token
-  (`docs/GITHUB-APP.md`); other sessions act as the owner and must sign. OpenCode is 2.3.0 (guard, token counter,
+- Open: #236 (option D is live and proven: a Desktop session comments as `bive-agents[bot]`; the push as the App, a
+  session past an hour and the fail-closed check are the owner's); #239 (the live denial of a non-owner update of
+  `main` is verified 2026-11-15; the force-push row is the owner's call); #237 (PRs #310 and #311 merged; it closes
+  itself once the close workflow reaches `main`); #299 (options C + D written and in use: the helper's PR #3 merged,
+  the broker runs, the Desktop service points at the shims); #314 (one broker, several accounts: the helper's PR #4
+  merged; the App must be installed on `jcherfils/FiFoo`, the targets file written and the broker restarted); #241.
+- App `bive-agents` (ID 5761164): agents act as `bive-agents[bot]` in the sessions the broker serves
+  (`docs/GITHUB-APP.md`); the other sessions act as the owner and must sign. OpenCode is 2.3.0 (guard, token counter,
   schedules re-checked live 2026-11-15).
 - Run once on `main`: #229's close-issues workflow only activates there. Desktop sessions in a new worktree start from
   `main`, so they see 0.2.1 rules only after the release to `main`.
@@ -92,4 +94,5 @@ It develops itself with its own flow: this repository is the template and its fi
 - **2026-11-15, coordinator anthropic/claude-opus-5-5**: #235 App created and tested, #242 all cases verified, free
   team trialled on #222/#223/#243; hand-over to the free coordinator `opencode/minimax-m3.1-flash-free` (no OpenAI).
 - **2026-11-15, coordinator opencode/minimax-m3.1-flash-free**: options C + D written for the owner's private helper
-  (PR #3 there, 8 tests); `docs/GITHUB-APP.md`, ROADMAP and this handoff updated (#236, #299, #241).
+  (PR #3 there, 8 tests) and documented in Bive (PR #313, merged); the broker now serves several accounts (#314, the
+  helper's PR #4, 12 tests); the live denial on `main` verified.

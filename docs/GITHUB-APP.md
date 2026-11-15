@@ -46,6 +46,15 @@ owner's user can ask it for App tokens (that is the intended outcome), never for
 `x-access-token`), and the `gh` shim runs the real `gh` with that token. With the broker down they exit 1 with
 `token broker not running`; they never fall back to the owner's login.
 
+**Several accounts, one broker (#314).** The App's key serves every account the App is installed on: the broker holds a
+list of targets and mints one token per installation, each limited to its own repositories. The list is
+`~/.bive/targets.json` (mode 0600) or the variable `BIVE_TARGETS="bive=bived-apps/bive,fifoo=jcherfils/FiFoo"`;
+`BIVE_ORG` and `BIVE_REPOS` still serve a single account. The client asks for the right one by itself: `gh --repo`
+names it, otherwise the repository of the working directory's git remote decides, `BIVE_TARGET` overrides,
+`bive-token --target` names one, and git's credential request carries the path (`credential.useHttpPath`, set by the
+Desktop setup). A target the broker does not know is refused; it never answers from another account. The App must be
+installed on each account.
+
 **D, the Desktop service.** `bive-desktop setup` points the OpenCode background service at the shims (`PATH` first,
 and the git credential helper for `https://github.com`, preceded by an empty helper value that resets the owner's own
 keychain helper) and restarts it; `bive-desktop undo` removes them. Run it from the owner's own terminal: it restarts

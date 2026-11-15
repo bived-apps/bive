@@ -79,7 +79,8 @@ test("the matrix records the App-applied label and Restrict updates on main (#23
   assert.match(label, /#300/)
   const main = all.find((r) => /Restrict updates/.test(r))
   assert.ok(main, "a row covers Restrict updates on main")
-  assert.match(main, /not yet tested/)
+  assert.match(main, /verified 2026-11-15/)
+  assert.doesNotMatch(main, /not yet tested/)
 })
 
 test("the matrix records the agent comment, the agent merge and the owner's merge (#239)", () => {
