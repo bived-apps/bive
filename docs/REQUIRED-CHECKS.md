@@ -222,10 +222,12 @@ the authorization only the owner can give.
 | An agent comments | App | shows as `bive-agents[bot]` | verified 2026-11-14 |
 | An agent merges into `bived` with a green gate | App | needs the owner's dated label first | by design |
 | A non-owner updates `main` | App | refused by Restrict updates | verified 2026-11-15 |
-| A force push or a branch deletion on `bived` or `main` | anyone | refused by the rulesets | configured 2026-11-14 |
+| A force push or a branch deletion on `bived` or `main` | App | refused by the rulesets | verified 2026-11-15 (below) |
 | The owner merges after labelling | owner | passes | verified on every merged PR |
 
 `App` is an installation token of `bive-agents` (`docs/GITHUB-APP.md`); the owner applies the dated label.
+Force push and deletion were tried on `milestone/denial-test` (the integration ruleset of `bived`): GitHub refused
+both (GH013). On `main` the API lists the same two rules; they were not pushed against.
 
 ### Recovery without force
 
