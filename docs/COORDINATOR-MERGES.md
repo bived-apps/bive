@@ -95,4 +95,7 @@ an independent decision by each app's owner.
   gate (`check-merge-gate.mjs` accepts the approval instead of the dated label, `tests/gate-parent-approval.test.ts`).
   Verified offline end to end (owner's choice, 2026-11-14): `tests/coordinator-merge-tool.test.ts` runs the real tool, signing,
   grant lookup and gate against a fake GitHub. Not verified live on GitHub. Opt-in stays off (`coordinatorMerges: false`) and no grant exists.
-- `label` mode (#344): implemented and tested offline (`tests/coordinator-merge-tool.test.ts`, the label tests); not verified live.
+- `label` mode (#344): implemented and tested offline (`tests/coordinator-merge-tool.test.ts`, the label tests), and
+  verified live once on 2026-11-15 on a scratch repository: a child coordinator's PR, the owner's dated label, a green
+  gate, the owner's yes at the prompt, then a merge commit by the App. Not tested live: the owner's *no*, and `grant` mode.
+  The tool checks Bive's own CI names and never merges into `main` (#395).
