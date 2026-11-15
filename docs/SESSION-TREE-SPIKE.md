@@ -16,8 +16,14 @@ the worktree path in a file under `.bive/state/`.
    plus the coordinator metadata; record the returned session id.
 2. Move it: `POST /api/session/<id>/move` with `{directory: "<worktree>"}`; then `GET /api/session/<id>`.
 3. List: `GET /api/experimental/job?sessionID=<parent>&descendants=true`; record the answer.
-4. Write outside the worktree but inside the parent's checkout; record whether the guard refuses it.
-5. Prompt a failing child; record its outcome; plan one server restart.
+4. How: prompt the moved child (`POST /api/session/<id>/prompt`) to write a named file at the throwaway
+   repository's root (outside its worktree, inside the parent's checkout) with its write tool; record the
+   tool's result (a worktree-guard refusal, or the file existing).
+5. Failing child: (i) create a second child whose prompt asks it to run a command its agent is denied
+   (e.g. `opencode --version`, denied by PR #301); record its outcome and the job status. (ii) Restart: only
+   after the owner answers yes to a fixed-choice question; otherwise record "not run".
+6. TUI and Desktop: the coordinator asks the owner, with fixed choices, what the TUI child keys and Desktop
+   show for the parent; the owner looks, the coordinator records the answer.
 
 ## Pass/fail
 
@@ -33,7 +39,9 @@ without the owner's explicit yes.
 
 ## Decision after the spike
 
-Adopt parentID + move for every delegate, fix the guard first, add a Desktop panel, or file an upstream issue.
+Map the results: (a) and (b) pass: adopt parentID + move for every delegate; (b) fails: fix the guard
+first (confine a delegate to its own session directory); (c) fails while (a) passes: a Desktop panel or an
+upstream issue; (a) fails: an upstream issue, delegates stay unlinked.
 
 Run by the coordinator, not a delegate: the coordinator runs it, delegates are denied `opencode` commands (PR #301).
 A restart needs the owner's explicit yes before it runs.
