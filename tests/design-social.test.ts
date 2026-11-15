@@ -41,10 +41,20 @@ test("social-card.svg: only the brief's colours", () => {
   for (const c of hexes(s)) assert.ok(PALETTE.has(c), `colour ${c} is not in the brief's palette`)
 })
 
-test("social-card.svg: the name Bive and the tagline, no text smaller than 40 px", () => {
+test("social-card.svg: the wordmark carries the name, the tagline is typed, no text smaller than 40 px", () => {
   const s = read("social-card.svg")
-  assert.ok(s.includes("Bive"), "missing the name Bive")
-  assert.ok(s.includes("Agents write, you decide."), "missing the tagline")
+  assert.match(s, /<title id="t">Bive<\/title>/, "the title says the name")
+  const texts = [...s.matchAll(/<text[^>]*>([^<]*)<\/text>/g)].map((m) => m[1])
+  assert.deepEqual(texts, ["Agents write, you decide."], "the only typed text is the tagline: the name is drawn")
+  // the wordmark: a copy of ../icon/wordmark.svg under a scaled group, ids prefixed w-
+  const w = fs.readFileSync(new URL("../icon/wordmark.svg", DIR), "utf8")
+  const uses = (t: string, p: string) =>
+    [...t.matchAll(new RegExp(`<use href="#${p}(pim|odet|fenn)" transform="([^"]*)"/>`, "g"))].map((m) => `${m[1]} ${m[2]}`)
+  assert.ok(uses(w, "").length > 40, "the wordmark has its delegates")
+  assert.deepEqual(uses(s, "w-"), uses(w, ""), "the card's delegates are the wordmark's")
+  for (const id of ["w-sh", "w-pim", "w-odet", "w-fenn"]) assert.ok(s.includes(`id="${id}"`), `missing id ${id}`)
+  const ids = [...s.matchAll(/\sid="([^"]*)"/g)].map((m) => m[1])
+  assert.equal(new Set(ids).size, ids.length, "no id twice")
   for (const m of s.matchAll(/font-size="(\d+)"/g)) assert.ok(Number(m[1]) >= 40, `text smaller than 40 px: ${m[1]}`)
 })
 
