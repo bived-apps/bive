@@ -1,5 +1,6 @@
 {
   "coordinator": ["opencode/minimax-m3.1-flash-free", "anthropic/claude-fable-5-2"],
   "delegate": ["opencode/iceman-free", "opencode/deepseek-v4.1-flash-free", "opencode/glm-5.3-flash-free",
-               "opencode/mimo-v2.6-flash-free", "opencode/nemotron-3.5-super-vl-free"]
+               "opencode/mimo-v2.6-flash-free", "opencode/nemotron-3.5-super-vl-free",
+               "anthropic/claude-fable-5-2"]
 }
