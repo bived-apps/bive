@@ -6,8 +6,10 @@ import { execFileSync } from "node:child_process"
 
 const ROOT = path.resolve(import.meta.dirname, "..")
 
+// The role tokens of docs/DESIGN-BRIEF.md. The owner's token is ink, as in docs/design/flow.svg; gold (#B8860B) is
+// only the decorative ring of the owner's glyph, never a box's stroke (owner, issue #383).
 const COLOURS: Record<string, string> = {
-  owner: "#B8860B",
+  owner: "#1F2430",
   advisor: "#0F766E",
   coordinator: "#B45309",
   delegate: "#6D28D9",
