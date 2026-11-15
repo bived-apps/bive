@@ -114,11 +114,13 @@ export function withoutTrailingFilters(syntax: string): string {
   }
   return s
 }
-// Temporary directories (issue #224): /tmp and the system folders stay readable for a delegate (interpreters, tools), but
-// a delegate writes scratch inside its worktree. A temp path word or $TMPDIR next to a writing command is refused, and so
+// Temporary directories (issue #224; every role since #345, owner 2026-11-15): /tmp and the system folders stay
+// readable (interpreters, tools), but scratch is written inside the session's checkout. A temp path word or $TMPDIR next to a writing command is refused, and so
 // is a redirect to any destination outside the worktree (but /dev/*), a redirect through a variable, and `mktemp` that
 // would default to $TMPDIR. A conservative text filter, not a sandbox: other constructs are not claimed to be covered.
 const TEMP_WORD = /(?:^|[\s=:"'])(?:\$\{?(?:TMPDIR|TMP|TEMP)\}?|\/tmp|\/var\/tmp|\/private\/tmp|\/private\/var|\/var\/folders)(?=\/|\s|$|["';&|)])/
+// A redirect whose target is a temporary directory, written or through its variable (#345: the coordinator too).
+const TEMP_REDIRECT = /\d?>{1,2}\s*["']?(?:\$\{?(?:TMPDIR|TMP|TEMP)\}?|\/tmp|\/var\/tmp|\/private\/tmp|\/private\/var|\/var\/folders)(?=\/|\s|$|["';&|)])/
 const TEMP_WRITERS = new RegExp([
   String.raw`\btee\b`, String.raw`\btouch\b`, String.raw`\bmkdir\b`, String.raw`\binstall\b`, String.raw`\bdd\b`,
   String.raw`\bcp\b`, String.raw`\bmv\b`, String.raw`\brm\b`, String.raw`\bln\b`, String.raw`\btruncate\b`,
@@ -291,9 +293,9 @@ export function makeGuard(options: GuardOptions): Check {
         if (hit) violation(`worktree-guard: invalid-structure: ${hit.name} cannot be safely parsed by the portable `
           + "shell scanner, so the guard cannot verify which paths this command touches; it is refused.")
       }
-      // A delegate: scratch files live in the worktree, not in /tmp or $TMPDIR (#224); reads of system paths stay allowed.
-      if (delegate && (checked.split(/&&|\|\||;|\n/).some((part) => TEMP_WORD.test(part) && TEMP_WRITERS.test(part)) || mktempUsesTmpdir(checked))) {
-        violation("worktree-guard: temporary-directory write: scratch files go inside your worktree (for example .bive/state/), "
+      // Every role: scratch files live in the checkout, not in /tmp or $TMPDIR (#224, #345); reads of system paths stay allowed.
+      if ((checked.split(/&&|\|\||;|\n/).some((part) => TEMP_REDIRECT.test(part) || (TEMP_WORD.test(part) && TEMP_WRITERS.test(part))) || mktempUsesTmpdir(checked))) {
+        violation("worktree-guard: temporary-directory write: scratch files go inside your checkout (for example .bive/state/), "
           + "not /tmp, /var or $TMPDIR; `mktemp` needs a template or -p DIR inside the worktree.")
       }
       // A delegate: no path outside its worktree at all, read or write, but the system prefixes.

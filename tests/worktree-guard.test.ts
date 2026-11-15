@@ -357,8 +357,14 @@ describe("temporary-directory writes of a delegate (#224)", () => {
     passes(shell(delegate, "cat /tmp/x && ls /var && ls $TMPDIR && python3 -c 'print(1)'"))
     passes(shell(delegate, `echo x > ${wt}/out.txt`))
   })
-  test("the coordinator is not restricted by the delegate-only rule", () => {
-    passes(shell(coordinator, "cp a.py /tmp/a.py"))
+  test("the coordinator writes no scratch in a temporary directory either (#345)", () => {
+    for (const c of ["cp a.py /tmp/a.py", "curl -sS https://e.com -o /tmp/x.svg", 'echo x > "$TMPDIR/a"', "mktemp -d",
+      "echo x > /tmp/a", "cmd 2> /tmp/err"]) {
+      refused(shell(coordinator, c), /outside|variable|temporary-directory/)
+    }
+    passes(shell(coordinator, "curl -sS https://e.com -o .bive/state/x.svg"))
+    passes(shell(coordinator, "cat /tmp/x && ls $TMPDIR"))
+    passes(shell(coordinator, "cat /tmp/x > .bive/state/out.txt && ls 2>/dev/null"))
   })
 })
 

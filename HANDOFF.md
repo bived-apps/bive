@@ -73,8 +73,8 @@ It develops itself with its own flow: this repository is the template and its fi
 - The guard is a text filter, not a sandbox: it refuses writes outside the session's checkout for every role, the
   coordinator included (#320). What makes a delegate different is that the guard recognizes it (`BIVE_ROLE=delegate`,
   a `.worktrees/issue-<n>` directory or `.bive/state/role`) and then also refuses the paths its commands may not
-  name; a delegate elsewhere without those fails open. Delegates write scratch under `.bive/state/`, not `/tmp` or
-  `$TMPDIR` (#224); quoted prose is inert only after message options, `echo`, `grep` or a non-writing inline script
+  name; a delegate elsewhere without those fails open. Every role writes scratch under `.bive/state/`, not `/tmp` or
+  `$TMPDIR` (#224, #345); quoted prose is inert only after message options, `echo`, `grep` or a non-writing inline script
   (#225); heredoc bodies are removed first.
 - `Closes #N` acts on `main` only: close an issue after the merge into `bived` once the merge commit is reachable
   (#229's workflow does it once on `main`). Merge method `merge` only (squash loses the author).
