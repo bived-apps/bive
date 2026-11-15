@@ -118,6 +118,11 @@ group, so no two milestones' PRs collide):
 Order: parts 1–2, then #204 and #198 (small, unblock other projects), then parts 3–4 with #203's file format, then
 #201 and #199 with part 5, then #197, #200 and #202 once the owner has decided, and the pilot (part 6) last.
 
+Priority process-savings batch: #241 holds the order and the reason, the GitHub milestone 0.2.1 the mutable state. By
+2026-11-15 the batch closed the guard lane (#224, #225), the waiting and CI lanes (#226, #227), the milestone queue,
+the close workflow and the issue forms (#228–#230), the team rules (#223) and the role question (#232); the App lane
+(#235–#239, #299) is what is left. Keep #226 as the bounded process fallback.
+
 ### Done in bivedream so far (2026-11-12)
 
 - **Bive-managed skill provisioning** (epic #132): contract (#134, accepted D1–D10), local, remote, report delivery,
@@ -211,9 +216,12 @@ per epic. Nothing of it is a Bive program: prompts, rules, and existing tools wi
   repository); order by issue dependencies (`blocked_by`, verified); every delegate issue lists its files, and a
   `bive-overlap` check fails a pull request whose files overlap another open `issue/*` pull request; a ruleset on
   `bived` requires `bive-inviolable` and turns on the merge queue, so pull requests land rebased one at a time (today
-  `bived` is unprotected, `main` has a ruleset). The coordinator closes issues on merge into `bived` (GitHub closes on
-  the default branch only; #4 stayed open). A Projects board is optional and needs the `project` token scope the owner
-  has not granted. Done when two delegates work in parallel on Bive itself without a conflict.
+  `bived` is unprotected, `main` has a ruleset). Closing keywords act on the default branch only, so an issue finished
+  on `bived` or `milestone/**` is closed by the `bive-close-issues` workflow (#229) once its pull request is merged,
+  with a provenance comment; the coordinator never closes a pull request itself. The milestone is the queue (#228):
+  `gh issue list --milestone <name> --state open` answers the remaining work in one query. A Projects board is optional
+  and needs the `project` token scope the owner has not granted. Done when two delegates work in parallel on Bive
+  itself without a conflict.
 - **Options as Markdown** (S; owner's idea, 2026-11-08). A project sets Bive's options in one Markdown file,
   `.bive/OPTIONS.md`: a task list per module (`- [x] registry`, `- [ ] MCP over SSH`) and per decision, with a line
   of explanation each, which GitHub renders as checkboxes and every role reads as text; the install prompt fills it,
@@ -230,13 +238,17 @@ per epic. Nothing of it is a Bive program: prompts, rules, and existing tools wi
 - **Measured flow** (M). Per model: output tokens, speed, violations, pull requests rejected, retries; from
   token-ratio (`session.usage.recorded` events, present in the 2.2.5 event list) and the registry, with
   `opencode stats --json` where it fits. The registry page shows the model table; `.bive/models.json` gets a suggested
-  order from the data, applied by the owner. Done when the coordinator cites the table when it picks a fallback.
+  order from the data, applied by the owner. The lower roles are picked the same way: #231 applies the least-cost
+  capable order (canonical names, eligibility, availability and the owner-approved team of #223), not a second
+  qualification. Done when the coordinator cites the table when it picks a fallback.
 - **Migration of projects** (M). A project installed with Bive 0.x upgrades by pull request: `bive-upgrade.yml`, a
   `bive-*` workflow built on a maintained template-sync Action (actions-template-sync on the Marketplace;
   alternatives ahmadnassri/action-template-repository-sync, kota65535/github-template-sync-action), opens a pull
   request in the downstream project when Bive tags a release, limited to the inviolable files and `docs/`;
-  `.bive/version` is stamped at install; the HANDOFF skeleton gets an *Upgrades* line. Done when the owner's first
-  project receives and merges an upgrade pull request.
+  `.bive/version` is stamped at install; the HANDOFF skeleton gets an *Upgrades* line. The prerequisites are generic
+  and public: the upgrade checklist of #80 (the private plan behind it is not published), the role question at session
+  start (#232) and, when the owner provisions them, the Apps that tell the roles apart (#235). Done when the owner's
+  first project receives and merges an upgrade pull request.
 - **Bive for others** (M). The install prompt tested on an empty repository and on the owner's Python project; README
   for a newcomer; satellites out (0.1 › 5); the first external project in the registry. Done when someone who is not
   the owner runs an issue through the flow.

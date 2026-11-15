@@ -25,14 +25,44 @@ bived-apps/bive, and starts `opencode --standalone` with `GH_TOKEN`. It never pu
 in the environment.
 
 Limits: the token lasts one hour; `gh` uses the App but `git push` keeps its existing credentials (#236); OpenCode
-Desktop's background service still uses the owner's account (options C + D, #299).
+Desktop's background service still uses the owner's account (options C + D, below).
+
+## Tokens for every session (options C + D, #299)
+
+Owner decision, 2026-11-15: the broker is started by hand after each login, **every Desktop session acts as the App**,
+the owner's own terminals and browser keep the owner's account, and everything fails closed when the broker is down.
+The helper lives in the owner's private repository (`jcherfils/bive-token-broker`); nothing of it is in a Bive
+repository.
+
+**C, the local broker.** `broker start` unlocks the password manager once, hands the key to the broker through a pipe
+(never an argument, never an environment variable, never on disk), locks the vault again and detaches. The broker keeps
+the key in memory and serves installation tokens for bived-apps/bive on a Unix socket in the owner's home directory
+(mode 0600, in a directory of mode 0700). A token lasts one hour; the broker renews it five minutes before it expires,
+so a session that runs for days keeps working. `broker stop` erases the key and exits; a reboot stops it too. It
+answers nothing but a token, a status and the stop, and never returns the key. Accepted risk: any process of the
+owner's user can ask it for App tokens (that is the intended outcome), never for the key.
+
+**Clients.** `bive-token` prints a token, `bive-token git-credential` is a git credential helper (username
+`x-access-token`), and the `gh` shim runs the real `gh` with that token. With the broker down they exit 1 with
+`token broker not running`; they never fall back to the owner's login.
+
+**D, the Desktop service.** `bive-desktop setup` points the OpenCode background service at the shims (`PATH` first,
+and the git credential helper for `https://github.com`, preceded by an empty helper value that resets the owner's own
+keychain helper) and restarts it; `bive-desktop undo` removes them. Run it from the owner's own terminal: it restarts
+the service the sessions run in. Every Desktop session then acts as `bive-agents[bot]`, and a `git push` from a
+Desktop session is pushed by the App.
+
+Not yet proven live: the owner's own tests (a Desktop session comments as the App, a push shows the App as the
+pusher, a session longer than an hour keeps working, and with the broker stopped `gh` and `git push` fail with the
+broker's message).
+
 
 ## Revoke, rotate, stop
 
 - **Rotate**: generate a new key on the App page, store it, delete the old key on the App page.
 - **Revoke at once**: delete every key or suspend/uninstall the App on the organisation's installed Apps page.
 - **Stop all agent activity**: uninstall the App to stop App-token sessions; stop the OpenCode service and sessions
-  (`opencode service stop`) to stop the others.
+  (`opencode service stop`) to stop the others; `broker stop` to end the broker (the key leaves its memory).
 
 None of these needs an agent.
 
@@ -55,10 +85,11 @@ None of these needs an agent.
 5. Generate one private key. Keep it on the owner's machine outside every repository (for example in the system
    keychain), never in a worktree, `.bive/state/` or an environment file an agent can read.
 6. Give agents short-lived installation tokens only: the owner (or a small owner-run helper outside the repository)
-   mints a token per session and passes it as `GH_TOKEN`. Tokens expire within an hour; the key itself is never handed
-   to an agent.
+   mints a token per session and passes it as `GH_TOKEN`, or starts the broker that renews them (options C + D above).
+   Tokens expire within an hour; the key itself is never handed to an agent.
 7. Test once: an agent comment shows as the App; an agent-applied dated label is refused by the gate; the owner's label
-   passes.
+   passes. With the broker: a Desktop session comments as the App, a `git push` shows the App as the pusher, and with
+   the broker stopped `gh` and `git push` fail with the broker's message.
 
 ## Limits
 
