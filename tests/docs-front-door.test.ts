@@ -50,3 +50,7 @@ test("the root README links the docs front door", () => {
   const root = fs.readFileSync(path.join(ROOT, "README.md"), "utf8")
   assert.match(root, /\(docs\/README\.md\)/)
 })
+
+test("Bive's mark sits above the docs title", () => {
+  assert.match(front, /^<img src="design\/icon\/icon-d\.svg" width="64" alt="Bive's mark: a capital B drawn by small delegates">\n\n# Bive's docs/m)
+})

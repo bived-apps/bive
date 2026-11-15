@@ -1,5 +1,6 @@
-# Bive: Agents write, you decide.
+<img src="docs/design/icon/icon-d.svg" width="96" alt="Bive's mark: a capital B drawn by small delegates">
 
+# Bive: Agents write, you decide.
 **BIVE**: Bive Is Verifiably Endorsed
 
 A repository template for building software with LLM agents in three roles, on OpenCode 2.

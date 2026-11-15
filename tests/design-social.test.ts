@@ -4,7 +4,7 @@ import fs from "node:fs"
 
 const DIR = new URL("../docs/design/social/", import.meta.url)
 const read = (f: string) => fs.readFileSync(new URL(f, DIR), "utf8")
-const PALETTE = new Set(["#1F2430", "#5B6270", "#0F766E", "#B45309", "#6D28D9", "#B8860B", "#F7F5F0", "#FFFFFF", "NONE"])
+const PALETTE = new Set(["#1F2430", "#5B6270", "#0F766E", "#B45309", "#6D28D9", "#B8860B", "#F7F5F0", "#FFFFFF", "NONE", "#2E2152", "#2F1063", "#3B1578", "#3B2A6B", "#4A1AA0", "#4A3A7A", "#4C1D95", "#5727A6", "#5A1FBF", "#5B33C9", "#5B5548", "#6A3BBE", "#7446E0", "#7C3AED", "#8B5CF6", "#9CA3AF", "#9D78F9", "#A98BF5", "#B79CFB", "#C9523C", "#C9A56A", "#E0A82E", "#E4674F", "#EDE9FE"])
 const hexes = (s: string) => new Set([...s.matchAll(/#[0-9A-Fa-f]{6}\b/g)].map((m) => m[0].toUpperCase()))
 const PNG_SIGNATURE = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a])
 

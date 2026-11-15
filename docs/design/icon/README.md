@@ -1,13 +1,14 @@
 # Icon candidates (issues #328, #360)
 
+**Chosen (owner, 2026-11-15): `icon-d`, Bive's mark.** The others stay as the record of the choice.
+
 Four candidate icons drawn from [the Folds cast](../cast/README.md), in its cut-paper style and its colours. They are
 **candidates until the owner chooses one**: nothing uses them yet.
-
 | Candidate | Files | The idea | At 16 px |
 | --- | --- | --- | --- |
-| <img src="icon-a.png" width="96" alt="A cream card on a dark ink ground; a grey pen with a gold nib has just drawn one bold tick on it"> | `icon-a.svg`, `icon-a.png` | the decision itself: agents write the card, the owner's pen decides | a light card on a dark square with a dark tick; the pen is a grey and gold fleck; the only dark ground of the three |
+| <img src="icon-a.png" width="96" alt="A cream card on a dark ink ground; a grey pen with a gold nib has just drawn one bold tick on it"> | `icon-a.svg`, `icon-a.png` | the decision itself: agents write the card, the owner's pen decides | a light card on a dark square with a dark tick; the pen is a grey and gold fleck; the only dark ground of the candidates |
 | <img src="icon-b.png" width="96" alt="Brae, a wide amber paper folder with two dot eyes and a smile, holds out one light violet card"> | `icon-b.svg`, `icon-b.png` | one companion as the face of the project: Brae, the coordinator, hands out one card and holds no pen | an amber block with a violet patch beside it; the eyes are two pale pixels, the smile is lost |
-| <img src="icon-c.png" width="96" alt="One strip of paper folded into three panels, teal, amber and violet, above one bold dark tick"> | `icon-c.svg`, `icon-c.png` | the team as one mark: three folds in the advisor, coordinator and delegate colours, with the owner's ink mark under them | three colour bars over a dark tick; the clearest of the three at this size |
+| <img src="icon-c.png" width="96" alt="One strip of paper folded into three panels, teal, amber and violet, above one bold dark tick"> | `icon-c.svg`, `icon-c.png` | the team as one mark: three folds in the advisor, coordinator and delegate colours, with the owner's ink mark under them | three colour bars over a dark tick; the clearest of the candidates at this size |
 | <img src="icon-d.png" width="96" alt="A bold capital B on a cream ground, traced by twenty-three small violet paper delegates holding brushes, spools and set squares"> | `icon-d.svg`, `icon-d.png` | the name's first letter made by the team: 23 small delegates (Pim, Odet, Fenn in turn, from [the companion icons](../companions/README.md)) stand along the stem and the two bowls of a B, over a pale violet shape of the letter | a soft violet B on cream, both counters open; the delegates are darker and lighter violet specks, their faces and tools appear from 64 px; the only letter of the four |
 
 Each is 512 x 512 with a full-bleed ground, and keeps what matters inside the centred circle of radius 200, so a square
