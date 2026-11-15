@@ -14,3 +14,10 @@ Closes #N
 ## Left / blocked
 
 ## Session log
+
+## Signed
+
+<!-- One line: the role's marker, the role and the model (or "owner" for the human). The markers are the README's
+     role glyphs as text, so they show in any GitHub view: 🔑 owner (key), 🔍 advisor (magnifier),
+     📋 coordinator (clipboard), 💻 delegate (laptop). The signature rule itself is AGENTS.md › Signed actions. -->
+— 📋 coordinator <provider/model>

@@ -27,7 +27,7 @@ body:
     id: work_type
     attributes:
       label: Role / work type
-      description: Who does this work; choose one.
+      description: Who does this work; choose one. In signatures, 💻 marks a delegate and 📋 a coordinator.
       options:
         - Delegate work
         - Coordinator work
