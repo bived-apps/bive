@@ -29,7 +29,7 @@ flowchart LR
   C -. "question, advice only" .-> A
   C -. "gate 2: failed twice" .-> O
   C == "gate 3: pull request to main, only the owner merges" ==> O
-  classDef owner fill:#FFFFFF,stroke:#B8860B,stroke-width:3px,color:#1F2430
+  classDef owner fill:#FFFFFF,stroke:#1F2430,stroke-width:2px,color:#1F2430
   classDef advisor fill:#FFFFFF,stroke:#0F766E,stroke-width:2px,color:#1F2430
   classDef coordinator fill:#FFFFFF,stroke:#B45309,stroke-width:2px,color:#1F2430
   classDef delegate fill:#FFFFFF,stroke:#6D28D9,stroke-width:2px,color:#1F2430
