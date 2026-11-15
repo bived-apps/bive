@@ -122,7 +122,8 @@ Priority process-savings batch: #241 holds the order and the reason, the GitHub 
 2026-11-15 the batch closed the guard lane (#224, #225), the waiting and CI lanes (#226, #227), the milestone queue,
 the close workflow and the issue forms (#228–#230), the team rules (#223) and the role question (#232); the App lane
 (#235–#239, #299) closed with the owner's live checks of 2026-11-15, and the relook (#278) the same day. Released to
-`main` at gate 3 (2026-11-15), then 0.2.2 the same day (the look, the field-report rules, #376, #345). Next: 0.3
+`main` at gate 3 (2026-11-15), then 0.2.2 (the look, the field-report rules, #376, #345) and
+0.2.3 (the flow picture and its Mermaid twin agree, #383) the same day. Next: 0.3
 (GitHub milestone 0.3, plan #254). Keep #226 as the bounded process fallback.
 
 ### Done in bivedream so far (2026-11-12)
