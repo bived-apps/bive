@@ -121,7 +121,8 @@ Order: parts 1–2, then #204 and #198 (small, unblock other projects), then par
 Priority process-savings batch: #241 holds the order and the reason, the GitHub milestone 0.2.1 the mutable state. By
 2026-11-15 the batch closed the guard lane (#224, #225), the waiting and CI lanes (#226, #227), the milestone queue,
 the close workflow and the issue forms (#228–#230), the team rules (#223) and the role question (#232); the App lane
-(#235–#239, #299) is what is left. Keep #226 as the bounded process fallback.
+(#235–#239, #299) closed with the owner's live checks of 2026-11-15, and the relook (#278) the same day. Released to
+`main` at gate 3 (2026-11-15). Next: 0.3 (GitHub milestone 0.3, plan #254). Keep #226 as the bounded process fallback.
 
 ### Done in bivedream so far (2026-11-12)
 
