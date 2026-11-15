@@ -10,13 +10,15 @@ const PNG_SIGNATURE = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0
 
 test("the social folder holds the card and its guide", () => {
   const all = fs.readdirSync(DIR).sort()
-  assert.deepEqual(all, ["README.md", "social-card.png", "social-card.svg"])
+  assert.deepEqual(all, ["README.md", "social-card-roles.png", "social-card-roles.svg", "social-card.png", "social-card.svg"])
 })
 
 test("the guide names the card, says who uploads, and records regeneration", () => {
   const r = read("README.md")
   assert.match(r, /social-card\.svg/)
   assert.match(r, /social-card\.png/)
+  assert.match(r, /`social-card-roles\.svg`/)
+  assert.match(r, /`social-card-roles\.png`/)
   assert.match(r, /the owner/)
   assert.match(r, /rsvg-convert/)
   const index = fs.readFileSync(new URL("../README.md", DIR), "utf8")
@@ -56,6 +58,56 @@ test("social-card.svg: the wordmark carries the name, the tagline is typed, no t
   const ids = [...s.matchAll(/\sid="([^"]*)"/g)].map((m) => m[1])
   assert.equal(new Set(ids).size, ids.length, "no id twice")
   for (const m of s.matchAll(/font-size="(\d+)"/g)) assert.ok(Number(m[1]) >= 40, `text smaller than 40 px: ${m[1]}`)
+})
+
+// The second variant (issue #364): the same card, the word drawn by every role. It may use the cast sheet's colours:
+// exactly these, on top of the palette above (Maren, Sill and Brae).
+const ROLES_MORE = ["#14857C", "#2B2126", "#2B3142", "#343B4D", "#5FB3AA", "#6B7280", "#9A4507", "#B87B54", "#C68B62", "#C8691F", "#DE9448", "#FFFDF8"]
+
+test("social-card-roles.svg: the card's rules, with the role companions' colours and no other", () => {
+  const s = read("social-card-roles.svg")
+  assert.match(s, /^<svg xmlns="http:\/\/www\.w3\.org\/2000\/svg"/)
+  assert.match(s, /viewBox="0 0 1280 640"/)
+  assert.match(s, /role="img"/)
+  assert.match(s, /aria-labelledby="t d"/)
+  assert.match(s, /<title id="t">Bive<\/title>/)
+  assert.match(s, /<desc id="d">[^<]{10,}<\/desc>/)
+  assert.doesNotMatch(s, /<script|<image|javascript:|onload=|<foreignObject/i)
+  for (const m of s.matchAll(/href="([^"]*)"/g)) assert.ok(m[1].startsWith("#"), `external reference ${m[1]}`)
+  for (const m of s.matchAll(/url\(([^)]*)\)/g)) assert.ok(m[1].startsWith("#"), `external reference ${m[1]}`)
+  const used = hexes(s)
+  for (const c of used) assert.ok(PALETTE.has(c) || ROLES_MORE.includes(c), `colour ${c} is not allowed on the roles card`)
+  for (const c of ROLES_MORE) assert.ok(used.has(c), `colour ${c} is allowed but not used`)
+  const cast = hexes(fs.readFileSync(new URL("../cast/cast-sheet.svg", DIR), "utf8"))
+  for (const c of ROLES_MORE) assert.ok(cast.has(c), `colour ${c} is not on the cast sheet`)
+})
+
+test("social-card-roles.svg: the first card with wordmark-roles in the wordmark's place, same geometry", () => {
+  const s = read("social-card-roles.svg")
+  const first = read("social-card.svg")
+  const texts = [...s.matchAll(/<text[^>]*>([^<]*)<\/text>/g)].map((m) => m[1])
+  assert.deepEqual(texts, ["Agents write, you decide."], "the only typed text is the tagline: the name is drawn")
+  for (const m of s.matchAll(/font-size="(\d+)"/g)) assert.ok(Number(m[1]) >= 40, `text smaller than 40 px: ${m[1]}`)
+  const w = fs.readFileSync(new URL("../icon/wordmark-roles.svg", DIR), "utf8")
+  const uses = (t: string, p: string) =>
+    [...t.matchAll(new RegExp(`<use href="#${p}(\\w+)" transform="([^"]*)"/>`, "g"))].map((m) => `${m[1]} ${m[2]}`)
+  assert.ok(uses(w, "").length > 40, "wordmark-roles has its companions")
+  assert.deepEqual(uses(s, "w-"), uses(w, ""), "the card's companions are those of wordmark-roles")
+  const ids = [...s.matchAll(/\sid="([^"]*)"/g)].map((m) => m[1])
+  assert.equal(new Set(ids).size, ids.length, "no id twice")
+  for (const id of ids) assert.ok(id === "t" || id === "d" || id.startsWith("w-"), `id ${id} is not prefixed w-`)
+  // same geometry: the wordmark's group, the tagline and the glyph row are those of the first card
+  const group = (t: string) => t.match(/<g transform="(translate\([^"]*scale\([\d.]+\))">\s*<defs>/)?.[1]
+  assert.ok(group(first), "the first card has its scaled wordmark group")
+  assert.equal(group(s), group(first), "the wordmark's group is placed and scaled the same")
+  const after = (t: string) => t.slice(t.indexOf("<text"))
+  assert.equal(after(s), after(first), "the tagline and the glyph row are the same")
+})
+
+test("social-card-roles.png: a PNG under 1 MB", () => {
+  const b = fs.readFileSync(new URL("social-card-roles.png", DIR))
+  assert.ok(b.subarray(0, 8).equals(PNG_SIGNATURE), "social-card-roles.png does not start with the PNG signature")
+  assert.ok(b.length < 1_000_000, `social-card-roles.png is ${b.length} bytes`)
 })
 
 test("social-card.png: a PNG under 1 MB", () => {

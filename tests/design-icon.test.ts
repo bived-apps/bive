@@ -11,7 +11,7 @@ const CAST = hexes(fs.readFileSync(new URL("../docs/design/cast/cast-sheet.svg",
 const PNG_SIGNATURE = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a])
 
 test("the icon folder holds exactly the four candidates, each as SVG and PNG", () => {
-  assert.deepEqual(all.filter((f) => f.endsWith(".svg")), [...NAMES.map((n) => `${n}.svg`), "wordmark.svg"])
+  assert.deepEqual(all.filter((f) => f.endsWith(".svg")), [...NAMES.map((n) => `${n}.svg`), "wordmark-roles.svg", "wordmark.svg"])
   assert.deepEqual(all.filter((f) => f.endsWith(".png")), NAMES.map((n) => `${n}.png`))
 })
 
@@ -53,6 +53,37 @@ test("wordmark.svg: the word Bive, not a candidate; the icons' rules, a tight vi
   const r = read("README.md")
   assert.ok(r.includes("`wordmark.svg`"), "the guide does not name wordmark.svg")
   assert.match(r, /<img src="wordmark\.svg" width="\d+" alt="[^"]{20,}">/)
+})
+
+test("wordmark-roles.svg: the same word by every role; the wordmark's rules, places and letters", () => {
+  const s = read("wordmark-roles.svg")
+  const w = read("wordmark.svg")
+  assert.match(s, /^<svg xmlns="http:\/\/www\.w3\.org\/2000\/svg"/)
+  assert.match(s, /role="img"/)
+  assert.match(s, /<title[^>]*>[^<]*Bive[^<]*<\/title>/)
+  assert.match(s, /<desc[^>]*>[^<]{10,}<\/desc>/)
+  assert.doesNotMatch(s, /<text|<script|<image|<foreignObject|javascript:/i)
+  assert.doesNotMatch(s, /\son[a-z]+\s*=/i, "no event handler")
+  for (const m of s.matchAll(/href="([^"]*)"/g)) assert.ok(m[1].startsWith("#"), `external reference ${m[1]}`)
+  for (const m of s.matchAll(/url\(([^)]*)\)/g)) assert.ok(m[1].startsWith("#"), `external reference ${m[1]}`)
+  for (const c of hexes(s)) assert.ok(CAST.has(c), `colour ${c} is not on the cast sheet`)
+  assert.doesNotMatch(s, /<rect width="\d+" height="\d+" fill=/, "no background: it sits on any page")
+  const viewBox = (t: string) => t.match(/viewBox="([^"]*)"/)?.[1]
+  assert.equal(viewBox(s), viewBox(w), "the same frame as the wordmark")
+  // the same letters under the companions
+  const letters = (t: string) => [...t.matchAll(/<path d="(M[^"]*)"\/>/g)].map((m) => m[1])
+  assert.equal(letters(w).length, 4, "the wordmark has four letter shapes")
+  assert.deepEqual(letters(s), letters(w), "the same letter shapes")
+  const who = [...s.matchAll(/<use href="#(\w+)" transform="[^"]*"\/>/g)].map((m) => m[1])
+  const count = (...names: string[]) => who.filter((n) => names.includes(n)).length
+  assert.equal(who.length, [...w.matchAll(/<use href="#\w+"/g)].length, "as many companions as the wordmark has delegates")
+  assert.equal(count("maren"), 1, "Maren appears once: the dot of the i")
+  for (const n of ["sill", "brae", "pim", "odet", "fenn"]) assert.ok(count(n) >= 4, `${n} appears ${count(n)} times`)
+  assert.ok(count("pim", "odet", "fenn") > 2 * count("sill", "brae", "maren"), "the delegates stay the most numerous")
+  for (const n of new Set(who)) assert.ok(s.includes(`<g id="${n}">`), `${n} is not defined`)
+  const r = read("README.md")
+  assert.ok(r.includes("`wordmark-roles.svg`"), "the guide does not name wordmark-roles.svg")
+  assert.match(r, /<img src="wordmark-roles\.svg" width="\d+" alt="[^"]{20,}">/)
 })
 
 for (const n of NAMES) {
