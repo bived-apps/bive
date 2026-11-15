@@ -1,6 +1,14 @@
 # Bive 0.0
+**Agents write, you decide.**
 
 A repository template for building software with LLM agents in three roles, on OpenCode 2:
+
+Start here: [Install](#install) · Read next: [The flow](#the-flow) · [who is who](docs/design/cast/README.md).
+
+![Diagram of the Bive flow showing owner decisions, advisor advice, coordinator splitting work into delegates, and gates 1 to 3 for review and merge.](docs/design/flow.svg)
+
+<details>
+<summary>The same flow as text</summary>
 
 ```mermaid
 flowchart LR
@@ -22,10 +30,21 @@ flowchart LR
   classDef delegate fill:#FFFFFF,stroke:#6D28D9,stroke-width:2px,color:#1F2430
 ```
 
+</details>
+
 ![The Bive cast: Maren the owner holds the only pen; Sill the advisor has no arms and only looks; Brae the coordinator hands out task cards; three delegates each hold one tool; Tally records.](docs/design/cast/cast-sheet.svg)
 
 Meet the cast: the owner decides, the advisor only looks, the coordinator splits and reviews, delegates each do one
 thing, and peers point out problems without touching the work ([who is who](docs/design/cast/README.md)).
+
+## The four roles
+
+| | Role | What it does and never does |
+| --- | --- | --- |
+| <img src="docs/design/role-owner.svg" width="24" alt="Owner glyph: a key in a gold ring"> | **owner** | Decides gates and merges, approves teams and plans, and holds final authority; it never writes product code in the flow. |
+| <img src="docs/design/role-advisor.svg" width="24" alt="Advisor glyph: a magnifier"> | **advisor** | Answers read-only questions and gives advice about the current worktree, then stops; it never authorizes work, merges, teams, gates, or test releases. |
+| <img src="docs/design/role-coordinator.svg" width="24" alt="Coordinator glyph: a clipboard"> | **coordinator** | Splits work, writes briefs, reviews and opens issue pull requests, and asks the owner at gates; it never merges by default, never pushes to the integration branch or main, and never writes product code. |
+| <img src="docs/design/role-delegate.svg" width="24" alt="Delegate glyph: a laptop"> | **delegate** | Does one issue in its own worktree, runs fast checks, pushes its branch, returns its report, then stops; it never creates pull requests or starts other agents. |
 
 Bive is a template and two small plugins, nothing else: a **guard** that refuses any write outside the session's
 worktree, and a **counter** of human and agent tokens. No delegation tools (OpenCode 2's subagents do that), no
@@ -67,11 +86,13 @@ An advisor has no supervisory powers. Qualifications do not authorize work, team
 2. The coordinator writes one brief per issue (`.bive/templates/brief.md`), creates a worktree `issue/<n>-<slug>`
    and starts a delegate in it.
 3. The delegate works only in its worktree, runs the fast checks, pushes its branch, returns its report, and stops.
+   ![Scene showing a coordinator handing one task card to a delegate who does the work, then the result moves toward the owner for a decision.](docs/design/cast/scene-handover.svg)
 4. Only the coordinator creates the pull request, using the delegate's report as its body; the coordinator reviews
    (never merges) into the integration branch. It asks you when a delegate fails twice (gate 2)
    and before the pull request to `main` (gate 3). You normally merge. The generic design also supports an explicit,
    scoped owner opt-in for a coordinator to merge named sub-coordinator PRs, never its own. This path is off by default
    and requires a fresh owner permission per invocation. See [`docs/COORDINATOR-MERGES.md`](docs/COORDINATOR-MERGES.md).
+   ![Scene showing a delegate offering finished work to a coordinator who cannot approve it, so both turn to the owner to decide.](docs/design/cast/scene-refusal.svg)
 
 ## Files
 
