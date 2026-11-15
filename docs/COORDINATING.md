@@ -333,7 +333,8 @@ opencode api POST /api/experimental/schedule -d "$(cat .bive/state/wake-$pr.json
   after unarchiving, the schedule remained done with `runCount: 1` and `lastOutcome: fired`.
 - Verified 2026-11-14 on OpenCode 2.3.0 (issue #242): while a session's 90-second shell turn was busy, the wake was
   delivered once just after that tool turn completed (`runCount: 1`); exactly one `msg_sch_…` user message appeared.
-  Not verified: a server restart mid-wait.
+- Verified 2026-11-15 on OpenCode 2.3.0 (issue #242): the schedule survived `opencode service restart` mid-wait
+  (still active, `runCount: 0`) and then fired once (`runCount: 1`, one `msg_sch_…` message).
 
 ## Short handoffs (issue #234)
 
