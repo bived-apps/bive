@@ -31,7 +31,8 @@ exists, and the files the brief names.
 - **Hard stop on refusal**: when a tool call is refused (the guard, the scanner, or any check), stop immediately. Do not
   retry by rewriting the command, do not continue with other commands, and do not push. Preserve all uncommitted work in
   the worktree for the coordinator's review. Report the refusal in your final response with the exact refused command,
-  the refusal message, and the state of the worktree. The coordinator decides whether to resume, split, or stop.
+   the refusal message, and the state of the worktree. The coordinator records it and requests the owner's decision
+   whether to resume, split, or stop; advisor advice is not authorization.
 - A decision that is not yours: ask the coordinator (never the owner), with `.bive/templates/question.md`, by a
   comment on your issue; never guess on something irreversible. If the answer blocks the part, stop that part and
   say so in the `**Left**` section of your report (skill `bive-ask-owner`).

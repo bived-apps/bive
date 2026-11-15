@@ -1,0 +1,70 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 360" width="1000" height="360" role="img" aria-labelledby="t d">
+  <title id="t">The Bive flow</title>
+  <desc id="d">The owner approves a plan at gate 1. The coordinator briefs delegates, who each do one issue in their own worktree and stop. The coordinator asks the advisor only read-only questions, and opens pull requests. A pull request to main is gate 3, and only the owner merges it.</desc>
+  <defs>
+    <marker id="a" markerUnits="userSpaceOnUse" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="10" markerHeight="10" orient="auto"><path d="M0 0L10 5L0 10z" fill="#1F2430"/></marker>
+  </defs>
+  <rect width="1000" height="360" fill="#F7F5F0"/>
+  <g transform="translate(30,158)">
+    <rect width="230" height="64" rx="8" fill="#FFFFFF" stroke="#1F2430" stroke-width="2"/>
+    <g transform="translate(14,16) scale(1.3333)" fill="none" stroke="#1F2430" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+  <circle cx="12" cy="12" r="11" stroke="#B8860B" stroke-width="1.5"/>
+  <circle cx="8.5" cy="12" r="3"/>
+  <path d="M11.5 12H18M16 12v2.5M18.5 12v2"/>
+    </g>
+    <text x="62" y="28" font-family="system-ui, -apple-system, Segoe UI, sans-serif" font-size="16" font-weight="600" fill="#1F2430">Owner</text>
+    <text x="62" y="47" font-family="system-ui, -apple-system, Segoe UI, sans-serif" font-size="12" fill="#5B6270">decides gates and merges</text>
+  </g>
+  <g transform="translate(380,158)">
+    <rect width="230" height="64" rx="8" fill="#FFFFFF" stroke="#B45309" stroke-width="2"/>
+    <g transform="translate(14,16) scale(1.3333)" fill="none" stroke="#B45309" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+  <rect x="5" y="4" width="14" height="17" rx="2"/>
+  <rect x="9" y="2" width="6" height="4" rx="1"/>
+  <path d="M8.5 11h7M8.5 15h7"/>
+    </g>
+    <text x="62" y="28" font-family="system-ui, -apple-system, Segoe UI, sans-serif" font-size="16" font-weight="600" fill="#1F2430">Coordinator</text>
+    <text x="62" y="47" font-family="system-ui, -apple-system, Segoe UI, sans-serif" font-size="12" fill="#5B6270">splits, briefs, reviews</text>
+  </g>
+  <g transform="translate(740,40)">
+    <rect width="230" height="64" rx="8" fill="#FFFFFF" stroke="#6D28D9" stroke-width="2"/>
+    <g transform="translate(14,16) scale(1.3333)" fill="none" stroke="#6D28D9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+  <rect x="4" y="5" width="16" height="11" rx="1.5"/>
+  <path d="M2 19.5h20"/>
+    </g>
+    <text x="62" y="28" font-family="system-ui, -apple-system, Segoe UI, sans-serif" font-size="16" font-weight="600" fill="#1F2430">Delegate</text>
+    <text x="62" y="47" font-family="system-ui, -apple-system, Segoe UI, sans-serif" font-size="12" fill="#5B6270">issue 12, then it stops</text>
+  </g>
+  <g transform="translate(740,276)">
+    <rect width="230" height="64" rx="8" fill="#FFFFFF" stroke="#6D28D9" stroke-width="2"/>
+    <g transform="translate(14,16) scale(1.3333)" fill="none" stroke="#6D28D9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+  <rect x="4" y="5" width="16" height="11" rx="1.5"/>
+  <path d="M2 19.5h20"/>
+    </g>
+    <text x="62" y="28" font-family="system-ui, -apple-system, Segoe UI, sans-serif" font-size="16" font-weight="600" fill="#1F2430">Delegate</text>
+    <text x="62" y="47" font-family="system-ui, -apple-system, Segoe UI, sans-serif" font-size="12" fill="#5B6270">issue 13, then it stops</text>
+  </g>
+  <g transform="translate(380,20)">
+    <rect width="230" height="64" rx="8" fill="#FFFFFF" stroke="#0F766E" stroke-width="2"/>
+    <g transform="translate(14,16) scale(1.3333)" fill="none" stroke="#0F766E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+  <circle cx="10" cy="10" r="6"/>
+  <path d="M14.5 14.5L20 20"/>
+    </g>
+    <text x="62" y="28" font-family="system-ui, -apple-system, Segoe UI, sans-serif" font-size="16" font-weight="600" fill="#1F2430">Advisor</text>
+    <text x="62" y="47" font-family="system-ui, -apple-system, Segoe UI, sans-serif" font-size="12" fill="#5B6270">read-only answer, then stops</text>
+  </g>
+
+  <g stroke="#1F2430" stroke-width="2" fill="none" marker-end="url(#a)">
+    <path d="M260 190H378"/>
+    <path d="M610 180H675V72H738"/>
+    <path d="M610 200H675V308H738"/>
+  </g>
+  <path d="M495 84V156" stroke="#1F2430" stroke-width="2" fill="none" stroke-dasharray="6 5" marker-end="url(#a)"/>
+  <path d="M495 222V300H145V224" stroke="#1F2430" stroke-width="5" fill="none" stroke-linejoin="round" marker-end="url(#a)"/>
+  <g font-family="system-ui, -apple-system, Segoe UI, sans-serif" font-size="12" fill="#1F2430">
+    <text x="319" y="182" text-anchor="middle">gate 1: the plan</text>
+    <text x="505" y="126">question, advice only</text>
+    <text x="685" y="124">brief</text>
+    <text x="685" y="270">brief</text>
+    <text x="320" y="326" text-anchor="middle">gate 3: pull request to main, only the owner merges</text>
+  </g>
+</svg>

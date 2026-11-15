@@ -157,3 +157,65 @@ test("missing manifest fails", () => {
   const root = mkroot()
   assert.throws(() => provisionLocal({ root, role: "delegate" }), /manifest missing/)
 })
+
+test("role migration: old supervisor role fails closed", () => {
+  const root = mkroot()
+  writeSkill(root, "s", "# v1\n")
+  const hash = computeRevision(path.join(root, ".opencode", "skills", "s"))
+  const manifest = {
+    version: 1,
+    roles: { supervisor: ["s"] },
+    skills: { s: { source: "project", path: ".opencode/skills/s", revision: hash } },
+  }
+  fs.mkdirSync(path.join(root, ".bive"), { recursive: true })
+  fs.writeFileSync(path.join(root, ".bive", "skills.json"), JSON.stringify(manifest))
+  assert.throws(() => validateManifest(manifest), (e: any) => {
+    assert.ok(e.message.includes("role supervisor is not a valid role"))
+    return true
+  })
+})
+
+test("role migration: new advisor role succeeds", () => {
+  const root = mkroot()
+  writeSkill(root, "advisor-skill", "# advisor\n")
+  const hash = computeRevision(path.join(root, ".opencode", "skills", "advisor-skill"))
+  const manifest = {
+    version: 1,
+    roles: { advisor: ["advisor-skill"] },
+    skills: { "advisor-skill": { source: "project", path: ".opencode/skills/advisor-skill", revision: hash } },
+  }
+  fs.mkdirSync(path.join(root, ".bive"), { recursive: true })
+  fs.writeFileSync(path.join(root, ".bive", "skills.json"), JSON.stringify(manifest))
+  const report = provisionLocal({ root, role: "advisor", reportPath: false })
+  assert.equal(report.role, "advisor")
+  assert.equal(report.skills.length, 1)
+  assert.equal(report.skills[0].id, "advisor-skill")
+  assert.equal(report.skills[0].revision, hash)
+  assert.equal(report.skills[0].observed_revision, hash)
+})
+
+test("role migration: coordinator and delegate unchanged", () => {
+  const root = mkroot()
+  writeSkill(root, "coord-skill", "# coordinator\n")
+  writeSkill(root, "deleg-skill", "# delegate\n")
+  const coordHash = computeRevision(path.join(root, ".opencode", "skills", "coord-skill"))
+  const delegHash = computeRevision(path.join(root, ".opencode", "skills", "deleg-skill"))
+  const manifest = {
+    version: 1,
+    roles: { coordinator: ["coord-skill"], delegate: ["deleg-skill"] },
+    skills: {
+      "coord-skill": { source: "project", path: ".opencode/skills/coord-skill", revision: coordHash },
+      "deleg-skill": { source: "project", path: ".opencode/skills/deleg-skill", revision: delegHash },
+    },
+  }
+  fs.mkdirSync(path.join(root, ".bive"), { recursive: true })
+  fs.writeFileSync(path.join(root, ".bive", "skills.json"), JSON.stringify(manifest))
+  const coordReport = provisionLocal({ root, role: "coordinator", reportPath: false })
+  assert.equal(coordReport.role, "coordinator")
+  assert.equal(coordReport.skills.length, 1)
+  assert.equal(coordReport.skills[0].id, "coord-skill")
+  const delegReport = provisionLocal({ root, role: "delegate", reportPath: false })
+  assert.equal(delegReport.role, "delegate")
+  assert.equal(delegReport.skills.length, 1)
+  assert.equal(delegReport.skills[0].id, "deleg-skill")
+})

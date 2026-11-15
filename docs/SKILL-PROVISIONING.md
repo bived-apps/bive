@@ -11,9 +11,10 @@ environments may not expose the same skill set or revision, and installing skill
 globally makes project-specific guidance global and prone to drift.
 
 This contract makes a project's OpenCode skills available to every Bive-managed
-role session — supervisor, coordinator, delegate — on both local and remote
+role session — advisor, coordinator, delegate — on both local and remote
 machines, **without editing the user's global OpenCode configuration**, and
-reports the source and revision used.
+reports the source and revision used. The advisor answers questions read-only and
+is not a chain of authority.
 
 Out of scope: authoring skills, global skill installation, changing OpenCode's
 native skill discovery/precedence, and any change to Bive's inviolable files.
@@ -53,12 +54,14 @@ native skill discovery/precedence, and any change to Bive's inviolable files.
 
 ## 3. Roles and scoping
 
-Bive has three roles: `supervisor`, `coordinator`, `delegate`. Each runs in its
+Bive has three roles: `advisor`, `coordinator`, `delegate`. Each runs in its
 own session (and, for delegates, its own worktree). A skill set is attached to a
-**role**, never to a model ID or an individual agent name.
+**role**, never to a model ID or an individual agent name. The advisor answers
+questions about the current worktree read-only and is not a standing manager,
+launcher or approval rung.
 
 - The role of a session is determined by the agent it runs under (`delegate`
-  agent for delegates; the coordinator/supervisor agent or session metadata for
+  agent for delegates; the coordinator/advisor agent or session metadata for
   the others) or by Bive's session creation call, not by the model.
 - Every model that serves a role receives that role's full skill set and the same
   permissions. A fallback to another model (`.bive/models.json`) does not change
@@ -79,7 +82,7 @@ Proposed shape:
 {
   "version": 1,
   "roles": {
-    "supervisor":  ["bive-supervisor-notes"],
+    "advisor":     ["bive-advisor-notes"],
     "coordinator": ["bive-coordinator-flow", "bive-pr-review"],
     "delegate":    ["bive-delegate-brief", "bive-guard-rules"]
   },
@@ -106,6 +109,16 @@ Proposed shape:
 - Skills present under `.opencode/skills` but not listed in the manifest are
   treated as user-authored project skills: Bive does not provision, report, or
   restrict them, and never overwrites them.
+
+## 4a. Role migration (issue #262)
+
+The valid roles are `advisor`, `coordinator`, `delegate`. A manifest that still
+declares the old `supervisor` role fails validation (fail closed); it is not
+silently migrated. Moving an old manifest to the new role set requires an explicit
+owner review of each skill assignment: map `supervisor` skills to `advisor` (or
+drop them) only after checking that each skill is appropriate for a read-only
+advisor session. Never blindly rename `supervisor` to `advisor` or auto-load the
+old set.
 
 ## 5. Provisioning (local and remote)
 
@@ -194,7 +207,7 @@ fallback:
 - The failure message names the skill ID, the role, the expected revision, the
   observed hash (or "missing"), and the path/origin checked.
 - For delegates this is surfaced in the delegate's report and blocks the issue;
-  for coordinator/supervisor sessions it blocks the start of that role's work and
+  for coordinator/advisor sessions it blocks the start of that role's work and
   is logged.
 - There is no automatic substitution of a similarly named skill and no silent
   use of a stale copy. A stale copy may be used only if `.bive/skills.json`
@@ -265,7 +278,7 @@ These need an explicit decision before implementation. Recommendations are given
 - **D6 — Conflict policy.** Recommendation: fail by default, explicit override
   opt-in (section 8). *Owner to decide.*
 - **D7 — Permission enforcement.** Recommendation: deny non-role skills in the
-  role agent's `skill` permission (section 3). *Owner to decide whether supervisor/
+  role agent's `skill` permission (section 3). *Owner to decide whether advisor/
   coordinator should instead allow all project skills.*
 - **D8 — Revision granularity.** Recommendation: per-skill content hash plus a
   single `source_revision` summary (section 6). *Owner to decide.*

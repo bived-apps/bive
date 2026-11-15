@@ -18,7 +18,7 @@ import { execFile } from "node:child_process"
 import { randomUUID } from "node:crypto"
 import os from "node:os"
 import path from "node:path"
-import { codeLines, mainCheckout, ownSession, totals, twoDigits } from "./lib.ts"
+import { codeLines, mainCheckout, ownSession, registryFailureMessage, totals, twoDigits } from "./lib.ts"
 
 const SHARE_EVERY_MS = 5 * 60 * 1000
 const FIRST_SHARE_MS = 10 * 1000
@@ -145,7 +145,7 @@ export default Plugin.define({
         pending.human += body.human; pending.agent += body.agent   // kept for the next session end
         pending.violations += body.violations
         for (const { agent, model, ...u } of body.llm) addUse(`${agent}|${model}`, u)
-        if (!warned) console.error(`Bive registry: not sent (${(err as Error).message}); retried at each session end.`)
+        if (!warned) console.error(registryFailureMessage((err as Error).message))   // once per session (#261)
         warned = true
       }
     }

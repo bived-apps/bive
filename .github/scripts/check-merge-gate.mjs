@@ -2,6 +2,7 @@ import { execFile } from "node:child_process"
 import { readFileSync } from "node:fs"
 import path from "node:path"
 import { fileURLToPath } from "node:url"
+import { verifyParentApproval } from "./coordinator-approval-lib.mjs"
 import { AUTHORIZATION_LABEL_PREFIX, OVERRIDE_LABEL_PREFIX, evaluateMergeGate, isIntegrationBranch, parseGateOwner, parseSkippable, validateMergeAuthorization } from "./merge-gate-lib.mjs"
 
 const GH_TIMEOUT_MS = 15_000
@@ -97,6 +98,21 @@ export function createGhReaders(runProcess = runGh) {
       }
     },
 
+    // Context for a parent approval (#262): the PR's head branch, origin, state and changed files.
+    async readParentContext({ number, repository }) {
+      const { stdout } = await runProcess(["pr", "view", String(number), "--repo", repository, "--json",
+        "headRefName,isCrossRepository,state,files"], GH_TIMEOUT_MS)
+      const data = parseJson(stdout, "pull request context")
+      return { headBranch: data?.headRefName, sameRepository: data?.isCrossRepository === false, state: data?.state,
+        files: Array.isArray(data?.files) ? data.files.map((f) => f?.path) : null }
+    },
+
+    async readComments({ number, repository }) {
+      const { stdout } = await runProcess(["api", `repos/${repository}/issues/${number}/comments`, "--paginate",
+        "--jq", ".[] | {body: .body}"], GH_TIMEOUT_MS)
+      return stdout.split("\n").filter(Boolean).map((line) => { try { return JSON.parse(line) } catch { return {} } })
+    },
+
     async readRepositoryOwner({ repository }) {
       const { stdout, exitCode } = await runProcess([
         "api", `repos/${repository}`, "--jq", ".owner.login",
@@ -127,6 +143,8 @@ export async function runMergeGate({
   readLabelEvents = null,
   readRepositoryOwner = null,
   readGateConfig = null,
+  readParentContext = null,
+  readComments = null,
   now = Date.now,
 }) {
   const request = event?.pull_request
@@ -201,7 +219,19 @@ export async function runMergeGate({
     }
   }
 
-  const authorization = validateMergeAuthorization({ labels: pr.labels, baseRef: pr.baseRefName, now: now(),
+  // No dated label: a signed parent approval of this exact head under the owner's grant on the base may stand in (#262).
+  let parentApproved = false
+  if (!authLabel && !overrideLabel && gateConfig && readParentContext && readComments) {
+    try {
+      const context = await readParentContext({ number: request.number, repository })
+      const comments = await readComments({ number: request.number, repository })
+      parentApproved = Boolean(verifyParentApproval(gateConfig, { repository, number: request.number, head: pr.headRefOid,
+        base: pr.baseRefName, headBranch: context.headBranch, coordinatorPR: (pr.labels || []).includes("coordinator"),
+        sameRepository: context.sameRepository, state: context.state, files: context.files }, comments, now()))
+    } catch { parentApproved = false }
+  }
+
+  const authorization = parentApproved ? { ok: true } : validateMergeAuthorization({ labels: pr.labels, baseRef: pr.baseRefName, now: now(),
     labelAppliedAt, labelAppliedBy, owner, labelActorType, labelPerformedViaApp,
     overrideAppliedAt, overrideAppliedBy, overrideOwner, overrideActorType, overridePerformedViaApp })
   if (!authorization.ok) throw new Error(authorization.reason)
@@ -218,7 +248,7 @@ export async function runMergeGate({
     throw new Error("pull request changed during merge-gate validation; refusing stale results")
   }
   const skippable = parseSkippable(gateConfig)
-  const result = evaluateMergeGate({ labels: current.labels, baseRef: current.baseRefName, checks, now: now(), skippable,
+  const result = evaluateMergeGate({ parentApproved, labels: current.labels, baseRef: current.baseRefName, checks, now: now(), skippable,
     labelAppliedAt, labelAppliedBy, owner, labelActorType, labelPerformedViaApp,
     overrideAppliedAt, overrideAppliedBy, overrideOwner, overrideActorType, overridePerformedViaApp })
   if (!result.ok) throw new Error(result.reason)

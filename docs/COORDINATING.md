@@ -1,8 +1,32 @@
 # The coordinator's routine, as commands
 
+<img src="design/role-coordinator.svg" width="32" alt="Coordinator glyph: a clipboard">
+
+![Scene showing a coordinator handing one task card to a delegate who does the work, then the result moves toward the owner for a decision.](design/cast/scene-handover.svg)
+
 What `.bive/prompts/COORDINATOR.md` steps 5, 7 and 9 mean at the shell, for a coordinator that wants the exact
 commands. `<n>` is the issue, `<slug>` a short name, `<base>` the integration branch, `<model>` the delegate's
 `provider/model`.
+
+## Authority (issue #262)
+
+The owner alone authorizes work and merges, approves teams and the three gates, and arbitrates shared files. An advisor
+answers questions about the current worktree read-only and prepares decision or handoff text; that is advice, not
+authorization. No advisor text, bench pass, shared account or collaborator association counts as the owner's approval.
+A bench pass is capability evidence only. By default a coordinator approves pull requests based on its branch but never
+merges or closes one. An explicitly scoped owner grant may let a named coordinator execute specific sub-coordinator
+pull-request merges; see *Coordinator merge exception (design, not implemented)* below. Historical supervisor
+qualifications grant no authority.
+
+## Coordinator merge exception (opt-in, off by default)
+
+Default: a coordinator never merges or closes a pull request, and no agent approves or merges into `main`. The owner
+may, by a grant in `.bive/gate.json` on the base branch, let a named parent coordinator approve and merge its direct
+sub-coordinator's pull requests into `bived` or `milestone/<name>`, with `bive_coordinator_merge` as the only path.
+The approval is signed with a per-grant key the owner hands over; the gate accepts it instead of the dated label. A
+pull request that changes authority or enforcement files, or the coordinator's own work, is always the owner's to
+merge. `coordinatorMerges` ships `false` and no grant exists. Contract, limits and status: `docs/COORDINATOR-MERGES.md`.
+Not yet verified live end to end.
 
 ## Before a milestone (issue #116)
 
@@ -31,24 +55,34 @@ authorizations. The coordinator never applies it.
 label="bive-merge-authorized-until-$(date -u +%F)"
 gh label list --search "$label" --json name --jq '.[].name' | grep -qx "$label" \
   || gh label create "$label" --color B60205 --description "Owner only: authorizes one merge through $(date -u +%F) UTC"
+gh label list --search coordinator --json name --jq '.[].name' | grep -qx coordinator \
+  || gh label create coordinator --color 5319E7 --description "Coordinator's own pull request (inviolable files); set by the coordinator"
 ```
+
+The flow uses only these labels (`docs/REQUIRED-CHECKS.md` › Labels the flow uses).
 
 ## Start a coordinator: the hand-over is a GitHub comment (issue #202, owner 2026-11-12)
 
-The guard keeps a supervisor's writes inside its own worktree, so a hand-over file outside it cannot be written by
-the supervisor. The hand-over (`.bive/templates/launch.md`, filled) is therefore posted by the supervisor as **one
-comment on the milestone's epic issue**, whose first line is `# Launch #<milestone> <title>`. The launcher (the
-owner, or a person or script outside the guard) takes the newest such comment from an account that is the owner, a
-member or a collaborator, and hands it to the coordinator:
+The guard keeps every agent's writes inside its own worktree, so a hand-over file outside it cannot be written by an
+agent. The hand-over (`.bive/templates/launch.md`, filled) is therefore posted by the owner (or a person outside the
+guard) as **one comment on the milestone's epic issue**, whose first line is `# Launch #<milestone> <title>`. Retrieval
+is read-only and uses the app-configured named human owner: `gate.json`'s `owner` when configured, otherwise the human
+personal repository owner's login. It is never automatic execution from a comment's origin, account association or
+shared account alone. An advisor may prepare or quote the hand-over text, but that text is advice, not authorization:
+a hand-over taken from a collaborator's or shared account, or carrying an advisor's signature, does not count as the
+owner's approval. Before handing it to the coordinator, the launcher records the human owner's explicit approval of
+the scope and team in the issue thread; only that recorded approval permits execution. The retrieval filter below only
+selects comments by the named owner's login for review; it does not authorize execution:
 
 ```bash
 gh api repos/<owner>/<repo>/issues/<epic>/comments --paginate --jq \
-  '[.[] | select(.body | startswith("# Launch #")) | select(.author_association | IN("OWNER","MEMBER","COLLABORATOR"))] | last | .body' \
+  '[.[] | select(.body | startswith("# Launch #")) | select(.user.login == "<named-owner>")] | last | .body' \
   > <coordinator clone>/.bive/state/launch.md
+# review the retrieved hand-over and confirm the recorded owner approval of scope/team before running:
 (cd <coordinator clone> && opencode run --agent coordinator --model <model> "$(cat .bive/state/launch.md)")
 ```
 
-A hand-over whose `Read:` field is empty is still returned to the supervisor (`COORDINATOR.md`). A second hand-over
+A hand-over whose `Read:` field is empty is still returned to the owner (`COORDINATOR.md`). A second hand-over
 comment replaces the first: the newest wins, and the history stays on the issue.
 
 ## Start a delegate (step 5)
@@ -106,7 +140,7 @@ where it says it was not. Bive ships no script (HANDOFF › *No machinery*): `li
    id, set in its shell. The answer is `{data: {id, ...}}`. A child session lands in its parent's directory, so then send
    `buildMoveRequest({sessionID, worktree})` (`POST /api/session/<id>/move`), then `GET /api/session/<id>` and test it
    with `isInWorktree(answer, worktree)`. **Prompt only when it is true**; otherwise remove the session and stop (#256).
-   The session then shows under the coordinator's session (#243).
+   Whether it then shows under the coordinator's session is **not verified** (#243: delegates seen live had no parent).
 5. **Prompt it with the brief**: `buildPromptRequest({sessionID, brief})` is `POST /api/session/<id>/prompt` with
    `delivery: "queue"`, which is also how to talk to a busy delegate.
 6. **Wait**: `buildWaitRequest(sessionID)` is `POST /api/experimental/session/<id>/wait` (204 when it finishes). It is
@@ -125,6 +159,86 @@ where it says it was not. Bive ships no script (HANDOFF › *No machinery*): `li
    (*Refusal and resume*), and resume it with one prompt.
 
 Not verified live end to end yet: the whole path with a real delegate is the pilot (issue #192).
+
+## Wait for process delegates (issue #226)
+
+When a delegate is the process started in *Start a delegate* above (the `opencode run ... &` line), the coordinator
+waits for it instead of treating the ended assistant turn as a wait (seen twice on 2026-11-13: the turn ended while
+delegates were still running, and each needed another wake-up and a full context reread):
+
+- **Record each delegate's PID at launch**: append `echo $!` to a list (`... & echo $! >> .bive/state/pids.txt`), one
+  line per delegate, next to its issue and session id.
+- **Wait in the SAME tool invocation as the launch, with a finite overall deadline**, and never end the assistant
+  turn while a delegate still runs. Collect every exit code and every report afterwards.
+- A delegate launched as a child of that same shell can be waited with `wait <pid>`, which returns its exit code. A
+  PID started in another shell cannot be waited (`wait` is not portable there): the supported bounded alternative is
+  a loop of `kill -0 <pid>` every few seconds until the deadline. The PID-reuse limitation applies: an old PID can be
+  recycled and then make `kill -0` succeed for a long-finished delegate, so a PID alone never decides — the deadline
+  and the delegate's own report do.
+- **No watcher, no helper package, no pattern kill (`pkill -f`, `killall`), no detached unbounded poller**: only the
+  recorded PIDs are ever targeted, and the loop lives inside the waiting tool call.
+- **Success**: read the report and review the branch as in *Open and review a pull request* below.
+- **Delegate failure** (a non-zero exit or a failed report): record it on the issue, apply *Refusal and resume* /
+  gate 2 (issue #192), and resume or split — never take the work over.
+- **Timeout at the deadline**: preserve the work as it is, record the still-running PIDs and their session ids, do
+  not restart and do not kill the delegates, and ask the owner.
+
+```bash
+# wait-recipe (issue #226): bounded same-turn wait for delegates started as processes.
+# Set before running: PIDS (space-separated, recorded at launch with `<delegate> & echo $! >> "$LIST"`),
+# DEADLINE (overall wait budget, seconds) and POLL (seconds between checks).
+# Stay in the SAME tool invocation for the whole block; never end the assistant turn while a delegate runs.
+# `wait <pid>` works only on a child of this shell and returns its exit code; a PID started in another
+# shell cannot be waited (wait is not portable there), so the supported bounded alternative is a loop of
+# `kill -0 <pid>` every POLL seconds until the deadline. PID-reuse limitation: a recycled PID can make
+# `kill -0` succeed for a long-finished delegate, so the PID alone never decides: the deadline and the
+# delegate's own report do. No watcher, no helper package, no pattern kill (pkill -f / killall), no
+# detached unbounded poller: only the recorded PIDs are targeted, and only with the harmless signal 0.
+# Optional LAUNCH holds simple commands started here as children of this shell, so `wait` can
+# collect their exit codes.
+: "${DEADLINE:=600}"
+: "${POLL:=5}"
+deadline=$(( $(date +%s) + DEADLINE ))
+launched=""
+for cmd in $LAUNCH; do
+  $cmd &
+  launched="$launched $!"
+done
+# `wait` on a child has no timeout of its own: a watchdog signals THIS shell at the deadline (never a delegate), and the
+# trap reports every PID still running. The delegates keep running; nothing is killed or restarted.
+trap 'for p in $PIDS $launched; do kill -0 "$p" 2>/dev/null && echo "pid $p: timed out after ${DEADLINE}s (preserve its work, record the still-running PID and session ID, do not restart or kill it, ask the owner)" && still="$still $p"; done; echo "still running at the deadline:$still (ask the owner; do not restart or kill the delegates)"; exit 124' TERM
+( sleep "$DEADLINE"; kill -s TERM $$ 2>/dev/null ) &
+watchdog=$!
+timed_out=""
+for pid in $PIDS $launched; do
+  wait "$pid" 2>/dev/null
+  status=$?
+  if [ "$status" -eq 0 ]; then
+    echo "pid $pid: exit 0 (success: read its report, then review it)"
+  elif [ "$status" -ne 127 ]; then
+    echo "pid $pid: exit $status (delegate failure: record it, apply Refusal and resume / gate 2)"
+  elif kill -0 "$pid" 2>/dev/null; then
+    # 127 and still running: not a child of this shell; bounded poll until the deadline.
+    while kill -0 "$pid" 2>/dev/null && [ "$(date +%s)" -lt "$deadline" ]; do
+      sleep "$POLL"
+    done
+    if kill -0 "$pid" 2>/dev/null; then
+      echo "pid $pid: timed out after ${DEADLINE}s (preserve its work, record the still-running PID and session ID, do not restart or kill it, ask the owner)"
+      timed_out="$timed_out $pid"
+    else
+      echo "pid $pid: finished (exit code not collectable from this shell: read its report)"
+    fi
+  else
+    # 127 and already gone: a PID from another shell that finished before we looked.
+    echo "pid $pid: finished (exit code not collectable from this shell: read its report)"
+  fi
+done
+kill "$watchdog" 2>/dev/null
+if [ -n "$timed_out" ]; then
+  echo "still running at the deadline:$timed_out (ask the owner; do not restart or kill the delegates)"
+  exit 124
+fi
+```
 
 ## Open and review a pull request (step 7)
 
@@ -163,11 +277,11 @@ gh pr checks <pr> --watch                      # returns when the checks finish;
 gh pr review <pr> --approve --body "Ready to merge: <the checks you ran>"
 ```
 
-The supervisor merges (`gh pr merge <pr> --merge --match-head-commit <sha>`, after the label); its queue is
-`gh pr list --base <base> --search "review:approved"`. The coordinator never merges, closes or pushes
-to `<base>`. To be told when a pull request is merged without a watcher plugin: `gh pr checks` for the checks, then
-`until [ "$(gh pr view <pr> --json state --jq .state)" != OPEN ]; do sleep 60; done` in the shell, when a session
-really needs to wait; most of the time the next session reads `gh pr list` instead.
+The owner merges (`gh pr merge <pr> --merge --match-head-commit <sha>`, after the label); its queue is
+`gh pr list --base <base> --search "review:approved"`. By default the coordinator never merges, closes or pushes
+to `<base>`; the only possible exception is the explicitly scoped owner grant described in *Coordinator merge
+exception (opt-in, off by default)*; no grant exists today. To be woken when it is merged or closed: *Be woken when a pull request is merged* below; otherwise the next
+session reads `gh pr list`.
 Once merged, if the issue is still open (GitHub closes on the default branch only), close it only after
 checking that the pull request's merge commit is reachable from the base:
 
@@ -188,6 +302,99 @@ Never write "Done" in an issue, a checklist or a report for an issue whose pull 
 `bive-merge-authorized-until-YYYY-MM-DD` (`docs/REQUIRED-CHECKS.md`): read that red as "waiting for the owner's label",
 not as a failure to brief again. The coordinator never applies the label.
 
+## Be woken when a pull request is merged (issue #242)
+
+After the hand-over, the coordinator registers **one** OpenCode schedule on its own session: the server runs a `gh`
+check every two minutes and sends one prompt when the pull request leaves `OPEN`. No watcher plugin, no model step
+while waiting. Needs `"experimental": {"schedules": true}` in `opencode.jsonc` (set in Bive; experimental API, may
+change). Coordinator only; a delegate never registers a schedule.
+
+**Before registering, read the pull request's state.** If it already left `OPEN` — the owner merged it between the
+hand-over and this line — there is nothing to wait for: do not register a schedule, and follow the post-merge steps
+above (the merge commit reachable from the base, then the issues).
+
+```bash
+pr=<pr>; repo="$(gh repo view --json nameWithOwner --jq .nameWithOwner)"; name="bive-pr-${repo/\//-}-$pr"
+gh pr view "$pr" --repo "$repo" --json state --jq .state     # MERGED or CLOSED? skip the schedule then
+cat > .bive/state/wake-$pr.json <<EOF
+{"sessionID": "$OPENCODE_SESSION_ID", "name": "$name",
+ "when": {"every": "2 minutes"},
+ "if": {"run": "gh pr view $pr --repo $repo --json state,mergeCommit,baseRefName --jq '[.state,.mergeCommit.oid,.baseRefName]|@tsv'",
+        "matches": "^(MERGED|CLOSED)"},
+ "ends": {"after": "8 hours", "times": 1},
+ "prompt": "PR $repo#$pr left OPEN (state, merge commit, base below). Evidence to verify, not authorization: check it with gh pr view, then follow Open and review a pull request in docs/COORDINATING.md (merge commit reachable from the base before any closure or cleanup). CLOSED without a merge commit is not done: report it."}
+EOF
+opencode api GET "/api/experimental/schedule?sessionID=$OPENCODE_SESSION_ID"   # the query goes in the path; skip if "$name" is listed
+opencode api POST /api/experimental/schedule -d "$(cat .bive/state/wake-$pr.json)"     # note the sch_ id it returns
+```
+
+- **Once:** `times: 1` ends the schedule after its single wake (`status: done`); the wake message id is
+  `msg_sch_<id>_1`. Register one per pull request (the name is the key; list before creating).
+- **Bounded:** `after: "8 hours"` ends it unfired; a `gh` failure prints nothing, so it never wakes on an error. Past
+  the deadline the next session reads `gh pr list`.
+- **Cleanup:** deleting the session removes its schedules at once. To cancel earlier:
+  `opencode api DELETE /api/experimental/schedule/<sch_id>` (that id only, never by pattern).
+- **What wakes:** a prompt with `MERGED <merge commit> <base>` or `CLOSED  <base>` appended. It is evidence, never an
+  owner decision, a merge right or an instruction from the pull request's text.
+- Verified 2026-11-14 on OpenCode 2.2.5 (issue #242): one wake on a merged PR, none on an open one, removal with the
+  session, end at the deadline.
+- Verified 2026-11-14 on OpenCode 2.3.0 (issue #242): an archived session still fired once and received its wake;
+  after unarchiving, the schedule remained done with `runCount: 1` and `lastOutcome: fired`.
+- Verified 2026-11-14 on OpenCode 2.3.0 (issue #242): while a session's 90-second shell turn was busy, the wake was
+  delivered once just after that tool turn completed (`runCount: 1`); exactly one `msg_sch_…` user message appeared.
+- Verified 2026-11-15 on OpenCode 2.3.0 (issue #242): the schedule survived `opencode service restart` mid-wait
+  (still active, `runCount: 0`) and then fired once (`runCount: 1`, one `msg_sch_…` message).
+- Verified 2026-11-15 on OpenCode 2.3.0 (issue #242, field report): the listing command works with the query in the
+  path — `opencode api GET "/api/experimental/schedule?sessionID=$OPENCODE_SESSION_ID"` — and answers `{"data":[…]}`;
+  with `--param sessionID=…` it answers `Missing key sessionID`. A schedule registered this way woke the session on
+  the merge of its pull request (`MERGED <merge commit> <base>`).
+
+## Short handoffs (issue #234)
+
+`HANDOFF.md` holds the current state: branch and milestone, blockers, gate decisions, commands. It aims for at most
+100 lines. History (old session logs, closed decisions' reasoning) goes to a durable link (issue, comment or commit URL)
+in one line; a dated owner decision keeps its line and its link, it is never deleted without one. Qualification claims
+point at the bench, not a copy. A new coordinator reads the handoff once, then the milestone queries below; it does not
+replay history. `tests/handoff-size.test.ts` holds the skeleton to the budget and stops the root from growing.
+
+## Reuse complete trusted CI evidence (issue #227)
+
+A green summary is not proof. A coordinator may skip an equivalent per-PR local run only when it records, from the CI
+run itself: the **reviewed head SHA**; the **run URL and check name**; the **tested commit** (the head, or the synthetic
+merge SHA with the base SHA it was merged onto); that the **workflow is the trusted one from the base branch**; the
+**result** and every **skipped marker**; and that the run covers the checks you would have run (the same command, the
+whole suite, not a subset). Put that line in the review comment: `CI <url> head <sha> base <sha>: tests 326/326, no skips`.
+
+Not a substitute, so run locally: a run on another or older head (stale); a partial run that still exited 0; a run
+with skipped or marked tests the batch needs; a run absent, still pending, or from an untrusted workflow (a fork or a
+workflow changed by the same PR); a changed input (config, fixtures, environment) the run did not see; local-only
+coverage (a plugin check, `opencode plugin list`).
+
+What stays regardless: the delegate's fast checks, and the coordinator's core run once per batch of merges
+(`AGENTS.md` says CI does not replace it; dropping it needs an owner rule decision, not this section).
+
+```bash
+gh pr view <pr> --json headRefOid --jq .headRefOid              # the reviewed head
+gh run list --commit <sha> --json databaseId,name,conclusion,headSha,url
+gh run view <run-id> --log | tail -n 40                         # coverage and skips, not just the summary
+```
+
+## Milestones are the work queue (issue #228)
+
+Every implementation issue and its pull request carry the **same real GitHub milestone**, set when it is created. A
+tracking issue holds order, dependencies and decisions, never a copy of status. One query per object type gives what
+remains:
+
+```bash
+gh issue list --milestone "<title>" --state open --json number,title,labels
+gh pr list --state open --search 'milestone:"<title>"' --json number,title,baseRefName
+```
+
+Creation and review checklist: the issue has the milestone; the PR has the milestone of the issue it closes; a `Part of`
+issue stays open and listed until its last part merges. Reconcile bounded: list issues and PRs without a milestone
+(`gh issue list --search "no:milestone"`), attach, do not move old issues or touch other milestones' PRs. A
+cross-cutting issue gets the milestone it blocks and a comment naming the exception. No new task service.
+
 ## Refusal and resume (issues #146, #147)
 
 When a delegate reports a refusal (guard, scanner, or any check):
@@ -195,14 +402,14 @@ When a delegate reports a refusal (guard, scanner, or any check):
 1. Record the refusal: the refused command, the refusal message, and the worktree state.
 2. Preserve all uncommitted work in the worktree — do not discard or push it.
 3. Do not let the delegate continue or push. A refusal is a hard stop, not a prompt to rewrite the command.
-4. Before any subsequent delegate starts, require a clear supervisor decision on how to proceed: resume the same
+4. Before any subsequent delegate starts, require a clear owner decision on how to proceed: resume the same
    delegate with a corrected brief, split the work, or stop.
 5. Do not normalize retries as a workaround.
 
 **Recording the authorization (issue #147):** before resuming after a refusal, post a comment on the issue recording
-the refusal (command, message, worktree state) and the supervisor's explicit authorization to resume (or the
-decision to split or stop). The coordinator does not resume on its own authority; the supervisor's decision must be
-visible in the issue's comment thread before any delegate starts. If the supervisor's decision is not recorded, the
+the refusal (command, message, worktree state) and the owner's explicit authorization to resume (or the
+decision to split or stop). The coordinator does not resume on its own authority; the owner's decision must be
+visible in the issue's comment thread before any delegate starts. If the owner's decision is not recorded, the
 refusal stands and no subsequent delegate starts.
 
 The delegate's prompt (`DELEGATE.md`) carries the matching rule: on refusal, stop immediately, do not retry by
@@ -230,7 +437,7 @@ a shape: stop and ask through the chain (skill `bive-ask-owner`). Never reach th
 ## After the batch (step 9)
 
 The core checks once, after the last merge, then `HANDOFF.md` and `ROADMAP.md` in one commit on a coordinator branch,
-opened as a pull request labelled `coordinator` and merged by the supervisor like any other. Clean up:
+opened as a pull request labelled `coordinator` and merged by the owner like any other. Clean up:
 `git worktree list`, then `git worktree remove .worktrees/issue-<n>` and `git branch -d issue/<n>-<slug>` for each
 merged issue (never forced).
 
@@ -258,7 +465,7 @@ git cherry-pick <issue-commit>...
 
 ## Two coordinators at once
 
-The supervisor may run one coordinator per milestone, at most as many as the runners able to take the fast checks (and
+The owner may start one coordinator per milestone, at most as many as the runners able to take the fast checks (and
 never more than two) (`AGENTS.md` › Roles). Each coordinator keeps at most one CI run in flight (a new push waits for
 the previous run). Each works in its own clone, because `.worktrees/`, `.bive/state/` and the guard belong to one
 checkout:
@@ -269,7 +476,7 @@ gh pr list --base milestone/<name>                    # the pull requests this c
 gh pr list --label coordinator --state open           # before opening a coordinator PR on an inviolable file: empty
 ```
 
-At gate 1 each milestone lists the files it will touch; where the two lists overlap, the supervisor names one writer
+At gate 1 each milestone lists the files it will touch; where the two lists overlap, the owner names one writer
 or the order, and the brief says so. Each coordinator writes only its milestone's section of `HANDOFF.md` and
 `ROADMAP.md`.
 

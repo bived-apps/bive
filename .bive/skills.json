@@ -1,7 +1,7 @@
 {
   "version": 1,
   "roles": {
-    "supervisor": [
+    "advisor": [
       "bive-ask-owner"
     ],
     "coordinator": [
@@ -17,7 +17,7 @@
     "bive-ask-owner": {
       "source": "project",
       "path": ".opencode/skills/bive-ask-owner",
-      "revision": "204ecdb04c02e97194d8fb4e142de833ebf9007c949a29492b644f13b0c64283"
+      "revision": "913cd83c6230e0700023c6698a0d66926a42593c16e69644350aa6646dbabd7b"
     },
     "bive-registry-optin": {
       "source": "project",

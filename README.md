@@ -1,20 +1,51 @@
-# Bive 0.0
+# Bive: Agents write, you decide.
 
-A repository template for building software with LLM agents in three roles, on OpenCode 2:
+**BIVE**: Bive Is Verifiably Endorsed
+
+A repository template for building software with LLM agents in three roles, on OpenCode 2.
+
+Start here: [Install](#install) · Read next: [The flow](#the-flow) · [who is who](docs/design/cast/README.md).
+
+![Diagram of the Bive flow showing owner decisions, advisor advice, coordinator splitting work into delegates, and gates 1 to 3 for review and merge.](docs/design/flow.svg)
+
+<details>
+<summary>The same flow as text</summary>
 
 ```mermaid
 flowchart LR
-  S(["supervisor<br/>you, in OpenCode"])
-  C["coordinator<br/>one agent: splits, reviews, never merges"]
-  D1["delegate<br/>issue 12, its own worktree"]
-  D2["delegate<br/>issue 13, its own worktree"]
-  S -- "plan · gate 1: the split" --> C
+  A["<b>Advisor</b><br/>read-only answer, then stops"]:::advisor
+  O(["<b>Owner</b><br/>decides gates and merges"]):::owner
+  C["<b>Coordinator</b><br/>splits, briefs, reviews, never merges"]:::coordinator
+  D1["<b>Delegate</b><br/>issue 12, own worktree, then it stops"]:::delegate
+  D2["<b>Delegate</b><br/>issue 13, own worktree, then it stops"]:::delegate
+  O -- "gate 1: the plan" --> C
   C -- "brief" --> D1 & D2
-  D1 & D2 -- "push + report, then stop" --> C
-  C -- "opens PR to integration branch" --> C
-  C -. "gate 2: failed twice" .-> S
-  C == "gate 3: pull request to main" ==> S
+  D1 & D2 -- "push + report" --> C
+  C -- "opens PR to the integration branch" --> C
+  C -. "question, advice only" .-> A
+  C -. "gate 2: failed twice" .-> O
+  C == "gate 3: pull request to main, only the owner merges" ==> O
+  classDef owner fill:#FFFFFF,stroke:#B8860B,stroke-width:3px,color:#1F2430
+  classDef advisor fill:#FFFFFF,stroke:#0F766E,stroke-width:2px,color:#1F2430
+  classDef coordinator fill:#FFFFFF,stroke:#B45309,stroke-width:2px,color:#1F2430
+  classDef delegate fill:#FFFFFF,stroke:#6D28D9,stroke-width:2px,color:#1F2430
 ```
+
+</details>
+
+![The Bive cast: Maren the owner holds the only pen; Sill the advisor has no arms and only looks; Brae the coordinator hands out task cards; three delegates each hold one tool; Tally records.](docs/design/cast/cast-sheet.svg)
+
+Meet the cast: the owner decides, the advisor only looks, the coordinator splits and reviews, delegates each do one
+thing, and peers point out problems without touching the work ([who is who](docs/design/cast/README.md)).
+
+## The four roles
+
+| | Role | What it does and never does |
+| --- | --- | --- |
+| <img src="docs/design/role-owner.svg" width="40" alt="Owner glyph: a key in a gold ring"> <img src="docs/design/companions/maren.svg" width="40" alt="Maren, the owner: a face with dark hair over a dark coat, the only human"> | **owner** | Decides gates and merges, approves teams and plans, arbitrates shared files, releases tests, and holds final authority. |
+| <img src="docs/design/role-advisor.svg" width="40" alt="Advisor glyph: a magnifier"> <img src="docs/design/companions/sill.svg" width="40" alt="Sill, the advisor: a teal block with a paler pointed flap and two pale eyes"> | **advisor** | Answers read-only questions and gives advice about the current worktree, then stops; it never authorizes work, merges, teams, gates, or test releases. |
+| <img src="docs/design/role-coordinator.svg" width="40" alt="Coordinator glyph: a clipboard"> <img src="docs/design/companions/brae.svg" width="40" alt="Brae, the coordinator: an amber block with a lighter top edge and two pale eyes"> | **coordinator** | Splits work, writes briefs, reviews and opens issue pull requests, and asks the owner at gates; it never merges by default, never pushes to the integration branch or main, and never writes product code. |
+| <img src="docs/design/role-delegate.svg" width="40" alt="Delegate glyph: a laptop"> <img src="docs/design/companions/pim.svg" width="40" alt="Pim, the delegate: a light violet drop with a pale tip"> | **delegate** | Does one issue in its own worktree, runs fast checks, pushes its branch, returns its report, then stops; it never creates pull requests or starts other agents. |
 
 Bive is a template and two small plugins, nothing else: a **guard** that refuses any write outside the session's
 worktree, and a **counter** of human and agent tokens. No delegation tools (OpenCode 2's subagents do that), no
@@ -47,8 +78,8 @@ For projects using Bive, configure the project's own CI checks to run on pull re
 and integration branches. This makes a red base visible promptly; adapt the workflow to the project's test command.
 Projects on a self-hosted runner follow `docs/SELF-HOSTED.md`.
 
-Not a developer? `docs/FOR-HUMANS.md` lists the three things you do (agree the plan, answer questions, apply the
-dated merge label) and the optional registry choice.
+Not a developer? `docs/FOR-HUMANS.md` explains your owner-only decisions, merge authorization and optional registry.
+An advisor has no supervisory powers. Qualifications do not authorize work, teams, gates, merges or test releases.
 
 ## The flow
 
@@ -56,9 +87,15 @@ dated merge label) and the optional registry choice.
 2. The coordinator writes one brief per issue (`.bive/templates/brief.md`), creates a worktree `issue/<n>-<slug>`
    and starts a delegate in it.
 3. The delegate works only in its worktree, runs the fast checks, pushes its branch, returns its report, and stops.
+
+   ![Scene showing a coordinator handing one task card to a delegate who does the work, then the result moves toward the owner for a decision.](docs/design/cast/scene-handover.svg)
 4. Only the coordinator creates the pull request, using the delegate's report as its body; the coordinator reviews
    (never merges) into the integration branch. It asks you when a delegate fails twice (gate 2)
-   and before the pull request to `main` (gate 3). You merge.
+   and before the pull request to `main` (gate 3). You normally merge. The generic design also supports an explicit,
+   scoped owner opt-in for a coordinator to merge named sub-coordinator PRs, never its own. This path is off by default
+   and requires a fresh owner permission per invocation. See [`docs/COORDINATOR-MERGES.md`](docs/COORDINATOR-MERGES.md).
+
+   ![Scene showing a delegate offering finished work to a coordinator who cannot approve it, so both turn to the owner to decide.](docs/design/cast/scene-refusal.svg)
 
 ## Files
 
@@ -67,7 +104,8 @@ dated merge label) and the optional registry choice.
 | `AGENTS.md` | The rules every agent reads first |
 | `HANDOFF.md`, `ROADMAP.md` | State and plan, kept true by the coordinator (here: Bive's own) |
 | `.bive/prompts/` | The three role prompts, inviolable; `project/` holds a project's additions |
-| `.bive/templates/` | `brief.md` in, `report.md` out, `field-report.md` back to Bive; the skeletons of `README.md`, `HANDOFF.md`, `ROADMAP.md`; `supervisor-test.md`, the supervisor qualification test |
+| `.bive/templates/` | `brief.md` in, `report.md` out, `field-report.md` back to Bive; README/HANDOFF/ROADMAP skeletons; `supervisor-test.md` retained as a retired historical protocol, not authority |
+| [`docs/README.md`](docs/README.md) | Every page of `docs/`, grouped by who reads it first |
 | `docs/COORDINATING.md` | The coordinator's routine (start, review, merge, clean) as shell commands |
 | `.bive/models.json` | The model order per role, for the fallback rule ([docs/PROVIDERS.md](docs/PROVIDERS.md)) |
 | `opencode.jsonc` | Agents and permissions, written by hand and tight |

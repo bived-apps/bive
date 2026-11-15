@@ -10,7 +10,8 @@ here is committed with the code it describes (an item started → `doing`, finis
 - Nothing enters the template that a role or a human does not read during a task. Anything else lives in its own
   repository.
 - Bive develops itself with its own flow: coordinator and delegates on the integration branch `bived`, pull requests
-  only; the supervisor (the owner) alone merges, with a merge commit, into `bived` and from `bived` into `main`.
+  only; the human owner authorizes merges, normally performs them with merge commits, and may explicitly opt in to
+  scoped coordinator execution of named sub-coordinator merges through the validated opt-in tool.
 - **Versions tend to 1.0 and never reach it (owner, 2026-11-08)**: 1.0 is the dream, written down in *bivedream*
   below. Milestones count 0.1 … 0.9, then 0.91 … 0.99, then 0.991 …: when the last digit is 9, the next milestone
   appends a digit instead of carrying over. Each run of digits is an *order* with its own theme, and the number of
@@ -24,6 +25,23 @@ here is committed with the code it describes (an item started → `doing`, finis
   registry client, MCP over SSH, the browser help, a worktree strategy. Installing is choosing modules.
 
 ## Epics
+
+### Cross-app owner/advisor rework — started, blocked (2026-11-13, #262)
+
+Plan: [`docs/OWNER-ADVISOR-REWORK.md`](docs/OWNER-ADVISOR-REWORK.md). The human owner alone supervises; an advisor
+answers a read-only question about the current worktree, then stops. No qualification grants supervisory powers.
+The owner said to start this plan, using only free Beam delegates; Sol handles inviolable changes and review.
+Start with Bive; dependent repositories wait for the reviewed reference and owner merge.
+Owner addition: permit exceptional opt-in merges of named sub-coordinator PRs by a designated coordinator, with
+scoped, head/base-bound, expiring owner grants and default denial. No advisor privileges or general merge authority.
+This is generic to any app made with Bive; each app's owner opts in, and grants are repository-bound, never inherited.
+
+Order: Bive reference contract → bench and workspace template → registry/help, university and Grooms inspection →
+owner-approved installed-project rollout. Preserve all historical draws, scores and frozen fixtures. Coordinator and
+delegate remain separate. No merges, owner-authorization actions, test releases or benchmark draws under this plan.
+The existing Bive implementation is a partial, unverified draft, not done or deployed.
+The first free Beam launch hit "Free usage limit reached"; no provider fallback or billing change was attempted.
+Ordinary implementation waits for the approved free route to become available or explicit owner direction.
 
 ### 0.2 — Delegates as sessions (done 2026-11-13: pilot #192 through #255; next: 0.3, #254)
 
@@ -99,6 +117,12 @@ group, so no two milestones' PRs collide):
 
 Order: parts 1–2, then #204 and #198 (small, unblock other projects), then parts 3–4 with #203's file format, then
 #201 and #199 with part 5, then #197, #200 and #202 once the owner has decided, and the pilot (part 6) last.
+
+Priority process-savings batch: #241 holds the order and the reason, the GitHub milestone 0.2.1 the mutable state. By
+2026-11-15 the batch closed the guard lane (#224, #225), the waiting and CI lanes (#226, #227), the milestone queue,
+the close workflow and the issue forms (#228–#230), the team rules (#223) and the role question (#232); the App lane
+(#235–#239, #299) closed with the owner's live checks of 2026-11-15, and the relook (#278) the same day. Released to
+`main` at gate 3 (2026-11-15). Next: 0.3 (GitHub milestone 0.3, plan #254). Keep #226 as the bounded process fallback.
 
 ### Done in bivedream so far (2026-11-12)
 
@@ -193,9 +217,12 @@ per epic. Nothing of it is a Bive program: prompts, rules, and existing tools wi
   repository); order by issue dependencies (`blocked_by`, verified); every delegate issue lists its files, and a
   `bive-overlap` check fails a pull request whose files overlap another open `issue/*` pull request; a ruleset on
   `bived` requires `bive-inviolable` and turns on the merge queue, so pull requests land rebased one at a time (today
-  `bived` is unprotected, `main` has a ruleset). The coordinator closes issues on merge into `bived` (GitHub closes on
-  the default branch only; #4 stayed open). A Projects board is optional and needs the `project` token scope the owner
-  has not granted. Done when two delegates work in parallel on Bive itself without a conflict.
+  `bived` is unprotected, `main` has a ruleset). Closing keywords act on the default branch only, so an issue finished
+  on `bived` or `milestone/**` is closed by the `bive-close-issues` workflow (#229) once its pull request is merged,
+  with a provenance comment; the coordinator never closes a pull request itself. The milestone is the queue (#228):
+  `gh issue list --milestone <name> --state open` answers the remaining work in one query. A Projects board is optional
+  and needs the `project` token scope the owner has not granted. Done when two delegates work in parallel on Bive
+  itself without a conflict.
 - **Options as Markdown** (S; owner's idea, 2026-11-08). A project sets Bive's options in one Markdown file,
   `.bive/OPTIONS.md`: a task list per module (`- [x] registry`, `- [ ] MCP over SSH`) and per decision, with a line
   of explanation each, which GitHub renders as checkboxes and every role reads as text; the install prompt fills it,
@@ -212,13 +239,17 @@ per epic. Nothing of it is a Bive program: prompts, rules, and existing tools wi
 - **Measured flow** (M). Per model: output tokens, speed, violations, pull requests rejected, retries; from
   token-ratio (`session.usage.recorded` events, present in the 2.2.5 event list) and the registry, with
   `opencode stats --json` where it fits. The registry page shows the model table; `.bive/models.json` gets a suggested
-  order from the data, applied by the owner. Done when the coordinator cites the table when it picks a fallback.
+  order from the data, applied by the owner. The lower roles are picked the same way: #231 applies the least-cost
+  capable order (canonical names, eligibility, availability and the owner-approved team of #223), not a second
+  qualification. Done when the coordinator cites the table when it picks a fallback.
 - **Migration of projects** (M). A project installed with Bive 0.x upgrades by pull request: `bive-upgrade.yml`, a
   `bive-*` workflow built on a maintained template-sync Action (actions-template-sync on the Marketplace;
   alternatives ahmadnassri/action-template-repository-sync, kota65535/github-template-sync-action), opens a pull
   request in the downstream project when Bive tags a release, limited to the inviolable files and `docs/`;
-  `.bive/version` is stamped at install; the HANDOFF skeleton gets an *Upgrades* line. Done when the owner's first
-  project receives and merges an upgrade pull request.
+  `.bive/version` is stamped at install; the HANDOFF skeleton gets an *Upgrades* line. The prerequisites are generic
+  and public: the upgrade checklist of #80 (the private plan behind it is not published), the role question at session
+  start (#232) and, when the owner provisions them, the Apps that tell the roles apart (#235). Done when the owner's
+  first project receives and merges an upgrade pull request.
 - **Bive for others** (M). The install prompt tested on an empty repository and on the owner's Python project; README
   for a newcomer; satellites out (0.1 › 5); the first external project in the registry. Done when someone who is not
   the owner runs an issue through the flow.

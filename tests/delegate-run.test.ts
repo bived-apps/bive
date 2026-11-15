@@ -1,5 +1,10 @@
 import { test } from "node:test"
 import assert from "node:assert/strict"
+import { once } from "node:events"
+import fs, { readFileSync } from "node:fs"
+import os from "node:os"
+import path from "node:path"
+import { spawn, spawnSync } from "node:child_process"
 import {
   buildWaitRequest,
   isSessionDone,
@@ -125,4 +130,108 @@ test("planFallback: none left gives undefined; nothing committed is said", () =>
   assert.equal(planFallback({ ...base, models: ["a/1"], failed: ["a/1"] }), undefined)
   const p = planFallback({ ...base, models: ["a/1"], failed: [] })
   assert.ok(p?.resume.includes("Nothing committed"))
+})
+
+// --- Issue #226: the wait-recipe documented in docs/COORDINATING.md ---
+
+const waitRecipe = readFileSync(new URL("../docs/COORDINATING.md", import.meta.url), "utf8").match(
+  /```bash\n(# wait-recipe[\s\S]*?)```/,
+  )?.[1]
+
+test("the wait-recipe block exists, avoids pattern kills, and sh -n accepts it", () => {
+  assert.ok(waitRecipe, "docs/COORDINATING.md has no fenced bash block starting with '# wait-recipe'")
+  const code = waitRecipe.split("\n").filter((l) => !l.trim().startsWith("#")).join("\n")
+  // command lines only: the echo lines quote the recipe's own advice, not commands
+  const commands = code
+    .split("\n")
+    .filter((l) => {
+      const t = l.trim()
+      return t && !t.startsWith("echo")
+    })
+    .join("\n")
+  assert.doesNotMatch(commands, /pkill|killall/)
+  // allowed: signal 0, and the watchdog that signals THIS shell (never a delegate) and is stopped at the end
+  const withoutAllowed = commands.replace(/kill -0/g, "").replace(/kill -s TERM \$\$/g, "").replace(/kill "\$watchdog"/g, "")
+    .replace(/do not restart or kill it|do not restart or kill the delegates/g, "")
+  assert.doesNotMatch(withoutAllowed, /kill/, "only signal 0 and the shell's own watchdog may use kill")
+  const r = spawnSync("sh", ["-n", "-c", waitRecipe])
+  assert.equal(r.status, 0, `sh -n rejected the wait-recipe: ${r.stderr}`)
+})
+
+test("the wait-recipe reports a successful child with exit 0", () => {
+  const r = spawnSync("sh", ["-c", waitRecipe], { env: { ...process.env, DEADLINE: "5", POLL: "1", LAUNCH: "true" } })
+  assert.equal(r.status, 0, `the recipe failed: ${r.stderr}`)
+  assert.match(r.stdout.toString(), /pid \d+: exit 0 \(success: read its report, then review it\)/)
+})
+
+test("the wait-recipe reports a failing child with its non-zero exit code", () => {
+  const r = spawnSync("sh", ["-c", waitRecipe], { env: { ...process.env, DEADLINE: "5", POLL: "1", LAUNCH: "false" } })
+  assert.equal(r.status, 0, `the recipe failed: ${r.stderr}`)
+  assert.match(r.stdout.toString(), /pid \d+: exit 1 \(delegate failure: record it, apply Refusal and resume \/ gate 2\)/)
+})
+
+test("the wait-recipe waits on several PIDs, own children and foreign ones", async () => {
+  // The foreign children are started by a wrapper shell that exits at once, so the system reaps
+  // them and no PID stays a zombie (a zombie would keep answering kill -0 until the deadline).
+  const foreign = [0, 1].map(() => Number(spawnSync("sh", ["-c", "sleep 0.3 & echo $!"]).stdout.toString().trim()))
+  const waitGone = async (pid: number) => {
+    for (let i = 0; i < 100; i++) {
+      try {
+        process.kill(pid, 0)
+      } catch {
+        return
+      }
+      await new Promise((resolve) => setTimeout(resolve, 50))
+    }
+    assert.fail(`pid ${pid} still running 5 s after its wrapper exited`)
+  }
+  for (const pid of foreign) await waitGone(pid)
+  const r = spawnSync("sh", ["-c", waitRecipe], {
+    env: { ...process.env, DEADLINE: "10", POLL: "1", PIDS: foreign.join(" "), LAUNCH: "true false" },
+  })
+  assert.equal(r.status, 0, `the recipe failed: ${r.stderr}`)
+  const out = r.stdout.toString()
+  for (const pid of foreign) assert.match(out, new RegExp(`pid ${pid}: finished`))
+  assert.match(out, /pid \d+: exit 0 \(success/)
+  assert.match(out, /pid \d+: exit 1 \(delegate failure/)
+})
+
+test("the wait-recipe times out at the deadline and leaves the child running", async () => {
+  const child = spawn("sleep", ["5"])
+  try {
+    assert.ok(child.pid)
+    const r = spawnSync("sh", ["-c", waitRecipe], {
+      env: { ...process.env, DEADLINE: "1", POLL: "1", PIDS: String(child.pid) },
+    })
+    assert.equal(r.status, 124, `a timeout exits 124: ${r.stderr}`)
+    const out = r.stdout.toString()
+    assert.match(out, new RegExp(`pid ${child.pid}: timed out after 1s`))
+    assert.match(out, /still running at the deadline/)
+    // the recipe never kills: only this test targets the recorded PID, after checking it is alive
+    process.kill(child.pid, 0)
+    process.kill(child.pid, "SIGTERM")
+    const [code, signal] = await once(child, "exit")
+    assert.equal(code, null)
+    assert.equal(signal, "SIGTERM")
+  } finally {
+    try {
+      process.kill(child.pid, "SIGTERM")
+    } catch {
+      // already exited: nothing to clean up
+    }
+  }
+})
+
+test("the wait-recipe stops waiting on its own child at the deadline and does not kill it", () => {
+  const started = Date.now()
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "waitrecipe-"))
+  const slow = path.join(dir, "slow.sh")
+  fs.writeFileSync(slow, "#!/bin/sh\nexec >/dev/null 2>&1\nsleep 4\n", { mode: 0o755 })
+  const r = spawnSync("sh", ["-c", waitRecipe], {
+    env: { ...process.env, DEADLINE: "1", POLL: "1", LAUNCH: slow }, encoding: "utf8", timeout: 4000,
+  })
+  assert.ok(Date.now() - started < 3500, "the wait must end at the deadline, not when the child exits")
+  assert.equal(r.status, 124)
+  assert.match(r.stdout, /timed out after 1s/)
+  assert.match(r.stdout, /still running at the deadline:/)
 })

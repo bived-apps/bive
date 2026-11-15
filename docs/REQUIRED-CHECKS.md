@@ -56,8 +56,13 @@ These run on GitHub and appear as commit statuses on a pull request.
   behavior) and turns the gate green by itself once the checks pass.
 - **Authorization**: exactly one label `bive-merge-authorized-until-YYYY-MM-DD` on the pull request, a real calendar
   date, valid through 23:59:59 UTC of that date and only while the base is `bived` or `milestone/<name>` (one path
-  segment). Only the owner applies it, after the coordinator's approval and when the supervisor is about to merge;
+  segment). Only the owner applies it, after the coordinator's approval and when the owner is about to merge;
   the coordinator never does, also on its own pull requests. Adding or removing it re-runs the gate.
+- **Parent approval instead of the label (#262)**: on `bived` or `milestone/<name>` only, never `main`, a signed
+  approval comment of this exact head, verified against the owner's grant in `.bive/gate.json` on the base
+  (`coordinatorMerges: true` and a matching `coordinatorMergeGrants` entry), stands in for the dated label. It does not
+  cover a PR labelled with an override, a PR that changes authority or enforcement files (`.bive/gate.json`,
+  `AGENTS.md`, `opencode.jsonc`, prompts, plugins, `.github/`), or a red check. The owner's dated label still works.
 - **Label date (issue #114)**: the label's date must equal the UTC day on which the `labeled` event applied it (read
   from the issue timeline). A label dated tomorrow or later (or any day other than the applying day) is refused.
 - **Label actor (issue #114)**: the `labeled` event's actor must be the repository owner (or a listed owner identity).
@@ -101,9 +106,9 @@ These run on GitHub and appear as commit statuses on a pull request.
   or any check skipped (other than the exception), failed or cancelled; a pull request whose head or base changed
   during the run.
 - **Several coordinators**: each approves only pull requests based on its own milestone branch; the gate does not
-  check which coordinator approved, the supervisor does (`AGENTS.md` › Roles).
+  check which coordinator approved, the owner does (`AGENTS.md` › Roles).
 - **Expiry is not re-evaluated on its own**: a gate that passed stays green after its date. The owner applies the
-  label dated the day of the merge, and the supervisor merges that day with `gh pr merge --merge
+  label dated the day of the merge, and the owner merges that day with `gh pr merge --merge
   --match-head-commit <sha>`, so a push after the gate's run refuses the merge.
 
 ### `bive-merge-authority / merge-authority`
@@ -130,7 +135,7 @@ A failing check belongs to one of three categories, each with one action:
   request's fault — brief the delegate again or split.
 - **Non-deterministic**: the failure does not reproduce on one re-run with the same inputs (same seed, positions,
   inputs). Action: open (or comment on) an issue `Flaky: <test>` with the run links and the seed/positions/inputs
-  needed to reproduce it, and stop retrying; at most one re-run per failure. The supervisor never merges past it
+  needed to reproduce it, and stop retrying; at most one re-run per failure. The owner never merges past it
   without that issue and a green run on the head. Skipping or quarantining a test is forbidden; retrying in a loop
   is forbidden.
 
@@ -174,7 +179,7 @@ edits a workflow therefore runs that edit on the owner's machine at once. The ru
 - GitHub's "require approval to run workflows" setting applies to pull requests from forks, not to branches of the
   same repository, where every agent pushes; list the project's workflows on self-hosted runners in the project rules
   (`AGENTS.md` › Project rules).
-- The coordinator's review names any diff under `.github/workflows/` and raises it to the owner; the supervisor's
+- The coordinator's review names any diff under `.github/workflows/` and raises it to the owner; the owner's
   review design includes it.
 
 ## Branch protection (owner, in GitHub's settings)
@@ -185,8 +190,70 @@ require the status checks `bive-merge-gate / merge-gate` and `bive-tests / tests
 `bive-inviolable / check`, including its skip on coordinator pull requests. A ruleset names a required check by its
 job (check-run) name alone, `merge-gate` and `tests` with GitHub Actions as source: every workflow's job keeps a
 name of its own, or the requirement matches several checks (#94). Until that configuration exists, the
-gate is only as strong as the supervisor's procedure. No file in this repository proves that it exists; check the
+gate is only as strong as the owner's procedure. No file in this repository proves that it exists; check the
 settings.
+
+## Owner rollout and denial matrix (issue #239)
+
+One GitHub App for all agents (`bive-agents`), installed on `bived-apps/bive` only (owner decision, 2026-11-14). There
+is no per-role App and no supervisor App: the owner alone merges, and the gate proves the owner applied the dated
+label. This section separates what GitHub enforces natively from what Bive's gate enforces, and records the denials
+the owner tested.
+
+### Native protection (rulesets) versus the gate
+
+GitHub rulesets, in the repository's settings (the owner's configuration):
+
+- **Integration ruleset** on `bived` and `milestone/*`: deletion refused, non-fast-forward refused, a pull request is
+  required, merge method `merge` only, required checks `tests` and `merge-gate`.
+- **`main` ruleset**: the same, plus Restrict updates with the Repository admin role as the only bypass, pull requests
+  only.
+- **No bypass for any App**: no rule names an App, so `bive-agents` is refused like any other actor.
+
+The gate `bive-merge-gate` enforces the dated label `bive-merge-authorized-until-YYYY-MM-DD` applied by the owner's
+own account: a label applied by a Bot or an App is refused. The rulesets block what GitHub can block; the gate blocks
+the authorization only the owner can give.
+
+### Denial matrix
+
+| Action | Actor | Expected | Verified |
+| --- | --- | --- | --- |
+| An agent applies the dated label | App | refused by the gate | verified 2026-11-14 on scratch PR #300 |
+| An agent comments | App | shows as `bive-agents[bot]` | verified 2026-11-14 |
+| An agent merges into `bived` with a green gate | App | needs the owner's dated label first | by design |
+| A non-owner updates `main` | App | refused by Restrict updates | verified 2026-11-15 |
+| A force push or a branch deletion on `bived` or `main` | App | refused by the rulesets | verified 2026-11-15 (below) |
+| The owner merges after labelling | owner | passes | verified on every merged PR |
+
+`App` is an installation token of `bive-agents` (`docs/GITHUB-APP.md`); the owner applies the dated label.
+Force push and deletion were tried on `milestone/denial-test` (the integration ruleset of `bived`): GitHub refused
+both (GH013). On `main` the API lists the same two rules; they were not pushed against.
+
+### Recovery without force
+
+- A wrong merge is reverted by a new pull request running `git revert -m 1 <merge>`: never by force push, never by
+  rewriting history.
+- To stop the agents: uninstall the App (`docs/GITHUB-APP.md`) for the sessions that hold an App token, and stop
+  the OpenCode service and its sessions (`opencode service stop`) for those running on the owner's own account;
+  the rulesets and the gate stay in place.
+
+## Labels the flow uses (minimum)
+
+Four labels, no more. There is no started, in-progress, done, blocked or callback label: state is the milestone, the
+pull request's checks and review, and the issue's open/closed state (`docs/COORDINATING.md` › Milestones are the work
+queue). "Use this template" does not copy labels; a project creates these.
+
+| Label | Set by | Read by | Why |
+| --- | --- | --- | --- |
+| `bive-merge-authorized-until-YYYY-MM-DD` | the owner only, on one pull request, on the day in its name | `bive-merge-gate` (also checks who applied it and when) | the dated, per-pull-request authorization |
+| `bive-owner-override-YYYY-MM-DD` | the owner only, optional | `bive-merge-gate` | the owner's override when CI is down (#115) |
+| `coordinator` | the coordinator, on its own pull requests | `bive-inviolable` (skips the check for them) | only the coordinator may change inviolable files |
+| `bug` | `bive-base-red` | people | the issue opened when a base branch goes red |
+
+A name is not a secret: the gate trusts the actor and the date of the labeling event, never the name alone, so a
+random or secret label would add nothing while roles share one account (#130). Anything else a repository carries
+(GitHub's defaults, `delegate`) is not read by any workflow and is the project's own convention. The coordinator
+creates the missing ones at session start (`docs/COORDINATING.md` › Session start); it never applies the owner's.
 
 ## Headless plugin check (issue #69)
 
@@ -216,11 +283,29 @@ commit checks on a pull request.
   `../outside.txt` is refused by the guard and `.bive/state/tokens.jsonl` fills.
 - **`opencode plugin list`** is a local/manual check; it is not a GitHub required status.
 
+## Coordinator merge exception (opt-in, off by default)
+
+Default: a coordinator does not merge or close pull requests, and nothing is approved or merged into `main` but by the
+owner. The owner may opt in, per app, a named parent coordinator for its direct sub-coordinator's pull requests into
+`bived` or `milestone/*`, with a signed approval verified against a grant in `.bive/gate.json`; the gate then accepts
+it instead of the dated label. `coordinatorMerges` ships `false` and no grant exists. Contract:
+[docs/COORDINATOR-MERGES.md](COORDINATOR-MERGES.md).
+
+## Reusing CI as evidence (issue #227)
+
+A run substitutes a per-PR local run only with: the reviewed head SHA, the run URL and check name, the tested (or
+synthetic merge) SHA and its base, the trusted workflow, the whole suite, the result and the skipped markers. Stale,
+partial, skipped, missing or untrusted runs do not. The batch core run stays local. See
+`docs/COORDINATING.md` › *Reuse complete trusted CI evidence*.
+
 ## What this document does not say
 
 - It does not prove which checks GitHub branch protection currently requires, nor that any check is marked
   "required" in repository settings. Branch protection and rulesets are configured under the repository's settings;
   compare them against the checks listed here.
-- It does not say who merges: the supervisor alone, after the coordinator's approval (`AGENTS.md` › Roles).
+- It does not say who merges: by default the owner alone, after the coordinator's approval (`AGENTS.md` › Roles). An
+  advisor's text or a collaborator/shared account is not approval; a bench pass is capability evidence only. A future,
+  opt-in grant may let a named parent coordinator merge its direct sub-coordinator's pull requests into integration
+  branches (off by default; [docs/COORDINATOR-MERGES.md](COORDINATOR-MERGES.md)).
 - Workflow job names are part of the check identity. If a workflow or job is renamed, update this document and the
   repository's branch-protection configuration together so they keep matching.

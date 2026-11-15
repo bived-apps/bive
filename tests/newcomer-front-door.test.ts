@@ -23,3 +23,12 @@ test("template README.md tells a newcomer what to read to run the software", () 
   assert.match(text, /To run the software/i, "template README must say what to read to run the software")
   assert.match(text, /To start an agent/i, "template README must say what to read only to start an agent")
 })
+
+test("template README carries Bive's header and the four role glyphs, each with alt text (#330)", () => {
+  const text = read(".bive/templates/README.md")
+  assert.match(text, /^Start here: .+ · Read next: .+$/m)
+  assert.match(text, /agents write, you decide\./)
+  for (const role of ["owner", "advisor", "coordinator", "delegate"]) {
+    assert.match(text, new RegExp(`<img src="https://raw\\.githubusercontent\\.com/bived-apps/bive/main/docs/design/role-${role}\\.svg" width="24" alt="[^"]{10,}">`))
+  }
+})

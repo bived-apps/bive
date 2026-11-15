@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 640" width="1280" height="640" role="img" aria-labelledby="t d">
+  <title id="t">Bive</title>
+  <desc id="d">Bive: agents write, you decide. The four roles of Bive - owner, advisor, coordinator, delegate - as glyphs in a row.</desc>
+  <rect width="1280" height="640" fill="#F7F5F0"/>
+  <text x="640" y="250" text-anchor="middle" font-family="system-ui, -apple-system, Segoe UI, sans-serif" font-size="180" font-weight="700" fill="#1F2430">Bive</text>
+  <text x="640" y="330" text-anchor="middle" font-family="system-ui, -apple-system, Segoe UI, sans-serif" font-size="48" fill="#5B6270">Agents write, you decide.</text>
+  <g transform="translate(376,400) scale(4)" fill="none" stroke="#1F2430" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="12" cy="12" r="11" stroke="#B8860B" stroke-width="1.5"/>
+    <circle cx="8.5" cy="12" r="3"/>
+    <path d="M11.5 12H18M16 12v2.5M18.5 12v2"/>
+  </g>
+  <g transform="translate(520,400) scale(4)" fill="none" stroke="#0F766E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="10" cy="10" r="6"/>
+    <path d="M14.5 14.5L20 20"/>
+  </g>
+  <g transform="translate(664,400) scale(4)" fill="none" stroke="#B45309" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="5" y="4" width="14" height="17" rx="2"/>
+    <rect x="9" y="2" width="6" height="4" rx="1"/>
+    <path d="M8.5 11h7M8.5 15h7"/>
+  </g>
+  <g transform="translate(808,400) scale(4)" fill="none" stroke="#6D28D9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="4" y="5" width="16" height="11" rx="1.5"/>
+    <path d="M2 19.5h20"/>
+  </g>
+</svg>

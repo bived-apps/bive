@@ -16,6 +16,49 @@ with `node lib/models-check-cli.ts` (it prints found / alias / missing per role 
 sends one tiny prompt per role's first usable model, to reveal a used-up quota or a missing credit; the coordinator
 skill `bive-pick-model` says when to run it).
 
+## Least-cost capable order (issue #231; authority: bench `RESULTS.md` › Roles, Names)
+
+Each role takes the **least costly model that is capable of that role**, not its own rank. Capability comes from the
+bench (qualification on the latest released version); a model that is merely in the catalog is not available, and an
+unknown price is not free. In `.bive/models.json` write the canonical maker/model-version ID; a serving alias lives
+only in the ignored machine-local map. A missing credit or quota, or a cost nobody has verified, blocks automatic
+selection of that model. A lower-role exception for an unqualified model is the owner's, per role, and appoints nobody
+to a higher role. The owner approves the actual candidates and their order before any paid probe or rollout; this
+guide invents no prices and makes no live call.
+
+## Proposing a team (issue #223)
+
+Five different things, never confused:
+
+- **listed**: the model is in the catalog.
+- **available**: a probe answered today on this machine; a refusal such as "not available in your country", a quota, or
+  a missing balance means not available.
+- **free**: the catalog price is 0 for input and output.
+- **suitable**: qualified for the role on the bench (`RESULTS.md`); a probe is not a qualification.
+- **approved**: the owner chose it with buttons, dated.
+
+Two probe kinds and what each proves: a tool-free probe shows the route answers; a one-tool-call probe shows the model
+can call a tool (for example, read the first lines of `AGENTS.md`). Neither is qualification. Probes are sent only to
+models the owner agreed to probe.
+
+Who does what: the coordinator (or an advisor, as advice only) proposes a team with fixed choices, recommended first,
+one decision per question; the owner approves; the approved team is written to `.bive/models.json` with a dated line in
+`HANDOFF.md` › Decisions by a coordinator pull request. The retired supervisor role proposes nothing.
+
+A coordinator error (unreachable, 429, quota) never silently changes the assigned model: it reports and follows
+"Switching mid-work" below. Delegate fallback (the next model in the delegate list) is unchanged.
+
+A free model is proposed first only when it is available; otherwise propose the current provider's usable model, with
+its price when the catalog shows one ("price not shown" when it does not).
+
+## Owner route constraints (issue #262)
+
+An explicit route the owner sets (the `coordinator` allow-list in `.bive/models.json`, a named coordinator model, or any
+other owner-named model or route constraint) supersedes any generic fallback or recommendation, including an advisor's.
+Fallback applies only where the owner has not fixed the route. Qualification (a published bench pass) is capability
+evidence only; it never authorizes work, teams, gates or merges, and an advisor's text is not authorization. This
+section concerns models and routes only; dated merge-authorization labels are governed by `docs/REQUIRED-CHECKS.md`.
+
 ## Switching mid-work (issue #203)
 
 A delegate that hits a limit after it has started is not restarted from nothing. The coordinator:
@@ -32,8 +75,9 @@ A delegate that hits a limit after it has started is not restarted from nothing.
 
 A coordinator splits, briefs, reads reports and reviews; a model that fetches invented addresses or asks for its brief
 back (a 14B local model did both in the field) wastes the milestone. The minimum is a **published pass** of that model
-(name and version) on the bench's `milestone-run` case (<https://github.com/bived-apps/bench>), the same way a
-supervisor is qualified. Until a pass is published for any model, the owner names the models allowed as coordinator in
+(name and version) on the bench's `milestone-run` case (<https://github.com/bived-apps/bench>), the same way a model is
+qualified. Qualification is capability evidence only: it never authorizes work, teams, gates or merges, and historical
+supervisor qualifications grant no authority. Until a pass is published for any model, the owner names the models allowed as coordinator in
 `.bive/models.json`: the `coordinator` list is that allow-list. A coordinator that finds itself running on a model that
 is not on the list says so to the owner before starting; it does not start.
 
