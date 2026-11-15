@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-labelledby="t d">
+  <title id="t">Brae, the coordinator, hands out one card</title>
+  <desc id="d">A wide amber cut-paper folder with two dot eyes and a small smile stands on a cream ground. Its top edge is folded over, a fan of small cards sits in its pocket, and one thin arm holds out a single light violet task card to the right. Its hands hold no pen.</desc>
+  <defs>
+    <filter id="sh" x="-30%" y="-30%" width="160%" height="160%">
+      <feOffset in="SourceAlpha" dx="4" dy="5" result="o"/>
+      <feFlood flood-color="#1F2430" flood-opacity="0.16"/>
+      <feComposite in2="o" operator="in"/>
+      <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <rect width="512" height="512" fill="#F7F5F0"/>
+  <path d="M0,372 L512,364 L512,512 L0,512 Z" fill="#EAE5DA"/>
+  <ellipse cx="232" cy="404" rx="128" ry="12" fill="#DDD6C8"/>
+
+  <g transform="translate(228,460) scale(1.4)">
+    <!-- Brae: an expanding folder, top edge folded over -->
+    <g filter="url(#sh)">
+      <path d="M-50,-232 L46,-238 L80,-42 L-76,-42 Z" fill="#B45309"/>
+      <path d="M51,-207 L80,-42 L56,-42 Z" fill="#9A4507"/>
+      <path d="M-2,-197 L8,-198 L12,-42 L-6,-42 Z" fill="#9A4507"/>
+      <g>
+        <rect x="-11" y="-22" width="22" height="40" fill="#6D28D9" transform="translate(-45,-102) rotate(-8)"/>
+        <rect x="-11" y="-22" width="22" height="40" fill="#4C1D95" transform="translate(-34,-102) rotate(6)"/>
+        <rect x="-11" y="-22" width="22" height="40" fill="#FFFDF8" transform="translate(-23,-99) rotate(20)"/>
+      </g>
+      <path d="M-69,-95 L-8,-98 L-14,-42 L-76,-42 Z" fill="#C8691F"/>
+      <path d="M-50,-232 L46,-238 L51,-207 L-55,-190 Z" fill="#DE9448"/>
+    </g>
+    <circle cx="-25" cy="-156" r="16" fill="#F7F5F0"/><circle cx="29" cy="-159" r="16" fill="#F7F5F0"/>
+    <circle cx="-20" cy="-154" r="7.5" fill="#1F2430"/><circle cx="34" cy="-157" r="7.5" fill="#1F2430"/>
+    <path d="M-8,-126 q10,8 20,-1" fill="none" stroke="#F7F5F0" stroke-width="5" stroke-linecap="round"/>
+
+    <!-- the one card it hands out -->
+    <g transform="translate(118,-152) rotate(10)" filter="url(#sh)">
+      <rect x="-23" y="-32" width="46" height="64" fill="#8B5CF6"/>
+      <path d="M-12,-12 H12 M-12,4 H4" fill="none" stroke="#EDE9FE" stroke-width="6" stroke-linecap="round"/>
+    </g>
+    <path d="M62,-136 Q80,-108 100,-124" fill="none" stroke="#8A3F06" stroke-width="7" stroke-linecap="round"/>
+    <path d="M-66,-140 Q-88,-116 -66,-100" fill="none" stroke="#8A3F06" stroke-width="7" stroke-linecap="round"/>
+  </g>
+</svg>

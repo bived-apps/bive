@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-labelledby="t d">
+  <title id="t">The decision: the owner's pen over a card</title>
+  <desc id="d">A cream cut-paper card with a turned corner lies tilted on a dark ink ground. Two pale lines stand for what the agents wrote. A grey pen with a gold nib and a gold band comes down from the upper right and has just drawn one bold ink tick on the card: agents write, the owner decides.</desc>
+  <defs>
+    <filter id="sh" x="-30%" y="-30%" width="160%" height="160%">
+      <feOffset in="SourceAlpha" dx="6" dy="8" result="o"/>
+      <feFlood flood-color="#1F2430" flood-opacity="0.16"/>
+      <feComposite in2="o" operator="in"/>
+      <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <rect width="512" height="512" fill="#1F2430"/>
+
+  <!-- the card the agents wrote -->
+  <g transform="translate(240,262) rotate(-8)">
+    <path d="M-115,-145 L71,-145 L115,-101 L115,145 L-115,145 Z" fill="#FFFDF8"/>
+    <path d="M71,-145 L115,-101 L71,-101 Z" fill="#E4DED2"/>
+    <path d="M-83,-93 H17 M-83,-51 H-15" fill="none" stroke="#CFC8BA" stroke-width="16" stroke-linecap="round"/>
+  </g>
+
+  <!-- the owner's ink mark -->
+  <path d="M158,322 L198,368 L260,296" fill="none" stroke="#1F2430" stroke-width="34" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <!-- the pen, nib on the end of the tick -->
+  <g transform="translate(260,296) rotate(29.5)" filter="url(#sh)">
+    <path d="M0,0 L-19,-50 L19,-50 Z" fill="#B8860B"/>
+    <path d="M-24,-50 H24 V-190 a24,24 0 0 0 -48,0 Z" fill="#6B7280"/>
+    <rect x="-24" y="-84" width="48" height="18" fill="#B8860B"/>
+  </g>
+</svg>

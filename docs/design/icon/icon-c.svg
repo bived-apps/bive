@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-labelledby="t d">
+  <title id="t">Three folds and the owner's mark</title>
+  <desc id="d">One strip of cut paper folded into three standing panels on a cream ground: teal for the advisor, amber for the coordinator and violet for the delegate, each with a darker sliver along its fold. Under them, one bold dark ink tick: the owner's mark, the only decision.</desc>
+  <defs>
+    <filter id="sh" x="-30%" y="-30%" width="160%" height="160%">
+      <feOffset in="SourceAlpha" dx="6" dy="8" result="o"/>
+      <feFlood flood-color="#1F2430" flood-opacity="0.16"/>
+      <feComposite in2="o" operator="in"/>
+      <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <rect width="512" height="512" fill="#F7F5F0"/>
+
+  <!-- one strip, three folds: advisor, coordinator, delegate -->
+  <g filter="url(#sh)">
+    <path d="M112,146 L208,112 L208,296 L112,330 Z" fill="#0F766E"/>
+    <path d="M186,120 L208,112 L208,296 L186,304 Z" fill="#0B5F59"/>
+    <path d="M208,112 L304,146 L304,330 L208,296 Z" fill="#B45309"/>
+    <path d="M282,138 L304,146 L304,330 L282,322 Z" fill="#9A4507"/>
+    <path d="M304,146 L400,112 L400,296 L304,330 Z" fill="#6D28D9"/>
+    <path d="M378,120 L400,112 L400,296 L378,304 Z" fill="#5A1FBF"/>
+  </g>
+
+  <!-- the owner's ink mark -->
+  <path d="M184,368 L228,410 L330,344" fill="none" stroke="#1F2430" stroke-width="30" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
