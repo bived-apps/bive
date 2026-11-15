@@ -50,8 +50,8 @@ It develops itself with its own flow: this repository is the template and its fi
 - Milestone 0.2.1 (`https://github.com/bived-apps/bive/milestone/5`) is the queue; 0.3 (milestone 6) holds #231, #243,
   #245, #254. Closed in 0.2.1 since 2026-11-14: #222, #223, #232, #235, #238 and #240 (declined), #242, #244, #261, #278.
 - Open: #236 (git push as the App: change in the owner's private helper, owner's live push test next); #239 (live
-  denial of a non-owner update of `main`, owner-run with the App token); #237 (merge PR #310: `AGENTS.md` already
-  links `docs/ACTORS.md`); #299 (options C + D designed and decided in the issue, code next, owner reviews); #241 tracker.
+  denial of a non-owner update of `main`, owner-run with the App token); #237 (merge PR #310, the actor table that
+  `AGENTS.md` › Signed actions already links); #299 (options C + D designed and decided in the issue, code next, owner reviews); #241 tracker.
 - App `bive-agents` (ID 5761164): agents act as `bive-agents[bot]` only in sessions started with an App token
   (`docs/GITHUB-APP.md`); other sessions act as the owner and must sign. OpenCode is 2.3.0 (guard, token counter,
   schedules re-checked live 2026-11-15).
