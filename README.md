@@ -1,6 +1,6 @@
-# Bive 0.0
+# Bive: Agents write, you decide.
 
-**Agents write, you decide.**
+**BIVE**: Bive Is Verifiably Endorsed
 
 A repository template for building software with LLM agents in three roles, on OpenCode 2.
 
