@@ -48,7 +48,8 @@ It develops itself with its own flow: this repository is the template and its fi
 ## Tasks
 
 - Milestone 0.2.1 (`https://github.com/bived-apps/bive/milestone/5`) is the queue; 0.3 (milestone 6) holds #231, #243,
-  #245, #254, #324. Closed in 0.2.1 since 2026-11-14: #222, #223, #232, #235, #238 and #240 (declined), #242, #244, #261, #278.
+  #245, #254, #324, #336. Closed in 0.2.1 since 2026-11-14: #222, #223, #232, #235, #238 and #240 (declined),
+  #242, #244, #261. Relook under #278 (reopened): #326, #327, #328 and #339 merged or filed.
 - Open: #236 (option D is live and proven: a Desktop session comments as `bive-agents[bot]`, and the App pushed and
   commented in `jcherfils/FiFoo`; left: a session past an hour and the fail-closed check, both the owner's); #239 (the
   live denial of a non-owner update of `main` is verified 2026-11-15; the force-push row is the owner's call); #237
@@ -59,8 +60,8 @@ It develops itself with its own flow: this repository is the template and its fi
   schedules re-checked live 2026-11-15).
 - Run once on `main`: #229's close-issues workflow only activates there. Desktop sessions in a new worktree start from
   `main`, so they see 0.2.1 rules only after the release to `main`.
-- Coordinator since 2026-11-15: `anthropic/claude-fable-5-2` (owner's yes, added to `.bive/models.json`). The 0.3 launch
-  is unanswered (Q1 and its three candidates are on #241; nothing starts by default).
+- Coordinator since 2026-11-15: `anthropic/claude-fable-5-2`, then `opencode-go/beam-free` (owner's yes, both added to
+  `.bive/models.json`); the 0.3 launch is unanswered (Q1 and its three candidates are on #241; nothing starts).
 - Open owner questions: a live dry run of `bive_coordinator_merge` on a scratch repo; bench sequencing (bench PRs #72, #74
   are open and its history is frozen); #120 who merges before a bench pass; #110 remark 6.
 
@@ -90,10 +91,9 @@ It develops itself with its own flow: this repository is the template and its fi
 
 ## Session log
 
-- **2026-11-15, coordinator anthropic/claude-opus-5-5**: #235 App created and tested, #242 all cases verified, free
-  team trialled on #222/#223/#243; hand-over to the free coordinator `opencode/minimax-m3.1-flash-free` (no OpenAI).
+- **2026-11-15, coordinator opencode-go/beam-free**: relook batch merged (#326, #327, #328); #336 and #339 filed;
+  #338 and #340 list Opus and beam-free as coordinators; FiFoo migration plan filed (FiFoo#1813).
 - **2026-11-15, coordinator opencode/minimax-m3.1-flash-free**: options C + D written for the owner's private helper
   (PR #3 there, 8 tests) and documented in Bive (PR #313, merged); the broker now serves several accounts (#314, the
   helper's PR #4, 12 tests); the live denial on `main` verified; the field report of 2026-11-15 (four remarks →
   #317–#320, fixed in PRs #321 and #322, merged); the wake-up registered and fired three times (PRs #316, #321, #322);
-  the App proved on `jcherfils/FiFoo` (a push and a comment as `bive-agents[bot]`); hand-over to the next model.
