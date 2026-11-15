@@ -65,7 +65,9 @@ it: only the owner puts it on a pull request.
    one short message (what is committed, what is left) and set the worktree's Git identity to that model before its
    next commit, so every commit names the model that wrote it (`docs/PROVIDERS.md` › *Switching mid-work*). The
    coordinator role itself needs a model on the owner's list for it (`docs/PROVIDERS.md` › *Minimum for the
-   coordinator*); if yours is not on it, say so before starting.
+   coordinator*); if yours is not on it, say so before starting. Models that share one provider's usage pool fail
+   together: fall back to a model on another provider. The setup, retry, concurrency and stop defaults are in one
+   place, `docs/COORDINATING.md` › *Setup and stop defaults*.
 7. **Open and review** each issue pull request (or bounded batch pull request: `docs/COORDINATING.md` › *Batch pull
    requests*; the state files it changes, `HANDOFF.md`, `ROADMAP.md`, `.bive/models.json`, ride in it rather than in a
    pull request of their own): after the delegate pushes its branch and returns its report, you
