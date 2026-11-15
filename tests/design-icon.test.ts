@@ -15,6 +15,19 @@ test("the icon folder holds exactly the three candidates, each as SVG and PNG", 
   assert.deepEqual(all.filter((f) => f.endsWith(".png")), NAMES.map((n) => `${n}.png`))
 })
 
+test("the guide shows the three candidates, says who chooses and records unverified rights", () => {
+  const r = read("README.md")
+  for (const n of NAMES) {
+    assert.ok(r.includes(`\`${n}.svg\``), `the guide does not name ${n}.svg`)
+    const img = r.match(new RegExp(`<img src="${n}\\.png" width="96" alt="([^"]*)">`))
+    assert.ok(img && img[1].trim().length >= 20, `the guide must show ${n}.png with real alt text`)
+  }
+  for (const re of [/Not verified/, /the owner/, /candidates until the owner chooses/, /claude-fable-5-2/, /usage rights/,
+    /no agent can set them/]) assert.match(r, re)
+  const index = fs.readFileSync(new URL("../README.md", DIR), "utf8")
+  assert.match(index, /\| `icon\/` \|[^\n]*\(icon\/README\.md\)/)
+})
+
 for (const n of NAMES) {
   test(`${n}.svg: accessible, no text, nothing executable or external, cast colours only`, () => {
     const s = read(`${n}.svg`)
