@@ -48,20 +48,20 @@ It develops itself with its own flow: this repository is the template and its fi
 ## Tasks
 
 - Milestone 0.2.1 (`https://github.com/bived-apps/bive/milestone/5`) is the queue; 0.3 (milestone 6) holds #231, #243,
-  #245, #254, #324, #336. Closed in 0.2.1 since 2026-11-14: #222, #223, #232, #235, #238 and #240 (declined),
-  #242, #244, #261. Relook under #278 (reopened): #326, #327, #328 and #339 merged or filed.
-- Open: #236 (option D is live and proven: a Desktop session comments as `bive-agents[bot]`, and the App pushed and
-  commented in `jcherfils/FiFoo`; left: a session past an hour and the fail-closed check, both the owner's); #239 (the
-  live denial of a non-owner update of `main` is verified 2026-11-15; the force-push row is the owner's call); #237
-  (PRs #310 and #311 merged; it closes itself once the close workflow reaches `main`); #299 (options C + D written and
-  in use: the helper's PR #3 merged, the broker runs with both targets, the Desktop service points at the shims); #241.
+  #245, #254, #324, #336, #345. Closed in 0.2.1 since 2026-11-14: #222, #223, #232, #235, #238 and #240 (declined),
+  #242, #244, #261, and the relook under #278: #326–#330, #332–#334, #339, #347.
+- Open: #236 and #299 (every live check done 2026-11-15: a session past an hour, fail closed; the owner closes);
+  #239 (every denial row verified 2026-11-15, force push and deletion on a `milestone/*` scratch branch; the owner
+  closes; the branch `milestone/denial-test` stays until removed with a bypass); #237 (closes itself once the close
+  workflow reaches `main`); #241 (the 0.3 launch, unanswered). Next: gate 3, the pull request to `main`.
 - App `bive-agents` (ID 5761164): agents act as `bive-agents[bot]` in the sessions the broker serves
   (`docs/GITHUB-APP.md`); the other sessions act as the owner and must sign. OpenCode is 2.3.0 (guard, token counter,
   schedules re-checked live 2026-11-15).
 - Run once on `main`: #229's close-issues workflow only activates there. Desktop sessions in a new worktree start from
   `main`, so they see 0.2.1 rules only after the release to `main`.
-- Coordinator since 2026-11-15: `anthropic/claude-fable-5-2`, then `opencode-go/beam-free` (owner's yes, both added to
-  `.bive/models.json`); the 0.3 launch is unanswered (Q1 and its three candidates are on #241; nothing starts).
+- Coordinator since 2026-11-15: `anthropic/claude-opus-5-5`. When the free `opencode/` models hit their usage limit,
+  `opencode-go/beam-free` (listed as a delegate by #348) did the delegate work. Owner uploads left: the social card,
+  an icon from `docs/design/icon/`.
 - Open owner questions: a live dry run of `bive_coordinator_merge` on a scratch repo; bench sequencing (bench PRs #72, #74
   are open and its history is frozen); #120 who merges before a bench pass; #110 remark 6.
 
@@ -91,9 +91,9 @@ It develops itself with its own flow: this repository is the template and its fi
 
 ## Session log
 
+- **2026-11-15, coordinator anthropic/claude-opus-5-5**: owner's live checks recorded (#236, #239); relook finished
+  (#329–#334, #347: companions, board, option D); field report #345 for 0.3; core tier 532 pass.
 - **2026-11-15, coordinator opencode-go/beam-free**: relook batch merged (#326, #327, #328); #336 and #339 filed;
   #338 and #340 list Opus and beam-free as coordinators; FiFoo migration plan filed (FiFoo#1813).
-- **2026-11-15, coordinator opencode/minimax-m3.1-flash-free**: options C + D written for the owner's private helper
-  (PR #3 there, 8 tests) and documented in Bive (PR #313, merged); the broker now serves several accounts (#314, the
-  helper's PR #4, 12 tests); the live denial on `main` verified; the field report of 2026-11-15 (four remarks →
-  #317–#320, fixed in PRs #321 and #322, merged); the wake-up registered and fired three times (PRs #316, #321, #322);
+- **2026-11-15, coordinator opencode/minimax-m3.1-flash-free**: options C + D for the token broker (#299, #313, #314);
+  field report remarks #317–#320 fixed (#321, #322); the wake-up schedule proved.
