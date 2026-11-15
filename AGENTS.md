@@ -127,7 +127,7 @@ Generic, whatever the language (owner, 2026-11-08, taken from the practice of th
   takes other than pushing its own branch (a comment, a label, a branch update, a re-run, a review) is preceded or
   carried by a comment signed with its role and model (`— <role> <provider/model>`), and an agent never acts on a pull
   request it does not own (another milestone's, another session's). A session started with an App token acts as
-  `bive-agents[bot]`, which tells agents from the owner; a session without one still acts as the owner's login. The
+  `bived-agents[bot]`, which tells agents from the owner; a session without one still acts as the owner's login. The
   signature and the Git author tell the roles apart in both cases (`docs/ACTORS.md`).
 - **Others complete, never edit, the role prompts**: the owner or the coordinator adds to a role in
   `.bive/prompts/project/<ROLE>.md`, which may narrow a rule but never loosen or contradict one; the core prompt wins.
