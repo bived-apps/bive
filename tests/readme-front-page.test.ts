@@ -21,11 +21,16 @@ test("the README front page uses the design assets", () => {
   const detailsStart = r.indexOf("<details>")
   const mermaidIdx = r.indexOf("```mermaid")
   assert.ok(detailsStart >= 0 && mermaidIdx > detailsStart, "mermaid inside <details>")
-  // four role glyphs each with a non-empty alt naming its role
-  assert.match(r, /<img[^>]+src="docs\/design\/role-owner\.svg"[^>]+alt="Owner glyph:[^"]+"/)
-  assert.match(r, /<img[^>]+src="docs\/design\/role-advisor\.svg"[^>]+alt="Advisor glyph:[^"]+"/)
-  assert.match(r, /<img[^>]+src="docs\/design\/role-coordinator\.svg"[^>]+alt="Coordinator glyph:[^"]+"/)
-  assert.match(r, /<img[^>]+src="docs\/design\/role-delegate\.svg"[^>]+alt="Delegate glyph:[^"]+"/)
+  // four role glyphs at width 40, each with a non-empty alt naming its role
+  assert.match(r, /<img[^>]+src="docs\/design\/role-owner\.svg"[^>]*width="40"[^>]*alt="Owner glyph:[^"]+"/)
+  assert.match(r, /<img[^>]+src="docs\/design\/role-advisor\.svg"[^>]*width="40"[^>]*alt="Advisor glyph:[^"]+"/)
+  assert.match(r, /<img[^>]+src="docs\/design\/role-coordinator\.svg"[^>]*width="40"[^>]*alt="Coordinator glyph:[^"]+"/)
+  assert.match(r, /<img[^>]+src="docs\/design\/role-delegate\.svg"[^>]*width="40"[^>]*alt="Delegate glyph:[^"]+"/)
+  // each row also shows its companion at width 40, with an alt of 10+ characters naming it
+  assert.match(r, /<img[^>]+src="docs\/design\/companions\/maren\.svg"[^>]*width="40"[^>]*alt="Maren,[^"]{10,}"/)
+  assert.match(r, /<img[^>]+src="docs\/design\/companions\/sill\.svg"[^>]*width="40"[^>]*alt="Sill,[^"]{10,}"/)
+  assert.match(r, /<img[^>]+src="docs\/design\/companions\/brae\.svg"[^>]*width="40"[^>]*alt="Brae,[^"]{10,}"/)
+  assert.match(r, /<img[^>]+src="docs\/design\/companions\/pim\.svg"[^>]*width="40"[^>]*alt="Pim,[^"]{10,}"/)
   // two scenes each with an alt of 40+ characters
   const handoverAlt = r.match(/!\[([^\]]{40,})\]\(docs\/design\/cast\/scene-handover\.svg\)/)
   assert.ok(handoverAlt, "scene-handover.svg with alt of 40+ characters")
