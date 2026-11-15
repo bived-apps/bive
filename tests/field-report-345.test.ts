@@ -26,3 +26,9 @@ test("the scratch rule is in the delegate prompt and the brief template", () => 
 test("COORDINATING says where a copy of another repository goes", () => {
   assert.match(read("docs/COORDINATING.md"), /## Reading another repository/)
 })
+
+test("the coordinator pull-request slot guards inviolable files, and state files go one at a time (#324)", () => {
+  const c = read(".bive/prompts/COORDINATOR.md")
+  assert.match(c, /check that no other open `coordinator` pull request\s+touches one/)
+  assert.match(c, /keep `HANDOFF\.md`\s+and `ROADMAP\.md` changes to one open pull request at a time/)
+})

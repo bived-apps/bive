@@ -134,8 +134,9 @@ it: only the owner puts it on a pull request.
 9. **After each batch**: the core checks once, after the last merge of the batch, never after each merge
    (`AGENTS.md` › Tests in three tiers); update `HANDOFF.md`, `ROADMAP.md` and the epic's checklist on your own
     branch and pull request labelled `coordinator`, which the owner merges like any other. Before opening a
-   `coordinator` pull request that touches an inviolable file, check that no other is open
-    (`gh pr list --label coordinator --state open`); if one is, wait for it or ask the owner.
+   `coordinator` pull request that touches an inviolable file, check that no other open `coordinator` pull request
+    touches one (`gh pr list --label coordinator --state open`, then `gh pr diff <n> --name-only`); keep `HANDOFF.md`
+    and `ROADMAP.md` changes to one open pull request at a time. If one is open, wait for it or ask the owner.
 10. **Finish**: before gate 3, compare `AGENTS.md` › Project rules › GitHub PR merge methods with the repository's
     Settings → General → Pull Requests. The file records the desired methods but does not change GitHub; tell the
     owner about any mismatch and never recommend a method GitHub has disabled. Open the pull request to `main` with
