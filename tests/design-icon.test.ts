@@ -11,7 +11,7 @@ const CAST = hexes(fs.readFileSync(new URL("../docs/design/cast/cast-sheet.svg",
 const PNG_SIGNATURE = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a])
 
 test("the icon folder holds exactly the four candidates, each as SVG and PNG", () => {
-  assert.deepEqual(all.filter((f) => f.endsWith(".svg")), NAMES.map((n) => `${n}.svg`))
+  assert.deepEqual(all.filter((f) => f.endsWith(".svg")), [...NAMES.map((n) => `${n}.svg`), "wordmark.svg"])
   assert.deepEqual(all.filter((f) => f.endsWith(".png")), NAMES.map((n) => `${n}.png`))
 })
 
@@ -27,6 +27,32 @@ test("the guide shows the four candidates, says who chooses and records unverifi
   const index = fs.readFileSync(new URL("../README.md", DIR), "utf8")
   assert.match(index, /\| `icon\/` \|[^\n]*\(icon\/README\.md\)/)
   assert.match(r, /Chosen.*icon-d/)
+})
+
+test("wordmark.svg: the word Bive, not a candidate; the icons' rules, a tight viewBox, no background", () => {
+  const s = read("wordmark.svg")
+  assert.match(s, /^<svg xmlns="http:\/\/www\.w3\.org\/2000\/svg"/)
+  assert.match(s, /role="img"/)
+  assert.match(s, /<title[^>]*>[^<]*Bive[^<]*<\/title>/)
+  assert.match(s, /<desc[^>]*>[^<]{10,}<\/desc>/)
+  assert.doesNotMatch(s, /<text|<script|<image|<foreignObject|javascript:/i)
+  assert.doesNotMatch(s, /\son[a-z]+\s*=/i, "no event handler")
+  for (const m of s.matchAll(/href="([^"]*)"/g)) assert.ok(m[1].startsWith("#"), `external reference ${m[1]}`)
+  for (const m of s.matchAll(/url\(([^)]*)\)/g)) assert.ok(m[1].startsWith("#"), `external reference ${m[1]}`)
+  for (const c of hexes(s)) assert.ok(CAST.has(c), `colour ${c} is not on the cast sheet`)
+  assert.doesNotMatch(s, /<rect width="\d+" height="\d+" fill=/, "no background: it sits on any page")
+  const box = s.match(/viewBox="([\d.]+) ([\d.]+) ([\d.]+) ([\d.]+)"/)
+  assert.ok(box, "a viewBox")
+  assert.ok(Number(box[3]) > 2 * Number(box[4]), "a word is wider than tall")
+  // the B is icon-d's, delegate for delegate; the i, v and e add their own
+  const uses = (t: string) => [...t.matchAll(/<use href="#(?:pim|odet|fenn)" transform="[^"]*"\/>/g)].map((m) => m[0])
+  const mine = new Set(uses(s))
+  for (const u of uses(read("icon-d.svg"))) assert.ok(mine.has(u), `the B lost a delegate of icon-d: ${u}`)
+  assert.ok(mine.size > 40, `only ${mine.size} delegates for four letters`)
+  for (const who of ["pim", "odet", "fenn"]) assert.ok(s.includes(`href="#${who}"`), `${who} is missing`)
+  const r = read("README.md")
+  assert.ok(r.includes("`wordmark.svg`"), "the guide does not name wordmark.svg")
+  assert.match(r, /<img src="wordmark\.svg" width="\d+" alt="[^"]{20,}">/)
 })
 
 for (const n of NAMES) {
