@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="96" height="96" viewBox="0 0 96 96" role="img" aria-labelledby="t d">
+  <title id="t">Brae, the coordinator</title>
+  <desc id="d">A wide amber cut-paper folder on a soft round cream ground: its top edge is folded over in a lighter amber, it has two dot eyes and a smile, a small mustard flag stands behind it, and a fan of violet task cards and one cream card shows in its front pocket.</desc>
+  <defs>
+    <filter id="sh" x="-30%" y="-30%" width="160%" height="160%">
+      <feOffset in="SourceAlpha" dx="4" dy="5" result="o"/>
+      <feFlood flood-color="#1F2430" flood-opacity="0.16"/>
+      <feComposite in2="o" operator="in"/>
+      <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <clipPath id="c"><circle cx="48" cy="48" r="46"/></clipPath>
+  </defs>
+  <circle cx="48" cy="48" r="46" fill="#EAE5DA"/>
+  <g clip-path="url(#c)">
+    <g transform="translate(47,133) scale(0.46)">
+      <path d="M-34,-226 V-276" fill="none" stroke="#5B5548" stroke-width="4" stroke-linecap="round"/>
+      <path d="M-34,-276 L-2,-265 L-34,-254 Z" fill="#E0A82E"/>
+      <g filter="url(#sh)">
+        <path d="M-50,-232 L46,-238 L80,-42 L-76,-42 Z" fill="#B45309"/>
+        <path d="M51,-207 L80,-42 L56,-42 Z" fill="#9A4507"/>
+        <path d="M-2,-197 L8,-198 L12,-42 L-6,-42 Z" fill="#9A4507"/>
+        <g>
+          <rect x="-11" y="-22" width="22" height="40" fill="#8B5CF6" transform="translate(-56,-98) rotate(-22)"/>
+          <rect x="-11" y="-22" width="22" height="40" fill="#6D28D9" transform="translate(-45,-102) rotate(-8)"/>
+          <rect x="-11" y="-22" width="22" height="40" fill="#4C1D95" transform="translate(-34,-102) rotate(6)"/>
+          <rect x="-11" y="-22" width="22" height="40" fill="#FFFDF8" transform="translate(-23,-99) rotate(20)"/>
+        </g>
+        <path d="M-69,-95 L-8,-98 L-14,-42 L-76,-42 Z" fill="#C8691F"/>
+        <path d="M-50,-232 L46,-238 L51,-207 L-55,-190 Z" fill="#DE9448"/>
+      </g>
+      <circle cx="-22" cy="-160" r="9" fill="#F7F5F0"/><circle cx="26" cy="-163" r="9" fill="#F7F5F0"/>
+      <circle cx="-19.500" cy="-159" r="4.500" fill="#1F2430"/><circle cx="28.500" cy="-162" r="4.500" fill="#1F2430"/>
+      <path d="M-6,-139 q8,6 16,-1" fill="none" stroke="#F7F5F0" stroke-width="4" stroke-linecap="round"/>
+    </g>
+  </g>
+</svg>

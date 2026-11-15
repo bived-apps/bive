@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="96" height="96" viewBox="0 0 96 96" role="img" aria-labelledby="t d">
+  <title id="t">Sill, the advisor</title>
+  <desc id="d">The top of a teal cut-paper letter folded in three, on a soft round cream ground: its pale flap stands open above two dot eyes and a straight mouth, it has no arms, and a small bubble holding a single teal dot shows it answering.</desc>
+  <defs>
+    <filter id="sh" x="-30%" y="-30%" width="160%" height="160%">
+      <feOffset in="SourceAlpha" dx="4" dy="5" result="o"/>
+      <feFlood flood-color="#1F2430" flood-opacity="0.16"/>
+      <feComposite in2="o" operator="in"/>
+      <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <clipPath id="c"><circle cx="48" cy="48" r="46"/></clipPath>
+  </defs>
+  <circle cx="48" cy="48" r="46" fill="#EAE5DA"/>
+  <g clip-path="url(#c)">
+    <g transform="translate(36,206) scale(0.56)">
+      <g filter="url(#sh)">
+        <path d="M-44,-300 L38,-304 L12,-352 Z" fill="#5FB3AA"/>
+        <path d="M46,-212 L54,-205 L47,-126 L40,-128 Z" fill="#0A4A45"/>
+        <path d="M-42,-125 L-50,-119 L-46,-40 L-40,-40 Z" fill="#0A4A45"/>
+        <path d="M-42,-125 L40,-128 L44,-40 L-40,-40 Z" fill="#0B5F59"/>
+        <path d="M-38,-215 L46,-212 L40,-128 L-42,-125 Z" fill="#0F766E"/>
+        <path d="M-44,-300 L38,-304 L46,-212 L-38,-215 Z" fill="#14857C"/>
+        <path d="M-44,-300 L38,-304 L0,-284 Z" fill="#0F766E"/>
+      </g>
+      <circle cx="-13" cy="-258" r="8.500" fill="#F7F5F0"/><circle cx="17" cy="-259" r="8.500" fill="#F7F5F0"/>
+      <circle cx="-10.500" cy="-257" r="4" fill="#1F2430"/><circle cx="19.500" cy="-258" r="4" fill="#1F2430"/>
+      <path d="M-3,-236 h11" fill="none" stroke="#F7F5F0" stroke-width="4" stroke-linecap="round"/>
+    </g>
+    <!-- the answer: a bubble with one dot -->
+    <g transform="translate(18,198) scale(0.56)" filter="url(#sh)">
+      <path d="M80,-290 L56,-268 L94,-281 Z" fill="#FFFDF8"/>
+      <ellipse cx="98" cy="-298" rx="24" ry="17" fill="#FFFDF8"/>
+    </g>
+    <circle cx="72.900" cy="31.100" r="4.200" fill="#0F766E"/>
+  </g>
+</svg>

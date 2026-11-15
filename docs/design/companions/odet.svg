@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="96" height="96" viewBox="0 0 96 96" role="img" aria-labelledby="t d">
+  <title id="t">Odet, a delegate</title>
+  <desc id="d">A violet cut-paper square with a pale dog-eared corner and a small coral knotted ribbon, on a soft round cream ground: two dot eyes, a straight mouth, and one arm holding a dark spool whose thread trails away.</desc>
+  <defs>
+    <filter id="sh" x="-30%" y="-30%" width="160%" height="160%">
+      <feOffset in="SourceAlpha" dx="4" dy="5" result="o"/>
+      <feFlood flood-color="#1F2430" flood-opacity="0.16"/>
+      <feComposite in2="o" operator="in"/>
+      <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <clipPath id="c"><circle cx="48" cy="48" r="46"/></clipPath>
+  </defs>
+  <circle cx="48" cy="48" r="46" fill="#EAE5DA"/>
+  <g clip-path="url(#c)">
+    <g transform="translate(40,98) scale(0.5)">
+      <g filter="url(#sh)">
+        <path d="M-60,-156 L22,-160 L58,-126 L60,-44 L-56,-40 Z" fill="#6D28D9"/>
+        <path d="M-60,-156 L-56,-40 L-22,-41 Z" fill="#5A1FBF"/>
+        <path d="M22,-160 L58,-126 L24,-123 Z" fill="#A98BF5"/>
+      </g>
+      <path d="M-44,-157 l-13,15 M-44,-157 l5,20" fill="none" stroke="#E4674F" stroke-width="6" stroke-linecap="butt"/>
+      <rect x="-50" y="-163" width="12" height="12" fill="#C9523C" transform="rotate(-12 -44 -157)"/>
+      <circle cx="-14" cy="-108" r="8.500" fill="#F7F5F0"/><circle cx="14" cy="-109" r="8.500" fill="#F7F5F0"/>
+      <circle cx="-11.500" cy="-108" r="4" fill="#1F2430"/><circle cx="16.500" cy="-109" r="4" fill="#1F2430"/>
+      <path d="M-5,-86 h12" fill="none" stroke="#F7F5F0" stroke-width="4" stroke-linecap="round"/>
+    </g>
+    <!-- the spool and its thread -->
+    <path d="M80,50 Q94,40 84,30 Q76,24 82,18" fill="none" stroke="#3B2A6B" stroke-width="1.800" stroke-linecap="round"/>
+    <rect x="75" y="49" width="10" height="14" fill="#3B2A6B"/>
+    <rect x="73" y="46.500" width="14" height="3.500" fill="#C9A56A"/><rect x="73" y="62" width="14" height="3.500" fill="#C9A56A"/>
+    <path d="M68,62 Q72,72 80,67" fill="none" stroke="#4A1AA0" stroke-width="5" stroke-linecap="round"/>
+  </g>
+</svg>
