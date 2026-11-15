@@ -1,0 +1,38 @@
+import { test } from "node:test"
+import assert from "node:assert/strict"
+import fs from "node:fs"
+
+const DIR = new URL("../docs/design/icon/", import.meta.url)
+const NAMES = ["icon-a", "icon-b", "icon-c"]
+const all = fs.readdirSync(DIR).sort()
+const read = (f: string) => fs.readFileSync(new URL(f, DIR), "utf8")
+const hexes = (s: string) => new Set([...s.matchAll(/#[0-9A-Fa-f]{6}\b/g)].map((m) => m[0].toUpperCase()))
+const CAST = hexes(fs.readFileSync(new URL("../docs/design/cast/cast-sheet.svg", import.meta.url), "utf8"))
+const PNG_SIGNATURE = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a])
+
+test("the icon folder holds exactly the three candidates, each as SVG and PNG", () => {
+  assert.deepEqual(all.filter((f) => f.endsWith(".svg")), NAMES.map((n) => `${n}.svg`))
+  assert.deepEqual(all.filter((f) => f.endsWith(".png")), NAMES.map((n) => `${n}.png`))
+})
+
+for (const n of NAMES) {
+  test(`${n}.svg: accessible, no text, nothing executable or external, cast colours only`, () => {
+    const s = read(`${n}.svg`)
+    assert.match(s, /role="img"/)
+    assert.match(s, /<title[^>]*>[^<]+<\/title>/)
+    assert.match(s, /<desc[^>]*>[^<]{10,}<\/desc>/)
+    assert.match(s, /viewBox="0 0 512 512"/)
+    assert.doesNotMatch(s, /<text|<script|<image|<foreignObject|javascript:/i)
+    assert.doesNotMatch(s, /\son[a-z]+\s*=/i, "no event handler")
+    for (const m of s.matchAll(/href="([^"]*)"/g)) assert.ok(m[1].startsWith("#"), `${n}: external reference ${m[1]}`)
+    for (const m of s.matchAll(/url\(([^)]*)\)/g)) assert.ok(m[1].startsWith("#"), `${n}: external reference ${m[1]}`)
+    for (const c of hexes(s)) assert.ok(CAST.has(c), `${n}: colour ${c} is not on the cast sheet`)
+    assert.match(s, /<rect width="512" height="512" fill="#[0-9A-Fa-f]{6}"\/>/, "a full-bleed background")
+  })
+
+  test(`${n}.png: a PNG under 200 kB`, () => {
+    const b = fs.readFileSync(new URL(`${n}.png`, DIR))
+    assert.ok(b.subarray(0, 8).equals(PNG_SIGNATURE), `${n}.png does not start with the PNG signature`)
+    assert.ok(b.length < 200_000, `${n}.png is ${b.length} bytes`)
+  })
+}
