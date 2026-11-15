@@ -9,7 +9,6 @@ test("the README front page uses the design assets", () => {
   const r = fs.readFileSync(readmePath, "utf8")
   const repoRoot = path.resolve(path.dirname(fileURLToPath(readmePath)))
   // tagline
-  assert.match(r, /^\*\*Agents write, you decide\.\*\*$/m)
   // acronym
   assert.match(r, /^\*\*BIVE\*\*: Bive Is Verifiably Endorsed$/m)
   // flow picture with alt >= 40 chars

@@ -2,8 +2,6 @@
 
 **BIVE**: Bive Is Verifiably Endorsed
 
-**Agents write, you decide.**
-
 A repository template for building software with LLM agents in three roles, on OpenCode 2.
 
 Start here: [Install](#install) · Read next: [The flow](#the-flow) · [who is who](docs/design/cast/README.md).
