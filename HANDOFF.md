@@ -59,6 +59,8 @@ It develops itself with its own flow: this repository is the template and its fi
   schedules re-checked live 2026-11-15).
 - Run once on `main`: #229's close-issues workflow only activates there. Desktop sessions in a new worktree start from
   `main`, so they see 0.2.1 rules only after the release to `main`.
+- Next coordinator session (the owner passes to another model, 2026-11-15): the 0.3 launch is unanswered (Q1 and its
+  three candidates are on #241; nothing starts by default); its model must be in `.bive/models.json` or it stops.
 - Open owner questions: a live dry run of `bive_coordinator_merge` on a scratch repo; bench sequencing (bench PRs #72, #74
   are open and its history is frozen); #120 who merges before a bench pass; #110 remark 6.
 
@@ -68,11 +70,11 @@ It develops itself with its own flow: this repository is the template and its fi
   after any plugin change; it lists a project's plugins only after a session loaded them. After an OpenCode upgrade,
   check that `.bive/state/tokens.jsonl` still grows (token-ratio reads `session.step.ended`).
 - The guard is a text filter, not a sandbox: it refuses writes outside the session's checkout for every role, the
-  coordinator included (#320). What makes a delegate different is that the guard recognizes it
-  (`BIVE_ROLE=delegate`, a `.worktrees/issue-<n>` directory or `.bive/state/role`) and then also refuses the paths its
-  commands may not name; a delegate elsewhere without those
-  fails open. Delegates write scratch under `.bive/state/`, not `/tmp` or `$TMPDIR` (#224); quoted prose is inert only
-  after message options, `echo`, `grep` or a non-writing inline script (#225); heredoc bodies are removed first.
+  coordinator included (#320). What makes a delegate different is that the guard recognizes it (`BIVE_ROLE=delegate`,
+  a `.worktrees/issue-<n>` directory or `.bive/state/role`) and then also refuses the paths its commands may not
+  name; a delegate elsewhere without those fails open. Delegates write scratch under `.bive/state/`, not `/tmp` or
+  `$TMPDIR` (#224); quoted prose is inert only after message options, `echo`, `grep` or a non-writing inline script
+  (#225); heredoc bodies are removed first.
 - `Closes #N` acts on `main` only: close an issue after the merge into `bived` once the merge commit is reachable
   (#229's workflow does it once on `main`). Merge method `merge` only (squash loses the author).
 - `opencode service set env …` restarts the background service: it kills the session that runs it (an agent session
@@ -88,12 +90,10 @@ It develops itself with its own flow: this repository is the template and its fi
 
 ## Session log
 
-- **2026-11-14, coordinator anthropic/claude-sonnet-5-5**: advisor role merged (#263, `83e3d9f`); free team approved;
-  milestone 0.2.1 batches #267–#272 merged by the owner; #273 and #274 open; the root handoff cut from 416 to this short form, history linked above.
-- **2026-11-14, coordinator anthropic/claude-opus-5-5**: #286 to #293 merged by the owner (GPT team, one App, cast,
-  #232 resolver, #227 policy, #244 skill); delegate `openai/gpt-6-luna` reports need the template asked explicitly.
 - **2026-11-15, coordinator anthropic/claude-opus-5-5**: #235 App created and tested, #242 all cases verified, free
   team trialled on #222/#223/#243; hand-over to the free coordinator `opencode/minimax-m3.1-flash-free` (no OpenAI).
 - **2026-11-15, coordinator opencode/minimax-m3.1-flash-free**: options C + D written for the owner's private helper
   (PR #3 there, 8 tests) and documented in Bive (PR #313, merged); the broker now serves several accounts (#314, the
-  helper's PR #4, 12 tests); the live denial on `main` verified.
+  helper's PR #4, 12 tests); the live denial on `main` verified; the field report of 2026-11-15 (four remarks →
+  #317–#320, fixed in PRs #321 and #322, merged); the wake-up registered and fired three times (PRs #316, #321, #322);
+  the App proved on `jcherfils/FiFoo` (a push and a comment as `bive-agents[bot]`); hand-over to the next model.
