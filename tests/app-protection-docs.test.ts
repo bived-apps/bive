@@ -106,6 +106,14 @@ test("a wrong merge is reverted by a pull request, never by force push (#239)", 
   assert.match(s, /uninstall the App \(`docs\/GITHUB-APP\.md`\)/)
 })
 
+test("stopping the agents needs both the App and the sessions on the owner's own account (#239)", () => {
+  const s = section(read(DOC))
+  assert.match(s, /sessions that hold an App token/)
+  assert.match(s, /opencode service stop/)
+  assert.match(s, /the owner's own account/)
+  assert.doesNotMatch(s, /stop every agent at once/)
+})
+
 test("the section stays within its line budget and no line is over 120 characters (#239)", () => {
   const lines = section(read(DOC)).split("\n")
   assert.ok(lines.length <= LINE_BUDGET, `the section has ${lines.length} lines`)

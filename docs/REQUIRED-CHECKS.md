@@ -231,7 +231,9 @@ the authorization only the owner can give.
 
 - A wrong merge is reverted by a new pull request running `git revert -m 1 <merge>`: never by force push, never by
   rewriting history.
-- To stop every agent at once, uninstall the App (`docs/GITHUB-APP.md`); the rulesets and the gate stay in place.
+- To stop the agents: uninstall the App (`docs/GITHUB-APP.md`) for the sessions that hold an App token, and stop
+  the OpenCode service and its sessions (`opencode service stop`) for those running on the owner's own account;
+  the rulesets and the gate stay in place.
 
 ## Labels the flow uses (minimum)
 
