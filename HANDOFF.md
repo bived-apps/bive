@@ -48,7 +48,8 @@ It develops itself with its own flow: this repository is the template and its fi
 ## Tasks
 
 - Released on 2026-11-15: 0.2.1 (gate 3), 0.2.2 (the look, the field-report rules), 0.2.3 (the flow picture and its
-  Mermaid twin agree, #383). 0.3 (milestone 6) holds #120, #231, #243, #245, #254, #336, #344; the 0.3 launch is the owner's call.
+  Mermaid twin agree, #383). 0.3 (milestone 6) holds #120, #231, #243, #245, #254, #336, #344. Gate 1 approved (2026-11-15): batches A,
+  B, C of #254. A done: batch pull requests (#387), setup and stop defaults, the baseline on #336; next B (the merge tool).
 - Live since 2026-11-15, each in its own repository: the site https://bived-apps.github.io/ (`bived-apps.github.io`),
   the organization page (`.github`, `profile/README.md`), the registry page (`registry`, the cube from one project).
   The App's logo is the flower; the organization picture is the B; the social card is uploaded.
