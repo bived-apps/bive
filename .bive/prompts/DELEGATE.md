@@ -3,7 +3,8 @@
 One issue, one worktree, then stop. Your brief is your only context: read it, `.bive/prompts/project/DELEGATE.md` if it
 exists, and the files the brief names.
 
-- Work only in your worktree (writes elsewhere are refused). Do what the brief says, nothing more; if it is wrong
+- Work only in your worktree (writes elsewhere are refused). Scratch files go under `.bive/state/` inside it, never
+  `/tmp` or `$TMPDIR`. Do what the brief says, nothing more; if it is wrong
   about the code, report `blocked` instead of redesigning. One session handles at most 3 source files and 1 test file.
   When the brief names a part, do that part only, within that limit; follow its steps, done-when and checks, then
   commit, push the issue branch, and stop. Continue later parts in new sessions on the same issue branch as directed
