@@ -48,7 +48,7 @@ It develops itself with its own flow: this repository is the template and its fi
 ## Tasks
 
 - Milestone 0.2.1 (`https://github.com/bived-apps/bive/milestone/5`) is the queue; 0.3 (milestone 6) holds #231, #243,
-  #245, #254. Closed in 0.2.1 since 2026-11-14: #222, #223, #232, #235, #238 and #240 (declined), #242, #244, #261, #278.
+  #245, #254, #324. Closed in 0.2.1 since 2026-11-14: #222, #223, #232, #235, #238 and #240 (declined), #242, #244, #261, #278.
 - Open: #236 (option D is live and proven: a Desktop session comments as `bive-agents[bot]`, and the App pushed and
   commented in `jcherfils/FiFoo`; left: a session past an hour and the fail-closed check, both the owner's); #239 (the
   live denial of a non-owner update of `main` is verified 2026-11-15; the force-push row is the owner's call); #237
@@ -59,8 +59,8 @@ It develops itself with its own flow: this repository is the template and its fi
   schedules re-checked live 2026-11-15).
 - Run once on `main`: #229's close-issues workflow only activates there. Desktop sessions in a new worktree start from
   `main`, so they see 0.2.1 rules only after the release to `main`.
-- Next coordinator session (the owner passes to another model, 2026-11-15): the 0.3 launch is unanswered (Q1 and its
-  three candidates are on #241; nothing starts by default); its model must be in `.bive/models.json` or it stops.
+- Coordinator since 2026-11-15: `anthropic/claude-fable-5-2` (owner's yes, added to `.bive/models.json`). The 0.3 launch
+  is unanswered (Q1 and its three candidates are on #241; nothing starts by default).
 - Open owner questions: a live dry run of `bive_coordinator_merge` on a scratch repo; bench sequencing (bench PRs #72, #74
   are open and its history is frozen); #120 who merges before a bench pass; #110 remark 6.
 
