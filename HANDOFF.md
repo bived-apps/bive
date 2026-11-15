@@ -22,7 +22,8 @@ It develops itself with its own flow: this repository is the template and its fi
   as a session created under the coordinator in `.worktrees/issue-<n>` (`docs/COORDINATING.md`).
 - Authority: the owner alone authorizes work, teams, gates, merges and test releases; the advisor answers one
   read-only question and stops (`.bive/prompts/ADVISOR.md`; `SUPERVISOR.md` is a retired pointer). Opt-in coordinator
-  merges: `docs/COORDINATOR-MERGES.md`; off (`coordinatorMerges: false`), no grant exists.
+  merges: `docs/COORDINATOR-MERGES.md`, two modes the base names (`coordinatorMergeMode`: `label` or `grant`, #344);
+  off on `bived` (`coordinatorMerges: false`), no grant exists.
 
 ## Decisions (owner, dated; reasoning in the history link)
 
@@ -49,7 +50,8 @@ It develops itself with its own flow: this repository is the template and its fi
 
 - Released on 2026-11-15: 0.2.1 (gate 3), 0.2.2 (the look, the field-report rules), 0.2.3 (the flow picture and its
   Mermaid twin agree, #383). 0.3 (milestone 6) holds #120, #231, #243, #245, #254, #336, #344. Gate 1 approved (2026-11-15): batches A,
-  B, C of #254. A done: batch pull requests (#387), setup and stop defaults, the baseline on #336; next B (the merge tool).
+  B, C of #254. A done (#387, setup and stop defaults, #336's baseline). B done: `label` mode (#391), live-tested once
+  on a scratch repo (#344, open for the opt-in). Next C. Field reports #392–#394; tool scope for projects: #395.
 - Live since 2026-11-15, each in its own repository: the site https://bived-apps.github.io/ (`bived-apps.github.io`),
   the organization page (`.github`, `profile/README.md`), the registry page (`registry`, the cube from one project).
   The App's logo is the flower; the organization picture is the B; the social card is uploaded.
@@ -58,8 +60,9 @@ It develops itself with its own flow: this repository is the template and its fi
   schedules re-checked live 2026-11-15).
 - Coordinator since 2026-11-15: `anthropic/claude-opus-5-5`, started as OpenCode's `build`; next sessions pick the
   `coordinator` agent (#376: the counter then reports the role). The `opencode/` free models share one usage limit;
-  `opencode-go/beam-free` and the OpenRouter model are not in it. FiFoo's migration (FiFoo#1813): the owner chose (a).
-- Open owner questions: a live dry run of `bive_coordinator_merge` on a scratch repo; bench sequencing (bench PRs #72, #74
+  `opencode-go/beam-free` and the OpenRouter model are not in it. FiFoo#1813: turn 2 takes Bive at `648f9af`,
+  keeping FiFoo's supervisor merge and gate scripts (owner, 2026-11-15); its opt-in waits for #395.
+- Open owner questions: merge-scratch#2 (superseded by #5, the owner closes it); bench sequencing (bench PRs #72, #74
   are open and its history is frozen); #120 who merges before a bench pass; #110 remark 6.
 
 ## Watch out
@@ -85,13 +88,12 @@ It develops itself with its own flow: this repository is the template and its fi
 - Registry: a Cloudflare 403 is wrangler's login (`wrangler whoami`, `wrangler login`; `docs/REGISTRY.md`), not a model.
   The page's stats URL is fixed (registry PR #1); 0.2.1 sync is registry PR #4.
 - Branch deletion and protection through the API are refused from some proxies: the owner does those in GitHub.
+- An App token serves one repository: use `workdir`, never move a session into another repo's clone (#392). The App
+  cannot push `.github/workflows/` (the owner does). Quoted `>` reads as a redirect (#394): use `--body-file`.
 
 ## Session log
 
+- **2026-11-15, coordinator anthropic/claude-opus-5-5**: #344 live report; #392–#395 filed; FiFoo#1813 turn 2.
 - **2026-11-15, coordinator anthropic/claude-opus-5-5**: 0.2.1 released (`v0.2.1`); the mark, wordmark, flower and
   social card; the site, organization and registry pages in their repositories; the field-report rules (#374, #378),
   the counter's role and canonical model (#379), the temp-folder rule for every role (#380); 0.2.2 and 0.2.3 released.
-- **2026-11-15, coordinator opencode-go/beam-free**: relook batch merged (#326, #327, #328); #336 and #339 filed;
-  #338 and #340 list Opus and beam-free as coordinators; FiFoo migration plan filed (FiFoo#1813).
-- **2026-11-15, coordinator opencode/minimax-m3.1-flash-free**: options C + D for the token broker (#299, #313, #314);
-  field report remarks #317–#320 fixed (#321, #322); the wake-up schedule proved.
