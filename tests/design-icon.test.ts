@@ -3,19 +3,19 @@ import assert from "node:assert/strict"
 import fs from "node:fs"
 
 const DIR = new URL("../docs/design/icon/", import.meta.url)
-const NAMES = ["icon-a", "icon-b", "icon-c"]
+const NAMES = ["icon-a", "icon-b", "icon-c", "icon-d"]
 const all = fs.readdirSync(DIR).sort()
 const read = (f: string) => fs.readFileSync(new URL(f, DIR), "utf8")
 const hexes = (s: string) => new Set([...s.matchAll(/#[0-9A-Fa-f]{6}\b/g)].map((m) => m[0].toUpperCase()))
 const CAST = hexes(fs.readFileSync(new URL("../docs/design/cast/cast-sheet.svg", import.meta.url), "utf8"))
 const PNG_SIGNATURE = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a])
 
-test("the icon folder holds exactly the three candidates, each as SVG and PNG", () => {
+test("the icon folder holds exactly the four candidates, each as SVG and PNG", () => {
   assert.deepEqual(all.filter((f) => f.endsWith(".svg")), NAMES.map((n) => `${n}.svg`))
   assert.deepEqual(all.filter((f) => f.endsWith(".png")), NAMES.map((n) => `${n}.png`))
 })
 
-test("the guide shows the three candidates, says who chooses and records unverified rights", () => {
+test("the guide shows the four candidates, says who chooses and records unverified rights", () => {
   const r = read("README.md")
   for (const n of NAMES) {
     assert.ok(r.includes(`\`${n}.svg\``), `the guide does not name ${n}.svg`)
