@@ -1,5 +1,9 @@
 # Advisor invitations across models (design for issue #245; proposal, not in force)
 
+<img src="design/role-advisor.svg" width="32" alt="Advisor glyph: a magnifier">
+
+![Scene showing a coordinator asking an advisor, who looks, gives a one-dot answer, and folds shut without acting.](design/cast/scene-advisor.svg)
+
 Status: a design for the owner's review. It adds no tool, config or authority. Answers marked **unverified** need a
 live OpenCode check before anyone relies on them.
 

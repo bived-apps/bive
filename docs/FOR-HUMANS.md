@@ -1,5 +1,9 @@
 # Bive for the human owner
 
+<img src="design/role-owner.svg" width="32" alt="Owner glyph: a key in a gold ring">
+
+![Scene showing a delegate offering finished work to a coordinator who cannot approve it, so both turn to the owner to decide.](design/cast/scene-refusal.svg)
+
 What you do, and what you never have to do. The agents do the rest.
 
 ## Your three jobs
