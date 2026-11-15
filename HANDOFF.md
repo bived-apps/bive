@@ -47,13 +47,13 @@ It develops itself with its own flow: this repository is the template and its fi
 
 ## Tasks
 
-- Milestone 0.2.1 (`https://github.com/bived-apps/bive/milestone/5`) is the queue; 0.3 (milestone 6) holds #231, #243,
-  #245, #254, #324, #336, #345. Closed in 0.2.1 since 2026-11-14: #222, #223, #232, #235, #238 and #240 (declined),
+- Milestone 0.2.1 (`https://github.com/bived-apps/bive/milestone/5`) is the queue; 0.3 (milestone 6) holds #120, #231,
+  #243, #245, #254, #324, #336, #344, #345. Closed in 0.2.1 since 2026-11-14: #222, #223, #232, #235, #238 and #240 (declined),
   #242, #244, #261, and the relook under #278: #326–#330, #332–#334, #339, #347.
 - Open: #236 and #299 (every live check done 2026-11-15: a session past an hour, fail closed; the owner closes);
   #239 (every denial row verified 2026-11-15, force push and deletion on a `milestone/*` scratch branch; the owner
   closes; the branch `milestone/denial-test` stays until removed with a bypass); #237 (closes itself once the close
-  workflow reaches `main`); #241 (the 0.3 launch, unanswered). Next: gate 3, the pull request to `main`.
+  workflow reaches `main`); #241 (the 0.3 launch, unanswered). Gate 3: the pull request from `bived` to `main` is open.
 - App `bive-agents` (ID 5761164): agents act as `bive-agents[bot]` in the sessions the broker serves
   (`docs/GITHUB-APP.md`); the other sessions act as the owner and must sign. OpenCode is 2.3.0 (guard, token counter,
   schedules re-checked live 2026-11-15).
