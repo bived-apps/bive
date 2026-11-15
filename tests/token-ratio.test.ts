@@ -74,3 +74,30 @@ test("the plugin warns once with that message and the docs carry the troubleshoo
   assert.match(doc, /\*\*Troubleshooting\*\*: a `403 Attention Required \| Cloudflare`/)
   assert.match(doc, /Do not switch models for it/)
 })
+
+// #376: the registry counts per Bive role and canonical model.
+import { biveRole, canonicalModel } from "../.opencode/plugins/token-ratio/lib.ts"
+describe("biveRole", () => {
+  test("a Bive agent wins, then BIVE_ROLE, then the role file, then a delegate's worktree", () => {
+    assert.equal(biveRole("coordinator", undefined, undefined, "/w/bive"), "coordinator")
+    assert.equal(biveRole("build", "delegate", undefined, "/w/bive"), "delegate")
+    assert.equal(biveRole("build", undefined, "coordinator\n", "/w/bive"), "coordinator")
+    assert.equal(biveRole("build", undefined, undefined, "/w/bive/.worktrees/issue-12"), "delegate")
+  })
+  test("without a signal the OpenCode agent stays, or unknown", () => {
+    assert.equal(biveRole("build", undefined, undefined, "/w/bive"), "build")
+    assert.equal(biveRole("", undefined, undefined, "/w/bive"), "unknown")
+    assert.equal(biveRole("build", "owner", "nonsense", "/w/bive"), "build")
+  })
+})
+describe("canonicalModel", () => {
+  const aliases = JSON.stringify({ aliases: { "anthropic/claude-opus-5-5": "claude-agent/opus" } })
+  test("a known route gives its canonical name", () => {
+    assert.equal(canonicalModel("claude-agent/opus", aliases), "anthropic/claude-opus-5-5")
+  })
+  test("an unknown route, a missing or a corrupt file give the route back", () => {
+    assert.equal(canonicalModel("opencode-go/beam-free", aliases), "opencode-go/beam-free")
+    assert.equal(canonicalModel("claude-agent/opus", undefined), "claude-agent/opus")
+    assert.equal(canonicalModel("claude-agent/opus", "{not json"), "claude-agent/opus")
+  })
+})
