@@ -30,17 +30,6 @@ It develops itself with its own flow: this repository is the template and its fi
   delegates `opencode/iceman-free`, `opencode/deepseek-v4.1-flash-free`, `opencode/glm-5.3-flash-free`,
   `opencode/mimo-v2.6-flash-free`, `opencode/nemotron-3.5-super-vl-free`. One-tool-call probes the same day; chosen from
   three real tasks (#222, #223, #243): minimax best substance, iceman most disciplined, flint dropped (unverified claims).
-- 2026-11-14 free dev team (supersedes the delegates below): coordinator `openai/gpt-6.1-sol`; delegates
-  `opencode/iceman-free`, `opencode/minimax-m3.1-flash-free`, `opencode/flint-40b-free`, then
-  `opencode/deepseek-v4.1-flash-free`, `opencode/glm-5.3-flash-free` (one-tool-call probes, not qualification).
-  `inkling-2-small-free` refused in the owner's country; `gpt-6-luna` no longer a delegate.
-- 2026-11-14 GPT team (supersedes the free team below): coordinator `openai/gpt-6.1-sol`; delegates `openai/gpt-6-luna`,
-  then the free four as fallback (`.bive/models.json`). Both GPT routes answered a tool-free availability probe; not a
-  qualification. OpenAI prices are not shown in the catalog (owner's account).
-- 2026-11-14 free team: coordinator `opencode-go/beam-free`; delegates `opencode/deepseek-v4.1-flash-free`,
-  `opencode/glm-5.3-flash-free`, `opencode-go/longcat-2.5-free`, `opencode/mimo-v2.6-flash-free` (`.bive/models.json`;
-  availability probes, not qualification). Excluded: `big-pickle`, `iceman-contributor-free`, `beam-free` and
-  `ollama-cloud/beam` (quota). No paid fallback. Parent-approval key: per-grant ed25519, owner-generated.
 - 2026-11-14 correction: the 2026-11-13 #262 work was written by Sonnet 5.5, not Sol; no Sol review happened. Protected
   files still need an independent review. Pushed history is not rewritten; sign `coordinator anthropic/claude-sonnet-5-5`.
 - 2026-11-13 #262: owner-only supervisory authority, question-only advisor, `main` owner-only, opt-in coordinator merges
@@ -58,18 +47,18 @@ It develops itself with its own flow: this repository is the template and its fi
 
 ## Tasks
 
-- Milestone 0.2.1 (`https://github.com/bived-apps/bive/milestone/5`) is the queue. Merged by the owner: #263, #267 to
-  #277, #279 to #293 (guard, process docs, short handoff, designs, role context, jury removed, Folds cast and README,
-  GPT team, one-App checklist `docs/GITHUB-APP.md`, `lib/role-start.ts`, `lib/ci-evidence.ts`, quick choices).
-  Closed: #224 to #227, #229, #230, #233, #234, #244.
-- Owner steps: #232 two smoke tests (fresh interactive session asks once; a coordinator-started delegate never asks;
-  no plugin wiring, the guard already fails closed); create and install the agents App (#235, checklist in
-  `docs/GITHUB-APP.md`; per-role #236 to #238, #240 not planned, open); #245 live read-only checks; #278 close or keep.
-- Blocked: #231 (bench evidence); #254, #261 (wrangler reconnect), #242, #243 (owner decisions); #241 is the tracker.
-- Run once on `main`: #229's close-issues workflow only activates there. Restart the OpenCode server to load the new guard.
+- Milestone 0.2.1 (`https://github.com/bived-apps/bive/milestone/5`) is the queue; 0.3 (milestone 6) holds #231, #243,
+  #245, #254. Closed in 0.2.1 since 2026-11-14: #222, #223, #232, #235, #238 and #240 (declined), #242, #244, #261, #278.
+- Open: #236 (git push as the App: change in the owner's private helper, owner's live push test next); #239 (live
+  denial of a non-owner update of `main`, owner-run with the App token); #237 (merge PR #310: `AGENTS.md` already
+  links `docs/ACTORS.md`); #299 (options C + D designed and decided in the issue, code next, owner reviews); #241 tracker.
+- App `bive-agents` (ID 5761164): agents act as `bive-agents[bot]` only in sessions started with an App token
+  (`docs/GITHUB-APP.md`); other sessions act as the owner and must sign. OpenCode is 2.3.0 (guard, token counter,
+  schedules re-checked live 2026-11-15).
+- Run once on `main`: #229's close-issues workflow only activates there. Desktop sessions in a new worktree start from
+  `main`, so they see 0.2.1 rules only after the release to `main`.
 - Open owner questions: a live dry run of `bive_coordinator_merge` on a scratch repo; bench sequencing (bench PRs #72, #74
   are open and its history is frozen); #120 who merges before a bench pass; #110 remark 6.
-- Other apps: registry PR #3 and workspace template PR #4 are merged; FiFoo migration: not started.
 
 ## Watch out
 
@@ -97,3 +86,5 @@ It develops itself with its own flow: this repository is the template and its fi
   milestone 0.2.1 batches #267–#272 merged by the owner; #273 and #274 open; the root handoff cut from 416 to this short form, history linked above.
 - **2026-11-14, coordinator anthropic/claude-opus-5-5**: #286 to #293 merged by the owner (GPT team, one App, cast,
   #232 resolver, #227 policy, #244 skill); delegate `openai/gpt-6-luna` reports need the template asked explicitly.
+- **2026-11-15, coordinator anthropic/claude-opus-5-5**: #235 App created and tested, #242 all cases verified, free
+  team trialled on #222/#223/#243; hand-over to the free coordinator `opencode/minimax-m3.1-flash-free` (no OpenAI).
