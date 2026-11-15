@@ -13,17 +13,16 @@ Four candidate icons drawn from [the Folds cast](../cast/README.md), in its cut-
 
 ## The wordmark (issue #364)
 
-Not a candidate: the whole name drawn the way `icon-d` draws its B.
+Not a candidate: the whole name drawn the way `icon-d` draws its B, in the arrangement the owner chose (2026-11-15).
 
 | Wordmark | File | The idea | Small |
 | --- | --- | --- | --- |
-| <img src="wordmark.svg" width="240" alt="The word Bive, each letter traced by small violet paper delegates over a pale violet shape of the letter; one delegate is the dot of the i"> | `wordmark.svg` | the word **Bive** (capital B, lowercase i, v, e) traced by 59 small delegates, Pim, Odet, Fenn in turn; the B is `icon-d`'s, delegate for delegate; one delegate is the dot of the i | at 200 px wide the pale letters still read "Bive"; the delegates are violet specks |
-| <img src="wordmark-roles.svg" width="240" alt="The word Bive traced by small paper companions of every role: violet delegates, teal advisors, amber coordinators, and the owner as the dot of the i"> | `wordmark-roles.svg` | a second variant, **for the owner to choose**: the same letters and the same 59 places, held by every role of [the companion icons](../companions/README.md). Maren, the owner, appears once, as the dot of the i (the one who decides); Sill, the advisor, 8 times and Brae, the coordinator, 7 times, spread over the four letters; the 43 others are the delegates, who do the work | at 200 px wide the word still reads; teal and amber specks among the violet ones, Maren a dark dot |
+| <img src="wordmark.svg" width="240" alt="The word Bive traced by small paper companions: a B of violet delegates, then i, v and e of violet delegates, teal advisors and amber coordinators, and the owner as the dot of the i"> | `wordmark.svg` | the word **Bive** (capital B, lowercase i, v, e) traced by 59 small [companions](../companions/README.md). The B is `icon-d`'s, its 23 delegates each at their place, so it matches the app icon. The i, the v and the e are each traced by every working role: delegates (Pim, Odet, Fenn in turn, 23 more), with Sill, the advisor, 6 times and Brae, the coordinator, 6 times among them. Maren, the owner, appears once and nowhere else: the dot of the i | at 200 px wide the pale letters still read "Bive"; a violet B, then teal and amber specks among the violet ones, Maren a dark dot |
 
-Both have a tight `viewBox` (891 x 370) and **no background**, so they sit on any light page; each has its
-[social card](../social/README.md), which carries a copy of it. In `wordmark-roles.svg`, Maren keeps her round crop,
-Brae is whole and smaller, and Sill shows its flap, its top panel and the start of the next fold (the companion icons
-crop all three in a circle). Written the same way as `icon-d` (see Provenance), no PNG
+It has a tight `viewBox` (891 x 370) and **no background**, so it sits on any light page; the
+[social card](../social/README.md) carries a copy of it. Maren keeps her round crop, Brae is whole and smaller, and
+Sill shows its flap, its top panel and the start of the next fold (the companion icons crop all three in a circle).
+Written the same way as `icon-d` (see Provenance), no PNG
 kept: render one with `rsvg-convert -w 600 wordmark.svg -o wordmark.png` when needed.
 
 ## The candidates' frame
@@ -47,8 +46,7 @@ uploads in GitHub's settings: no agent can set them. Once the owner has chosen, 
   computed by a throwaway script, the file is plain SVG. A letter made of small figures is a common motif too.
 - `wordmark.svg` (issue #364): written the same way by `claude-fable-5-2` (2026-11-15), from `icon-d.svg`; the i, v
   and e are plain strokes (a line, two lines, a bar and an elliptical arc), not taken from any typeface.
-- `wordmark-roles.svg` (issue #364): written the same way by `claude-fable-5-2` (2026-11-15), from `wordmark.svg` and
-  the paths of `../companions/maren.svg`, `sill.svg` and `brae.svg`.
+  Maren, Sill and Brae reuse the paths of `../companions/maren.svg`, `sill.svg` and `brae.svg`.
 - **Not verified**: originality rests on judgement (no search for similar existing icons or marks was run; a card with
   a pen, a tick and a folded strip are common motifs), and the usage rights of model-written SVG are the owner's to
   confirm. The style (flat shapes, dot eyes) is a common idiom.
