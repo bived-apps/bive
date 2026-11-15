@@ -1,4 +1,6 @@
-# Bive 0.0
+# Bive: Agents write, you decide.
+
+**BIVE**: Bive Is Verifiably Endorsed
 
 **Agents write, you decide.**
 
