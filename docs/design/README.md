@@ -13,6 +13,7 @@ for Bive only (owner, 2026-11-14: not for a public front end): its docs and READ
 | `icon-template.svg`, `icon-workspace.svg`, `icon-registry.svg`, `icon-bench.svg`, `icon-university.svg` | page icons | ink |
 | `icon/` | three candidate icons for the project, the organization and the GitHub App, until the owner chooses ([guide](icon/README.md)) | the cast's colours |
 | `companions/` | one square icon per companion of the cast, for the README's role table ([guide](companions/README.md)) | the cast's colours |
+| `role-column-board.md`, `role-column-board.svg` | the choosing board for the first column of the README's role table, options A to E ([board](role-column-board.md)) | ink, role colours |
 | `social/` | the 1280 x 640 social preview card and its guide ([guide](social/README.md)) | the brief's colours |
 
 Rules each file follows (checked by `tests/design-assets.test.ts`): a 24 x 24 grid with a 2 px round stroke for glyphs and
