@@ -1,5 +1,9 @@
 # The coordinator's routine, as commands
 
+<img src="design/role-coordinator.svg" width="32" alt="Coordinator glyph: a clipboard">
+
+![Scene showing a coordinator handing one task card to a delegate who does the work, then the result moves toward the owner for a decision.](design/cast/scene-handover.svg)
+
 What `.bive/prompts/COORDINATOR.md` steps 5, 7 and 9 mean at the shell, for a coordinator that wants the exact
 commands. `<n>` is the issue, `<slug>` a short name, `<base>` the integration branch, `<model>` the delegate's
 `provider/model`.
