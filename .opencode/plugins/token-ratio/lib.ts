@@ -72,3 +72,29 @@ export function registryFailureMessage(detail: string): string {
     (auth ? " A 401/403 or a Cloudflare 'Attention Required' page comes from the registry Worker's side: check with" +
       " `wrangler whoami`, reconnect with `wrangler login` (docs/REGISTRY.md › Troubleshooting)." : "")
 }
+
+// Issue #376: the registry counts per Bive role and canonical model, not per OpenCode agent and route.
+const ROLES = new Set(["coordinator", "delegate", "advisor"])
+
+// The session's Bive role, from the signals the guard reads (docs/ROLE-START.md): its agent when that is a Bive one,
+// else BIVE_ROLE, else the role file `.bive/state/role` of its directory, else a `.worktrees/issue-<n>` directory (a
+// delegate). Without any, the OpenCode agent name stays (the registry shows it as "other"), or "unknown".
+export function biveRole(agent: string, envRole: string | undefined, roleFile: string | undefined,
+                         directory: string): string {
+  for (const v of [agent, envRole, roleFile?.trim()]) if (v && ROLES.has(v)) return v
+  if (/[\\/]\.worktrees[\\/]issue-\d+$/.test(path.resolve(directory))) return "delegate"
+  return agent || "unknown"
+}
+
+// The canonical model of a route, through the local alias file `.bive/state/models.local.json` read backwards
+// ({"aliases": {canonical: route}}, docs/PROVIDERS.md). An unreadable file or an unknown route gives the route back.
+export function canonicalModel(route: string, aliasesText: string | undefined): string {
+  if (!route || !aliasesText) return route
+  try {
+    const aliases = (JSON.parse(aliasesText) as { aliases?: Record<string, unknown> }).aliases ?? {}
+    for (const [canonical, alias] of Object.entries(aliases)) if (alias === route) return canonical
+  } catch {
+    return route   // a corrupt alias file is the owner's to fix; the route is still a true name
+  }
+  return route
+}
