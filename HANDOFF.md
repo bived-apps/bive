@@ -47,21 +47,17 @@ It develops itself with its own flow: this repository is the template and its fi
 
 ## Tasks
 
-- Milestone 0.2.1 (`https://github.com/bived-apps/bive/milestone/5`) is the queue; 0.3 (milestone 6) holds #120, #231,
-  #243, #245, #254, #324, #336, #344, #345. Closed in 0.2.1 since 2026-11-14: #222, #223, #232, #235, #238 and #240 (declined),
-  #242, #244, #261, and the relook under #278: #326–#330, #332–#334, #339, #347.
-- Open: #236 and #299 (every live check done 2026-11-15: a session past an hour, fail closed; the owner closes);
-  #239 (every denial row verified 2026-11-15, force push and deletion on a `milestone/*` scratch branch; the owner
-  closes; the branch `milestone/denial-test` stays until removed with a bypass); #237 (closes itself once the close
-  workflow reaches `main`); #241 (the 0.3 launch, unanswered). Gate 3: the pull request from `bived` to `main` is open.
+- 0.2.1 was released to `main` at gate 3 (`v0.2.1`, 2026-11-15); 0.2.2 follows with the look and the field-report
+  rules. 0.3 (milestone 6) holds #120, #231, #243, #245, #254, #336, #344; the 0.3 launch is the owner's call.
+- Live since 2026-11-15, each in its own repository: the site https://bived-apps.github.io/ (`bived-apps.github.io`),
+  the organization page (`.github`, `profile/README.md`), the registry page (`registry`, the cube from one project).
+  The App's logo is the flower; the organization picture is the B; the social card is uploaded.
 - App `bive-agents` (ID 5761164): agents act as `bive-agents[bot]` in the sessions the broker serves
   (`docs/GITHUB-APP.md`); the other sessions act as the owner and must sign. OpenCode is 2.3.0 (guard, token counter,
   schedules re-checked live 2026-11-15).
-- Run once on `main`: #229's close-issues workflow only activates there. Desktop sessions in a new worktree start from
-  `main`, so they see 0.2.1 rules only after the release to `main`.
-- Coordinator since 2026-11-15: `anthropic/claude-opus-5-5`. When the free `opencode/` models hit their usage limit,
-  `opencode-go/beam-free` (listed as a delegate by #348) did the delegate work. Owner uploads left: the social card,
-  an icon from `docs/design/icon/`.
+- Coordinator since 2026-11-15: `anthropic/claude-opus-5-5`, started as OpenCode's `build`; next sessions pick the
+  `coordinator` agent (#376: the counter then reports the role). The `opencode/` free models share one usage limit;
+  `opencode-go/beam-free` and the OpenRouter model are not in it. FiFoo's migration (FiFoo#1813): the owner chose (a).
 - Open owner questions: a live dry run of `bive_coordinator_merge` on a scratch repo; bench sequencing (bench PRs #72, #74
   are open and its history is frozen); #120 who merges before a bench pass; #110 remark 6.
 
@@ -91,8 +87,9 @@ It develops itself with its own flow: this repository is the template and its fi
 
 ## Session log
 
-- **2026-11-15, coordinator anthropic/claude-opus-5-5**: owner's live checks recorded (#236, #239); relook finished
-  (#329–#334, #347: companions, board, option D); field report #345 for 0.3; core tier 532 pass.
+- **2026-11-15, coordinator anthropic/claude-opus-5-5**: 0.2.1 released (`v0.2.1`); the mark, wordmark, flower and
+  social card; the site, organization and registry pages in their repositories; the field-report rules (#374, #378),
+  the counter's role and canonical model (#379), the temp-folder rule for every role (#380); 0.2.2 prepared.
 - **2026-11-15, coordinator opencode-go/beam-free**: relook batch merged (#326, #327, #328); #336 and #339 filed;
   #338 and #340 list Opus and beam-free as coordinators; FiFoo migration plan filed (FiFoo#1813).
 - **2026-11-15, coordinator opencode/minimax-m3.1-flash-free**: options C + D for the token broker (#299, #313, #314);
