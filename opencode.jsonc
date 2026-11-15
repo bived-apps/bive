@@ -37,6 +37,10 @@
     "supervisor": {
       "disabled": true
     },
+    // Compaction summaries use a free model, whatever the session's model (owner, 2026-11-15; opencode.ai/docs/compaction).
+    "compaction": {
+      "model": "opencode/minimax-m3.1-flash-free"
+    },
     "delegate": {
       "description": "Bive delegate: one issue, one worktree; pushes its branch and reports to the coordinator.",
       "mode": "primary",
