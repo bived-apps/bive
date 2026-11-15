@@ -49,9 +49,10 @@ It develops itself with its own flow: this repository is the template and its fi
 
 - Milestone 0.2.1 (`https://github.com/bived-apps/bive/milestone/5`) is the queue; 0.3 (milestone 6) holds #231, #243,
   #245, #254. Closed in 0.2.1 since 2026-11-14: #222, #223, #232, #235, #238 and #240 (declined), #242, #244, #261, #278.
-- Open: #236 (git push as the App: change in the owner's private helper, owner's live push test next); #239 (live
-  denial of a non-owner update of `main`, owner-run with the App token); #237 (merge PR #310, the actor table that
-  `AGENTS.md` › Signed actions already links); #299 (options C + D designed and decided in the issue, code next, owner reviews); #241 tracker.
+- Open: #236 (git push as the App: the change in the owner's private helper is written, helper PR #3; the owner's live
+  push test next); #239 (live denial of a non-owner update of `main`, owner-run with the App token); #237 (PRs #310 and
+  #311 merged; the issue closes itself once the close workflow reaches `main`); #299 (options C + D written, helper
+  PR #3 for the owner's review, then the live tests); #241 tracker.
 - App `bive-agents` (ID 5761164): agents act as `bive-agents[bot]` only in sessions started with an App token
   (`docs/GITHUB-APP.md`); other sessions act as the owner and must sign. OpenCode is 2.3.0 (guard, token counter,
   schedules re-checked live 2026-11-15).
@@ -71,6 +72,8 @@ It develops itself with its own flow: this repository is the template and its fi
   after message options, `echo`, `grep` or a non-writing inline script (#225); heredoc bodies are removed first.
 - `Closes #N` acts on `main` only: close an issue after the merge into `bived` once the merge commit is reachable
   (#229's workflow does it once on `main`). Merge method `merge` only (squash loses the author).
+- `opencode service set env …` restarts the background service: it kills the session that runs it (an agent session
+  that sets it dies with the tool call). The owner runs it, from their own terminal.
 - `bive-merge-gate` runs on `pull_request_target`: its workflow file comes from `main`, its script from the PR's base.
   A change to its job name or script must reach `main` and the integration branches together.
 - A prompt with a human step must end its turn there (`ask`/`show me` without "stop and wait" is run through).
@@ -88,3 +91,5 @@ It develops itself with its own flow: this repository is the template and its fi
   #232 resolver, #227 policy, #244 skill); delegate `openai/gpt-6-luna` reports need the template asked explicitly.
 - **2026-11-15, coordinator anthropic/claude-opus-5-5**: #235 App created and tested, #242 all cases verified, free
   team trialled on #222/#223/#243; hand-over to the free coordinator `opencode/minimax-m3.1-flash-free` (no OpenAI).
+- **2026-11-15, coordinator opencode/minimax-m3.1-flash-free**: options C + D written for the owner's private helper
+  (PR #3 there, 8 tests); `docs/GITHUB-APP.md`, ROADMAP and this handoff updated (#236, #299, #241).
