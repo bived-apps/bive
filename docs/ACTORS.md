@@ -27,3 +27,9 @@ The author of a change never authorizes its merge; only the owner's label does.
 None found. Open point for the coordinator: the "Immediate rule, before the App exists" bullet of
 `AGENTS.md` › Inviolable prompts (issue #130) still speaks of a rule that applied before the App existed, so its
 wording needs a coordinator update (the App now exists; not every session uses it).
+
+## Role markers (#332)
+
+The pull request template and the task form show each role by a text marker, the README's glyph as an emoji so it
+shows in any GitHub view: 🔑 owner, 🔍 advisor, 📋 coordinator, 💻 delegate. A marker helps a reader; it proves
+nothing. The signature (`— <role> <provider/model>`) and the Git author stay what tells the roles apart.

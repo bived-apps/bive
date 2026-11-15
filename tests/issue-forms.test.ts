@@ -221,3 +221,11 @@ test("config.yml states the blank-issue policy explicitly and keeps a generic ro
   const url = String(first.url)
   assert.match(url, /^https:\/\/github\.com\/bived-apps\/bive\/(?:blob\/[^/]+\/docs\/COORDINATING\.md|discussions)$/, "the contact link routes to docs/COORDINATING.md or Discussions")
 })
+
+test("the pull request template ends with a signed line and the four role markers (#332)", () => {
+  const t = read(".github/pull_request_template.md")
+  assert.match(t, /^## Signed$/m)
+  for (const m of ["🔑 owner", "🔍 advisor", "📋 coordinator", "💻 delegate"]) assert.ok(t.includes(m), `no marker ${m}`)
+  assert.match(t, /^— 📋 coordinator <provider\/model>$/m)
+  assert.ok(t.startsWith("Closes #N"), "the body still starts with Closes")
+})
