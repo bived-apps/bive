@@ -26,10 +26,10 @@ It develops itself with its own flow: this repository is the template and its fi
 
 ## Decisions (owner, dated; reasoning in the history link)
 
-- 2026-11-15 free team, no OpenAI (supersedes the lines below): coordinator `opencode/minimax-m3.1-flash-free`;
-  delegates `opencode/iceman-free`, `opencode/deepseek-v4.1-flash-free`, `opencode/glm-5.3-flash-free`,
-  `opencode/mimo-v2.6-flash-free`, `opencode/nemotron-3.5-super-vl-free`. One-tool-call probes the same day; chosen from
-  three real tasks (#222, #223, #243): minimax best substance, iceman most disciplined, flint dropped (unverified claims).
+- 2026-11-15 free team, second (supersedes the lines below; the first free team hit the free usage limit): delegates
+  `opencode-go/beam-free`, `opencode/iceman-free` (both proven that day), then `opencode/longcat-2.5-free`,
+  `opencode/nemotron-3.5-lightning-free`, `openrouter/nvidia/nemotron-3-ultra-550b-a55b:free` (one-call probe only: a
+  small real task first), `anthropic/claude-fable-5-2` last (drawings). Coordinator `anthropic/claude-opus-5-5`.
 - 2026-11-14 correction: the 2026-11-13 #262 work was written by Sonnet 5.5, not Sol; no Sol review happened. Protected
   files still need an independent review. Pushed history is not rewritten; sign `coordinator anthropic/claude-sonnet-5-5`.
 - 2026-11-13 #262: owner-only supervisory authority, question-only advisor, `main` owner-only, opt-in coordinator merges
