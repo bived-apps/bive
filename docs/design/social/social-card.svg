@@ -2,7 +2,7 @@
   <title id="t">Bive</title>
   <desc id="d">Bive: agents write, you decide. The four roles of Bive - owner, advisor, coordinator, delegate - as glyphs in a row.</desc>
   <rect width="1280" height="640" fill="#F7F5F0"/>
-  <g transform="translate(200, 100) scale(0.390625)">
+  <g transform="translate(130, 79) scale(0.816)">
     <defs>
       <filter id="m-sh" x="-30%" y="-30%" width="160%" height="160%">
         <feOffset in="SourceAlpha" dx="4" dy="5" result="o"/>
@@ -93,8 +93,8 @@
       <use href="#m-odet" transform="translate(221.6,364) scale(0.68)"/>
     </g>
   </g>
-  <text x="780" y="250" text-anchor="middle" font-family="system-ui, -apple-system, Segoe UI, sans-serif" font-size="180" font-weight="700" fill="#1F2430">Bive</text>
-  <text x="780" y="330" text-anchor="middle" font-family="system-ui, -apple-system, Segoe UI, sans-serif" font-size="48" fill="#5B6270">Agents write, you decide.</text>
+  <text x="870" y="250" text-anchor="middle" font-family="system-ui, -apple-system, Segoe UI, sans-serif" font-size="180" font-weight="700" fill="#1F2430">Bive</text>
+  <text x="870" y="330" text-anchor="middle" font-family="system-ui, -apple-system, Segoe UI, sans-serif" font-size="48" fill="#5B6270">Agents write, you decide.</text>
   <g transform="translate(376,400) scale(4)" fill="none" stroke="#1F2430" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
     <circle cx="12" cy="12" r="11" stroke="#B8860B" stroke-width="1.5"/>
     <circle cx="8.5" cy="12" r="3"/>
