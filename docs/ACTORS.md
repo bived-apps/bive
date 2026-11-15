@@ -1,21 +1,21 @@
 # Actors (issue #237)
 
-GitHub shows every agent action as `bive-agents[bot]` (`actor.type: "Bot"`, `performed_via_github_app`) and the
-owner's login for the owner; the role is proven by the Git author (`coordinator <provider/model>` / `delegate
-<provider/model>`) and the signed comment suffix (`— <role> <provider/model>`). A session started without the
-App token acts as the owner's login, so its comments must still be signed.
+GitHub shows every agent action as `bive-agents[bot]` with `actor.type: "Bot"`, and the owner's login for the
+owner; the role is proven by the Git author (`coordinator <provider/model>` / `delegate <provider/model>`) and the
+signed comment suffix (`— <role> <provider/model>`). A session started without the App token acts as the
+owner's login, so its comments must still be signed.
 
 ## End to end
 
 | Step | Who acts | GitHub actor | Proof of role |
 | --- | --- | --- | --- |
-| Claim the issue | coordinator | `bive-agents[bot]` | signed comment |
-| Implement and push the branch | delegate | `delegate <provider/model>` author | push: existing git credentials, #236 |
-| Open the pull request | coordinator only, never the delegate | `bive-agents[bot]` | delegate author + report |
-| Review and hand over | coordinator | `bive-agents[bot]` | Ready to merge comment; no App approval (#238 declined) |
-| Apply the dated label | owner only | the owner's login | the gate refuses an App-applied label |
+| Claim the issue | coordinator | `bive-agents[bot]` (App) or owner | signed comment |
+| Implement and push the branch | delegate | git credentials (owner, #236) | `delegate <provider/model>` |
+| Open the pull request | coordinator only, never the delegate | `bive-agents[bot]` (App) or owner | delegate author |
+| Review and hand over | coordinator | `bive-agents[bot]` (App) or owner | Ready to merge comment; no App approval |
+| Apply the dated label | owner only | the owner's login | the gate refuses an App label |
 | Merge | owner only | the owner's login | the GitHub merge commit |
-| Close the issue after a reachable merge commit | coordinator | `bive-agents[bot]` | merge commit reachable from base |
+| Close the issue | coordinator | `bive-agents[bot]` (App) or owner | merge commit reachable from base |
 | An advisor answers | advisor | no GitHub action | advice is not authorization |
 
 ## No self-approval
@@ -24,5 +24,6 @@ The author of a change never authorizes its merge; only the owner's label does.
 
 ## Conflicts with current rules
 
-None found. Open point for the coordinator: the `AGENTS.md` wording assumes per-role Apps (issue #237 adapts it to the
-one App, owner decision 2026-11-14).
+None found. Open point for the coordinator: the "Immediate rule, before the App exists" bullet of
+`AGENTS.md` › Inviolable prompts (issue #130) still speaks of a rule that applied before the App existed, so its
+wording needs a coordinator update (the App now exists; not every session uses it).
