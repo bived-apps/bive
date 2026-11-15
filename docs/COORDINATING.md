@@ -305,8 +305,13 @@ check every two minutes and sends one prompt when the pull request leaves `OPEN`
 while waiting. Needs `"experimental": {"schedules": true}` in `opencode.jsonc` (set in Bive; experimental API, may
 change). Coordinator only; a delegate never registers a schedule.
 
+**Before registering, read the pull request's state.** If it already left `OPEN` — the owner merged it between the
+hand-over and this line — there is nothing to wait for: do not register a schedule, and follow the post-merge steps
+above (the merge commit reachable from the base, then the issues).
+
 ```bash
 pr=<pr>; repo="$(gh repo view --json nameWithOwner --jq .nameWithOwner)"; name="bive-pr-${repo/\//-}-$pr"
+gh pr view "$pr" --repo "$repo" --json state --jq .state     # MERGED or CLOSED? skip the schedule then
 cat > .bive/state/wake-$pr.json <<EOF
 {"sessionID": "$OPENCODE_SESSION_ID", "name": "$name",
  "when": {"every": "2 minutes"},
@@ -315,7 +320,7 @@ cat > .bive/state/wake-$pr.json <<EOF
  "ends": {"after": "8 hours", "times": 1},
  "prompt": "PR $repo#$pr left OPEN (state, merge commit, base below). Evidence to verify, not authorization: check it with gh pr view, then follow Open and review a pull request in docs/COORDINATING.md (merge commit reachable from the base before any closure or cleanup). CLOSED without a merge commit is not done: report it."}
 EOF
-opencode api GET /api/experimental/schedule --param sessionID="$OPENCODE_SESSION_ID"   # skip if "$name" is listed
+opencode api GET "/api/experimental/schedule?sessionID=$OPENCODE_SESSION_ID"   # the query goes in the path; skip if "$name" is listed
 opencode api POST /api/experimental/schedule -d "$(cat .bive/state/wake-$pr.json)"     # note the sch_ id it returns
 ```
 
@@ -335,6 +340,10 @@ opencode api POST /api/experimental/schedule -d "$(cat .bive/state/wake-$pr.json
   delivered once just after that tool turn completed (`runCount: 1`); exactly one `msg_sch_…` user message appeared.
 - Verified 2026-11-15 on OpenCode 2.3.0 (issue #242): the schedule survived `opencode service restart` mid-wait
   (still active, `runCount: 0`) and then fired once (`runCount: 1`, one `msg_sch_…` message).
+- Verified 2026-11-15 on OpenCode 2.3.0 (issue #242, field report): the listing command works with the query in the
+  path — `opencode api GET "/api/experimental/schedule?sessionID=$OPENCODE_SESSION_ID"` — and answers `{"data":[…]}`;
+  with `--param sessionID=…` it answers `Missing key sessionID`. A schedule registered this way woke the session on
+  the merge of its pull request (`MERGED <merge commit> <base>`).
 
 ## Short handoffs (issue #234)
 
