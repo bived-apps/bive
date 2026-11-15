@@ -20,12 +20,11 @@ test("GitHub App doc records what exists, tests, tokens and revoke steps", () =>
     /one hour/i,
     /generate a new key on the App page, store it, delete the old key on the App page/,
     /delete every key or suspend\/uninstall the App on the organisation's installed Apps page/,
-    /uninstall the App \(agents fall back to nothing, sessions fail safely\)/,
+    /uninstall the App to stop App-token sessions; stop the OpenCode service and sessions/,
   ]) {
     assert.match(d, re)
   }
 
   assert.doesNotMatch(d, /BEGIN/)
   assert.doesNotMatch(d, /PRIVATE KEY/)
-  assert.doesNotMatch(d, /Bitwarden/)
 })

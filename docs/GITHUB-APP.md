@@ -31,7 +31,8 @@ Desktop's background service still uses the owner's account (options C + D, #299
 
 - **Rotate**: generate a new key on the App page, store it, delete the old key on the App page.
 - **Revoke at once**: delete every key or suspend/uninstall the App on the organisation's installed Apps page.
-- **Stop all agent activity**: uninstall the App (agents fall back to nothing, sessions fail safely).
+- **Stop all agent activity**: uninstall the App to stop App-token sessions; stop the OpenCode service and sessions
+  (`opencode service stop`) to stop the others.
 
 None of these needs an agent.
 
