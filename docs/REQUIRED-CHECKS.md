@@ -193,6 +193,48 @@ name of its own, or the requirement matches several checks (#94). Until that con
 gate is only as strong as the owner's procedure. No file in this repository proves that it exists; check the
 settings.
 
+## Owner rollout and denial matrix (issue #239)
+
+One GitHub App for all agents (`bive-agents`), installed on `bived-apps/bive` only (owner decision, 2026-11-14). There
+is no per-role App and no supervisor App: the owner alone merges, and the gate proves the owner applied the dated
+label. This section separates what GitHub enforces natively from what Bive's gate enforces, and records the denials
+the owner tested.
+
+### Native protection (rulesets) versus the gate
+
+GitHub rulesets, in the repository's settings (the owner's configuration):
+
+- **Integration ruleset** on `bived` and `milestone/*`: deletion refused, non-fast-forward refused, a pull request is
+  required, merge method `merge` only, required checks `tests` and `merge-gate`.
+- **`main` ruleset**: the same, plus Restrict updates with the Repository admin role as the only bypass, pull requests
+  only.
+- **No bypass for any App**: no rule names an App, so `bive-agents` is refused like any other actor.
+
+The gate `bive-merge-gate` enforces the dated label `bive-merge-authorized-until-YYYY-MM-DD` applied by the owner's
+own account: a label applied by a Bot or an App is refused. The rulesets block what GitHub can block; the gate blocks
+the authorization only the owner can give.
+
+### Denial matrix
+
+| Action | Actor | Expected | Verified |
+| --- | --- | --- | --- |
+| An agent applies the dated label | App | refused by the gate | verified 2026-11-14 on scratch PR #300 |
+| An agent comments | App | shows as `bive-agents[bot]` | verified 2026-11-14 |
+| An agent merges into `bived` with a green gate | App | needs the owner's dated label first | by design |
+| A non-owner updates `main` | App | refused by Restrict updates | configured 2026-11-14, live denial not yet tested |
+| A force push or a branch deletion on `bived` or `main` | anyone | refused by the rulesets | configured 2026-11-14 |
+| The owner merges after labelling | owner | passes | verified on every merged PR |
+
+`App` is an installation token of `bive-agents` (`docs/GITHUB-APP.md`); the owner applies the dated label.
+
+### Recovery without force
+
+- A wrong merge is reverted by a new pull request running `git revert -m 1 <merge>`: never by force push, never by
+  rewriting history.
+- To stop the agents: uninstall the App (`docs/GITHUB-APP.md`) for the sessions that hold an App token, and stop
+  the OpenCode service and its sessions (`opencode service stop`) for those running on the owner's own account;
+  the rulesets and the gate stay in place.
+
 ## Labels the flow uses (minimum)
 
 Four labels, no more. There is no started, in-progress, done, blocked or callback label: state is the milestone, the
