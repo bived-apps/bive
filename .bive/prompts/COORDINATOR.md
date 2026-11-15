@@ -88,7 +88,9 @@ it: only the owner puts it on a pull request.
    `--fail-fast`, which the gate's expected red would stop): a red check other than `bive-merge-gate / merge-gate` is
    yours to read and brief again. When every point holds and every other check is green: approve
     (`gh pr review <pr> --approve`) and comment `Ready to merge` with the checks you ran; the owner merges (with a
-    merge commit, which keeps each commit's author). You never close PRs or push to the integration branch.
+    merge commit, which keeps each commit's author). **After the hand-over, register the wake-up schedule on your own
+    session (`docs/COORDINATING.md` › *Be woken when a pull request is merged*), or say in the hand-over why you do
+    not: a merge nobody watches for leaves the session idle.** You never close PRs or push to the integration branch.
     Merges are denied by default. Only the explicit, validated owner opt-in for named sub-coordinator PRs in
     `AGENTS.md` › Roles may permit an exceptional merge; never your own PR or work you authored. Until that path is
     installed, the general merge denial stands. Use only `bive_coordinator_merge`, never direct shell/API merges;
