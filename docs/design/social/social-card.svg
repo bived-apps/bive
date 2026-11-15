@@ -2,6 +2,7 @@
   <title id="t">Bive</title>
   <desc id="d">Bive: agents write, you decide. The four roles of Bive - owner, advisor, coordinator, delegate - as glyphs in a row.</desc>
   <rect width="1280" height="640" fill="#F7F5F0"/>
+  <g transform="translate(0,30)">
   <g transform="translate(165.9, 18.6) scale(0.7447)">
     <defs>
       <filter id="m-sh" x="-30%" y="-30%" width="160%" height="160%">
@@ -112,5 +113,6 @@
   <g transform="translate(808,400) scale(4)" fill="none" stroke="#6D28D9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
     <rect x="4" y="5" width="16" height="11" rx="1.5"/>
     <path d="M2 19.5h20"/>
+  </g>
   </g>
 </svg>
