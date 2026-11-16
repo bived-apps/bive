@@ -95,7 +95,6 @@ It develops itself with its own flow: this repository is the template and its fi
 ## Session log
 
 - **2026-11-16, coordinator anthropic/claude-opus-5-5**: `pull_request_target` allowed by repository and organisation
-  policies (#404–#406); install URL (#407); one violation report per process (#408); 0.2.4 released; #411, #413, 0.2.5 prepared; the registry's
-  violation counts reset to 0 (pre-#408 upper bounds), the projects updated.
+  policies (#404–#406); install URL (#407); one violation report per process (#408); 0.2.4 released; 0.2.5 (#411, #413), registry violations reset to 0.
 - **2026-11-15, coordinator anthropic/claude-opus-5-5**: #344 live report; #392–#395; 0.2.1–0.2.3 released; the look,
   the field-report rules (#374, #378), the counter's role and model (#379), the temp-folder rule (#380).
