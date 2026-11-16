@@ -76,7 +76,7 @@ test("the plugin warns once with that message and the docs carry the troubleshoo
 })
 
 // #376: the registry counts per Bive role and canonical model.
-import { biveRole, canonicalModel } from "../.opencode/plugins/token-ratio/lib.ts"
+import { biveRole, canonicalModel, claimViolations } from "../.opencode/plugins/token-ratio/lib.ts"
 describe("biveRole", () => {
   test("a Bive agent wins, then BIVE_ROLE, then the role file, then a delegate's worktree", () => {
     assert.equal(biveRole("coordinator", undefined, undefined, "/w/bive"), "coordinator")
@@ -99,5 +99,23 @@ describe("canonicalModel", () => {
     assert.equal(canonicalModel("opencode-go/beam-free", aliases), "opencode-go/beam-free")
     assert.equal(canonicalModel("claude-agent/opus", undefined), "claude-agent/opus")
     assert.equal(canonicalModel("claude-agent/opus", "{not json"), "claude-agent/opus")
+  })
+})
+
+describe("claimViolations (field report, 2026-11-16)", () => {
+  test("sessions sharing one process report each refusal once", () => {
+    const g: { __biveViolations?: number, __biveViolationsReported?: number } = {}
+    assert.equal(claimViolations(g), 0)                  // nothing refused yet
+    g.__biveViolations = 225
+    assert.equal(claimViolations(g), 225)                // the first session's report
+    assert.equal(claimViolations(g), 0)                  // a new session (another plugin instance) reports nothing again
+    g.__biveViolations = 230
+    assert.equal(claimViolations(g), 5)                  // only the refusals since the last report
+    assert.equal(claimViolations(g), 0)
+  })
+  test("the plugin claims through the process-wide helper, not a per-instance counter", () => {
+    const src = readFileSync(new URL("../.opencode/plugins/token-ratio/index.ts", import.meta.url), "utf8")
+    assert.match(src, /claimViolations\(g\)/)
+    assert.doesNotMatch(src, /violationsSeen/)
   })
 })
