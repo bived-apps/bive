@@ -200,7 +200,9 @@ settings.
 2026-12-02 ([GitHub's page](https://gh.io/securely-using-pull_request_target#default-policy-for-pull_request_target)).
 Without an allow policy the gate never runs, its required check never turns green, and nothing merges. Private and
 internal repositories are not affected. At install, and once for an existing public app, the owner opens Settings →
-Actions → Policies → New policy and sets:
+Actions → Policies → New policy and sets the options below. In an organisation, the owner can set it once in the
+organisation's settings instead (Target repositories: **All repositories**). That also covers every future repository
+made from the template.
 
 - Enforcement **Active**.
 - Target **Include by pattern** `.github/workflows/bive-merge-gate.yml` only, so every other workflow keeps GitHub's
@@ -209,7 +211,9 @@ Actions → Policies → New policy and sets:
 
 Then check Policy insights. The gate's use is the safe one GitHub describes: it checks out the base commit, never the
 pull request's code, with read-only permissions and no secrets. Do not move it to `pull_request`: a pull request
-would then run its own edited gate. Bive's own repository has this policy since 2026-11-16.
+would then run its own edited gate. Since 2026-11-16, Bive's organisation has this policy for all repositories
+(14528). The repository's own policy (14515) is now redundant: it is kept as a fallback in case the repository leaves
+the organisation.
 
 ## Owner rollout and denial matrix (issue #239)
 
