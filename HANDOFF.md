@@ -49,7 +49,7 @@ It develops itself with its own flow: this repository is the template and its fi
 ## Tasks
 
 - Released on 2026-11-15: 0.2.1 (gate 3), 0.2.2 (the look, the field-report rules), 0.2.3 (the flow picture and its
-  Mermaid twin agree, #383). 0.3 (milestone 6) holds #120, #231, #243, #245, #254, #336, #344. Gate 1 approved (2026-11-15): batches A,
+  Mermaid twin agree, #383); on 2026-11-16: 0.2.4 (one violation report per process, #408; the gate's policy, #404). 0.3 (milestone 6) holds #120, #231, #243, #245, #254, #336, #344. Gate 1 approved (2026-11-15): batches A,
   B, C of #254. A done (#387, setup and stop defaults, #336's baseline). B done: `label` mode (#391), live-tested once
   on a scratch repo (#344, open for the opt-in). Next C. Field reports #392–#394; tool scope for projects: #395.
 - Live since 2026-11-15, each in its own repository: the site https://bived-apps.github.io/ (`bived-apps.github.io`),
@@ -93,7 +93,7 @@ It develops itself with its own flow: this repository is the template and its fi
 
 ## Session log
 
-- **2026-11-15, coordinator anthropic/claude-opus-5-5**: #344 live report; #392–#395 filed; FiFoo#1813 turn 2.
-- **2026-11-15, coordinator anthropic/claude-opus-5-5**: 0.2.1 released (`v0.2.1`); the mark, wordmark, flower and
-  social card; the site, organization and registry pages in their repositories; the field-report rules (#374, #378),
-  the counter's role and canonical model (#379), the temp-folder rule for every role (#380); 0.2.2 and 0.2.3 released.
+- **2026-11-16, coordinator anthropic/claude-opus-5-5**: `pull_request_target` allowed by repository and organisation
+  policies (#404–#406); install URL (#407); one violation report per process (#408); 0.2.4 prepared.
+- **2026-11-15, coordinator anthropic/claude-opus-5-5**: #344 live report; #392–#395; 0.2.1–0.2.3 released; the look,
+  the field-report rules (#374, #378), the counter's role and model (#379), the temp-folder rule (#380).
