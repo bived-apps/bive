@@ -124,7 +124,8 @@ the close workflow and the issue forms (#228–#230), the team rules (#223) and 
 (#235–#239, #299) closed with the owner's live checks of 2026-11-15, and the relook (#278) the same day. Released to
 `main` at gate 3 (2026-11-15), then 0.2.2 (the look, the field-report rules, #376, #345) and
 0.2.3 (the flow picture and its Mermaid twin agree, #383) the same day; 0.2.4 on 2026-11-16 (violations reported
-once per process, #408; the merge gate allowed in public repositories, #404). Next: 0.3
+once per process, #408; the merge gate allowed in public repositories, #404), then 0.2.5 (models under their real names, #411; only
+the guard's refusals count as violations, #413). Next: 0.3
 (GitHub milestone 0.3, plan #254). Keep #226 as the bounded process fallback.
 
 ### Done in bivedream so far (2026-11-12)
