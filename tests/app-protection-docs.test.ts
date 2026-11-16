@@ -87,7 +87,7 @@ test("the matrix records the agent comment, the agent merge and the owner's merg
   const all = rows(read(DOC))
   const comment = all.find((r) => /comment/i.test(r))
   assert.ok(comment, "a row covers an agent comment")
-  assert.match(comment, /bive-agents\[bot\]/)
+  assert.match(comment, /bived-agents\[bot\]/)
   assert.match(comment, /verified 2026-11-14/)
   const merge = all.find((r) => /merges into `bived`/.test(r))
   assert.ok(merge, "a row covers an agent merge")

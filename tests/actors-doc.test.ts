@@ -6,7 +6,7 @@ const read = (p: string) => fs.readFileSync(new URL(`../${p}`, import.meta.url),
 const DOC = read("docs/ACTORS.md")
 
 test("the actors doc has the paragraph, the table, no self-approval and conflicts", () => {
-  assert.match(DOC, /bive-agents\[bot\]/)
+  assert.match(DOC, /bived-agents\[bot\]/)
   assert.match(DOC, /## End to end/)
   assert.match(DOC, /## No self-approval/)
   assert.match(DOC, /## Conflicts with current rules/)

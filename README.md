@@ -65,7 +65,7 @@ of `.bive/templates/`.
 Existing project: paste this into OpenCode at the root of your repository:
 
 ```text
-Install https://github.com/jcherfils/bive here, in two turns. Turn 1, read only: write nothing. List what you would
+Install https://github.com/bived-apps/bive here, in two turns. Turn 1, read only: write nothing. List what you would
 add (.bive/, .opencode/plugins/, .github/, docs/, the .gitignore line; opencode.jsonc, AGENTS.md, HANDOFF.md and
 ROADMAP.md when missing, the last two from .bive/templates/) and show the diff of every file that exists here and would change (AGENTS.md and
 opencode.jsonc merged, this project's rules and private paths kept). Then ask me, in one message: this project's

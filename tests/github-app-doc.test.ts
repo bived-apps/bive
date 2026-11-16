@@ -15,7 +15,7 @@ test("GitHub App doc records what exists, tests, tokens and revoke steps", () =>
     /^## Tokens for a session \(option A, #299\)/m,
     /^## Revoke, rotate, stop/m,
     /\b5761164\b/,
-    /`bive-agents`/,
+    /`bived-agents`/,
     /refused by bive-merge-gate/,
     /one hour/i,
     /generate a new key on the App page, store it, delete the old key on the App page/,
