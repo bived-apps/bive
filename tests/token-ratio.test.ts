@@ -95,10 +95,22 @@ describe("canonicalModel", () => {
   test("a known route gives its canonical name", () => {
     assert.equal(canonicalModel("claude-agent/opus", aliases), "anthropic/claude-opus-5-5")
   })
-  test("an unknown route, a missing or a corrupt file give the route back", () => {
+  test("an unknown route gives the route back", () => {
     assert.equal(canonicalModel("opencode-go/beam-free", aliases), "opencode-go/beam-free")
-    assert.equal(canonicalModel("claude-agent/opus", undefined), "claude-agent/opus")
-    assert.equal(canonicalModel("claude-agent/opus", "{not json"), "claude-agent/opus")
+    assert.equal(canonicalModel("opencode-go/beam-free", undefined), "opencode-go/beam-free")
+    assert.equal(canonicalModel("claude-agent/mystery", undefined), "claude-agent/mystery")
+    assert.equal(canonicalModel("", aliases), "")
+  })
+  test("claude-agent routes get Anthropic's name without an alias file, or with a corrupt one", () => {
+    assert.equal(canonicalModel("claude-agent/opus", undefined), "anthropic/claude-opus-5-5")
+    assert.equal(canonicalModel("claude-agent/haiku", aliases), "anthropic/claude-haiku-5-5")
+    assert.equal(canonicalModel("claude-agent/sonnet", "{not json"), "anthropic/claude-sonnet-5-5")
+    assert.equal(canonicalModel("claude-agent/fable", undefined), "anthropic/claude-fable-5-2")
+    assert.equal(canonicalModel("claude-agent/claude-opus-5", undefined), "anthropic/claude-opus-5")
+  })
+  test("the alias file wins over the built-in names", () => {
+    const own = JSON.stringify({ aliases: { "anthropic/claude-opus-6": "claude-agent/opus" } })
+    assert.equal(canonicalModel("claude-agent/opus", own), "anthropic/claude-opus-6")
   })
 })
 
