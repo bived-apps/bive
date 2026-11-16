@@ -98,3 +98,16 @@ export function canonicalModel(route: string, aliasesText: string | undefined): 
   }
   return route
 }
+
+// The guard's refusals not yet reported, claimed once per process. The worktree-guard plugin counts every refusal in
+// one process-wide counter (`__biveViolations`); the reported part must be process-wide too, or each new session's
+// plugin instance would start at 0 and report the whole running total again (a field report: 230 refusals reported as
+// about 10,000 when some sixty sessions shared one process). Returns the new refusals and marks them reported.
+export type ViolationCounters = { __biveViolations?: number, __biveViolationsReported?: number }
+export function claimViolations(g: ViolationCounters): number {
+  const total = g.__biveViolations ?? 0
+  const reported = g.__biveViolationsReported ?? 0
+  const fresh = total > reported ? total - reported : 0
+  g.__biveViolationsReported = Math.max(total, reported)
+  return fresh
+}
