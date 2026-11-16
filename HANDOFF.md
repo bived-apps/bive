@@ -49,7 +49,8 @@ It develops itself with its own flow: this repository is the template and its fi
 ## Tasks
 
 - Released on 2026-11-15: 0.2.1 (gate 3), 0.2.2 (the look, the field-report rules), 0.2.3 (the flow picture and its
-  Mermaid twin agree, #383); on 2026-11-16: 0.2.4 (one violation report per process, #408; the gate's policy, #404). 0.3 (milestone 6) holds #120, #231, #243, #245, #254, #336, #344. Gate 1 approved (2026-11-15): batches A,
+  Mermaid twin agree, #383); on 2026-11-16: 0.2.4 (one violation report per process, #408; the gate's policy, #404), 0.2.5 (models under their real names, #411;
+  only the guard's refusals count as violations, #413; registry violations reset to 0). 0.3 (milestone 6) holds #120, #231, #243, #245, #254, #336, #344. Gate 1 approved (2026-11-15): batches A,
   B, C of #254. A done (#387, setup and stop defaults, #336's baseline). B done: `label` mode (#391), live-tested once
   on a scratch repo (#344, open for the opt-in). Next C. Field reports #392–#394; tool scope for projects: #395.
 - Live since 2026-11-15, each in its own repository: the site https://bived-apps.github.io/ (`bived-apps.github.io`),
@@ -94,6 +95,7 @@ It develops itself with its own flow: this repository is the template and its fi
 ## Session log
 
 - **2026-11-16, coordinator anthropic/claude-opus-5-5**: `pull_request_target` allowed by repository and organisation
-  policies (#404–#406); install URL (#407); one violation report per process (#408); 0.2.4 prepared.
+  policies (#404–#406); install URL (#407); one violation report per process (#408); 0.2.4 released; #411, #413, 0.2.5 prepared; the registry's
+  violation counts reset to 0 (pre-#408 upper bounds), the projects updated.
 - **2026-11-15, coordinator anthropic/claude-opus-5-5**: #344 live report; #392–#395; 0.2.1–0.2.3 released; the look,
   the field-report rules (#374, #378), the counter's role and model (#379), the temp-folder rule (#380).
