@@ -14,7 +14,8 @@ coordinator from a delegate (that stays with the guard, the role file and signed
 
 ## Tests passed
 
-- An agent comment shows as `bived-agents[bot]` (type Bot).
+- An agent comment shows as [`bived-agents[bot]`](https://github.com/apps/bived-agents) (type Bot; an App has no
+  user profile, so `github.com/bived-agents[bot]` is not a page).
 - A dated label applied with the App token (by the owner, on scratch PR #300) was refused by bive-merge-gate.
 - The owner's own label passes (every merged PR).
 

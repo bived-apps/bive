@@ -1,9 +1,10 @@
 # Actors (issue #237)
 
-GitHub shows every agent action as `bived-agents[bot]` with `actor.type: "Bot"`, and the owner's login for the
-owner; the role is proven by the Git author (`coordinator <provider/model>` / `delegate <provider/model>`) and the
-signed comment suffix (`— <role> <provider/model>`). A session started without the App token acts as the
-owner's login, so its comments must still be signed.
+GitHub shows every agent action as [`bived-agents[bot]`](https://github.com/apps/bived-agents) with
+`actor.type: "Bot"`, and the owner's login for the owner; the role is proven by the Git author
+(`coordinator <provider/model>` / `delegate <provider/model>`) and the signed comment suffix
+(`— <role> <provider/model>`). A session started without the App token acts as the owner's login, so its comments
+must still be signed.
 
 ## End to end
 
