@@ -80,8 +80,8 @@ It develops itself with its own flow: this repository is the template and its fi
   (#229's workflow does it once on `main`). Merge method `merge` only (squash loses the author).
 - `opencode service set env …` restarts the background service: it kills the session that runs it (an agent session
   that sets it dies with the tool call). The owner runs it, from their own terminal.
-- `bive-merge-gate` runs on `pull_request_target`: its workflow file comes from `main`, its script from the PR's base.
-  A change to its job name or script must reach `main` and the integration branches together.
+- `bive-merge-gate` runs on `pull_request_target` (workflow from `main`, script from the PR's base): a change to its job
+  name or script reaches `main` and the integration branches together. Public repos need an allow policy (#404).
 - A prompt with a human step must end its turn there (`ask`/`show me` without "stop and wait" is run through).
   `opencode debug agents` prints the resolved agents; a missing `{file:…}` gives an empty prompt silently.
 - Some Linux Node builds lack TypeScript support: use an official Node 22+. `.bive/registry-id` is public once committed.

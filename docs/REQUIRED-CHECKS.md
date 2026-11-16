@@ -49,6 +49,8 @@ These run on GitHub and appear as commit statuses on a pull request.
   `synchronize`, `reopened`, `labeled`, `unlabeled`. It checks out the base commit only and never runs code from the
   pull request's head; its permissions are read-only (`contents`, `pull-requests`, `checks`, `actions`: `gh pr checks`
   reads each check's workflow run, which a private repository refuses without `actions: read`, #101).
+  In a **public** repository, GitHub's default event policy blocks `pull_request_target` from 2026-12-02 unless an
+  Actions event policy allows it (#404). See *Branch protection* below.
 - **Runs**: `ubuntu-latest`, Node 22, timeout 5 minutes. It reads the pull request and the checks once, then decides.
   It never waits on a runner. If a check is pending or a required one is missing, the gate fails immediately with
   "required CI checks have not finished yet; the gate runs again when they complete"; the re-run is triggered by
@@ -192,6 +194,22 @@ job (check-run) name alone, `merge-gate` and `tests` with GitHub Actions as sour
 name of its own, or the requirement matches several checks (#94). Until that configuration exists, the
 gate is only as strong as the owner's procedure. No file in this repository proves that it exists; check the
 settings.
+
+**Public repository: allow `pull_request_target` for the gate (#404).** GitHub adds a default event policy that blocks
+`pull_request_target` in public repositories with no applicable Actions event policy. GitHub enforces it from
+2026-12-02 ([GitHub's page](https://gh.io/securely-using-pull_request_target#default-policy-for-pull_request_target)).
+Without an allow policy the gate never runs, its required check never turns green, and nothing merges. Private and
+internal repositories are not affected. At install, and once for an existing public app, the owner opens Settings →
+Actions → Policies → New policy and sets:
+
+- Enforcement **Active**.
+- Target **Include by pattern** `.github/workflows/bive-merge-gate.yml` only, so every other workflow keeps GitHub's
+  block.
+- **Restrict events** with `pull_request_target` among the allowed events.
+
+Then check Policy insights. The gate's use is the safe one GitHub describes: it checks out the base commit, never the
+pull request's code, with read-only permissions and no secrets. Do not move it to `pull_request`: a pull request
+would then run its own edited gate. Bive's own repository has this policy since 2026-11-16.
 
 ## Owner rollout and denial matrix (issue #239)
 
